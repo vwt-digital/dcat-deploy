@@ -254,8 +254,7 @@ def generate_config(context):
                         }
                 }
                 if 'deploymentProperties' in distribution:
-                    for k, v in distribution['deploymentProperties']:
-                      resource_to_append['properties'][k] = v
+                    resource_to_append['properties'].update(distribution['deploymentProperties'])
             if distribution['format'] == 'mysql-instance':
                 resource_to_append = {
                     'name': distribution['title'],
