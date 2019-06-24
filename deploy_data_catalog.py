@@ -230,7 +230,7 @@ def generate_config(context):
             if distribution['format'] == 'subscription':
                 resource_to_append = {
                     'name': distribution['title'],
-                    'type': 'gcp-types/pubsub-v1:projects.subscriptions',
+                    'type': 'pubsub.v1.subscription',
                     'properties':
                         {
                             'topic': '$(ref.'+find_topic(dataset)+'.name)',
