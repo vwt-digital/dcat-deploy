@@ -25,7 +25,7 @@ def update_subscription(args):
 
         # Iterate distributions and add to modify-push-config cmd
         for dist in distributions:
-            cmd = ['gcloud', 'pubsub', 'subscriptions', 'update']
+            cmd = ['gcloud', 'beta', 'pubsub', 'subscriptions', 'update']
             cmd.append(dist['title'])
             cmd.append('--project={}'.format(args.project_id))
 
