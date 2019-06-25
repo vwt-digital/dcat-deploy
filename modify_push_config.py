@@ -2,6 +2,7 @@ import json
 import argparse
 import subprocess
 import logging
+import shutil
 
 
 def parse_catalog(catalog):
@@ -24,7 +25,7 @@ def modify_push_config(args):
 
         # Iterate distributions and add to modify-push-config cmd
         for dist in distributions:
-            cmd.extend(['gcloud', 'alpha', 'pubsub', 'subscriptions', 'modify-push-config'])
+            cmd = ['gcloud', 'alpha', 'pubsub', 'subscriptions', 'modify-push-config']
             cmd.append(dist['title'])
             cmd.append('--project={}'.format(args.project_id))
 
