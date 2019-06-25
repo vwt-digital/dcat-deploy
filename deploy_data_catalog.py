@@ -238,7 +238,8 @@ def generate_config(context):
                         }
                 }
                 if 'deploymentProperties' in distribution:
-                    resource_to_append['properties'].update(distribution['deploymentProperties'])
+                    if 'ackDeadlineSeconds' in distribution['deploymentProperties']:
+                        resource_to_append['properties']['ackDeadlineSeconds'] = distribution['deploymentProperties']['ackDeadlineSeconds']
             if distribution['format'] == 'mysql-instance':
                 resource_to_append = {
                     'name': distribution['title'],
