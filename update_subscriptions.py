@@ -16,7 +16,7 @@ def parse_catalog(catalog):
     return distributions
 
 
-def modify_push_config(args):
+def update_subscription(args):
     try:
         with open(args.data_catalog, 'r') as f:
             catalog = json.load(f)
@@ -25,7 +25,7 @@ def modify_push_config(args):
 
         # Iterate distributions and add to modify-push-config cmd
         for dist in distributions:
-            cmd = ['gcloud', 'alpha', 'pubsub', 'subscriptions', 'modify-push-config']
+            cmd = ['gcloud', 'pubsub', 'subscriptions', 'update']
             cmd.append(dist['title'])
             cmd.append('--project={}'.format(args.project_id))
 
@@ -44,14 +44,18 @@ def modify_push_config(args):
                     cmd.append('--push-auth-token-audience={}'.format(
                         dist['deploymentProperties']['pushConfig']['oidcToken']['audience']))
 
+            if 'ackDeadlineSeconds' in dist['deploymentProperties']:
+                cmd.append('--ack-deadline={}'.format(
+                    dist['deploymentProperties']['ackDeadlineSeconds']))
+
             print('Executing command: ' + ' '.join(cmd))
             subprocess.call(cmd)
 
         if not distributions:
-            print('No subscription with pushConfig found')
+            print('No subscription found to update')
 
     except Exception as e:
-        print('Unable to modify push config: {}'.format(e))
+        print('Unable to update subscription: {}'.format(e))
 
 
 if __name__ == "__main__":
@@ -59,4 +63,4 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--data-catalog', required=True)
     parser.add_argument('-p', '--project-id', required=True)
     args = parser.parse_args()
-    modify_push_config(args)
+    update_subscription(args)
