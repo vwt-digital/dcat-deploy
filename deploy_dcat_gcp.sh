@@ -5,6 +5,8 @@
 data_catalog_path=${1}
 PROJECT_ID=${2}
 
+dcat_deploy_dir=$(dirname $0)
+
 if [ -z "${PROJECT_ID}" ]
 then
     echo "Usage: $0 <data_catalog_path> <PROJECT_ID>"
@@ -12,5 +14,5 @@ then
 fi
 
 # Deploy datasets
-catalog/scripts/deploy_data_catalog.sh ${PROJECT_ID}-dcat-deploy ${data_catalog_path} ${PROJECT_ID}
+${dcat_deploy_dir}/catalog/scripts/deploy_data_catalog.sh ${PROJECT_ID}-dcat-deploy ${data_catalog_path} ${PROJECT_ID}
 
