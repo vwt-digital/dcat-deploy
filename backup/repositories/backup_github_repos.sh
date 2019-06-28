@@ -43,7 +43,7 @@ do
    echo "Create backup of ${repo} from ${PROJECT_ID}"
    organization=$(echo $repo | cut -d/ -f1)
    reponame=$(echo $repo | cut -d/ -f2 | cut -d. -f1)
-   python-github-backup/bin/github-backup --token=${github_token} --all --organization --repository=${reponame} --output-directory=output ${organization}
+   python-github-backup/bin/github-backup --token=${github_token} --all --private --organization --repository=${reponame} --output-directory=output ${organization}
 
    destpath="gs://${dest_bucket}/github/$(date +%Y/%m/%d)/${reponame}.tgz"
    echo "Copy backup of ${repo} to ${destpath}"
