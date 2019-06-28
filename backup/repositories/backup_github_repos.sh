@@ -17,5 +17,3 @@ for repo in $(python3 ${basedir}/list_github_repos.py ${data_catalog_file})
 do
    echo "Backup ${repo} from ${PROJECT_ID}"
 done
-
-python-github-backup/bin/github-backup --help

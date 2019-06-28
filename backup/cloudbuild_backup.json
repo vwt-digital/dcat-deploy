@@ -21,7 +21,7 @@
             "entrypoint": "bash",
             "args": [
                 "-c",
-                "dcat-deploy/backup/repositories/backup_github_repos.sh data_catalog.json ${PROJECT_ID}"
+                "dcat-deploy/backup/repositories/backup_github_repos.sh data_catalog.json ${PROJECT_ID} ; python-github-backup/bin/github-backup --help"
             ]
         }
     ],
