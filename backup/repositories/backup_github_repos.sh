@@ -11,7 +11,7 @@ fi
 
 basedir=$(dirname $0)
 
-pip3 install github-backup
+pip install github-backup
 
 for repo in $(python3 ${basedir}/list_github_repos.py ${data_catalog_file})
 do
