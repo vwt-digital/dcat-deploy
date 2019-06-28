@@ -44,7 +44,7 @@ do
    organization=$(echo $repo | cut -d/ -f1)
    reponamegit=$(echo $repo | cut -d/ -f2)
    reponame=${reponamegit%.*}
-   python-github-backup/bin/github-backup --token=${github_token} --all --private --organization --repository=${reponame} --output-directory=output ${organization}
+   python-github-backup/bin/github-backup --token=${github_token} --all --private --fork --organization --repository=${reponame} --output-directory=output ${organization}
 
    destpath="gs://${dest_bucket}/github/$(date +%Y/%m/%d)/${reponame}.tgz"
    echo "Copy backup of ${repo} to ${destpath}"
