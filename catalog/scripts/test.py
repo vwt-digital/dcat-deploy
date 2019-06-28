@@ -1,6 +1,5 @@
 import sys
 import json
-from deploy_data_catalog import generate_config
 
 
 class Context:
@@ -12,5 +11,5 @@ class Context:
         }
 
 context = Context()
-context.properties['data_catalog'] = sys.argv[1]
-print(json.dumps(generate_config(context)))
+
+print(json.dumps(generate_config(context), indent=4))
