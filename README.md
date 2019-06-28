@@ -18,5 +18,5 @@ This will create the datasets as specified in the data_catalog.json file on the 
 * data catalog path: Path to the data catalog file
 * project_id: Project name of the GCP project deploying to
 
-See [Catalog deployment](deploy-dcat-gcp) for more information on the resources created on GCP from the data catalog.
+See [Catalog deployment](deploy-dcat-gcp.md) for more information on the resources created on GCP from the data catalog.
 

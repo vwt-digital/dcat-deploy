@@ -13,6 +13,13 @@ then
     exit 1
 fi
 
+############################################################
 # Deploy datasets
+############################################################
+
+# Deploy resources using deployment manager
 ${dcat_deploy_dir}/catalog/scripts/deploy_data_catalog.sh ${PROJECT_ID}-dcat-deploy ${data_catalog_path} ${PROJECT_ID}
+
+# Update pushConfig of topic subscriptions (currently not supported by Deployment Manager)
+python ${dcat_deploy_dir}/catalog/scripts/update_subscriptions.py -d ${data_catalog_path} -p ${PROJECT_ID}
 
