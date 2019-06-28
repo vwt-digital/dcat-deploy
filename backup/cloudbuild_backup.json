@@ -1,0 +1,31 @@
+{
+    "steps": [
+        {
+            "name": "gcr.io/cloud-builders/git",
+            "args": [
+                "clone",
+                "--branch=${_DCAT_DEPLOY_BRANCH_NAME}",
+                "https://github.com/vwt-digital/dcat-deploy.git"
+            ]
+        },
+        {
+            "name": "gcr.io/cloud-builders/gsutil",
+            "args": [
+                "cp",
+                "gs://${PROJECT_ID}-dcat-deployed-stg/data_catalog.json",
+                "."
+            ]
+        },
+        {
+            "name": "gcr.io/cloud-builders/gcloud",
+            "entrypoint": "bash",
+            "args": [
+                "-c",
+                "dcat-deploy/backup/repositoriesi/backup_github_repos.sh data_catalog.json ${PROJECT_ID} ; github-backup --help"
+            ]
+        }
+    ],
+    "substitutions": {
+        "_DCAT_DEPLOY_BRANCH_NAME": "master"
+    }
+}
