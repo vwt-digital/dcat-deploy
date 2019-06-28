@@ -42,7 +42,8 @@ for repo in $(python3 ${basedir}/list_github_repos.py ${data_catalog_file})
 do
    echo "Create backup of ${repo} from ${PROJECT_ID}"
    organization=$(echo $repo | cut -d/ -f1)
-   reponame=$(echo $repo | cut -d/ -f2 | cut -d. -f1)
+   reponamegit=$(echo $repo | cut -d/ -f2)
+   reponame=${reponamegit%.*}
    python-github-backup/bin/github-backup --token=${github_token} --all --private --organization --repository=${reponame} --output-directory=output ${organization}
 
    destpath="gs://${dest_bucket}/github/$(date +%Y/%m/%d)/${reponame}.tgz"
