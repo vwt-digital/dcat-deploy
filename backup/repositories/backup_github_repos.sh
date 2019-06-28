@@ -11,9 +11,11 @@ fi
 
 basedir=$(dirname $0)
 
-pip install github-backup
+git clone --branch=0.24.0 https://github.com/josegonzalez/python-github-backup.git
 
 for repo in $(python3 ${basedir}/list_github_repos.py ${data_catalog_file})
 do
    echo "Backup ${repo} from ${PROJECT_ID}"
 done
+
+python-github-backup/bin/github-backup --help
