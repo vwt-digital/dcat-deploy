@@ -37,5 +37,5 @@ do
    echo "Backup ${repo} from ${PROJECT_ID}"
    organization=$(echo $repo | cut -d/ -f1)
    reponame=$(echo $repo | cut -d/ -f2)
-   python-github-backup/bin/github-backup --token=${github_token} --all --organization --repository=${reponame%.*} --output-directory=output --prefer-ssh ${organization}
+   python-github-backup/bin/github-backup --token=${github_token} --all --organization --repository=${reponame%.*} --output-directory=output ${organization}
 done
