@@ -40,7 +40,7 @@ def update_subscription(args):
                     cmd.append('--push-auth-service-account={}'.format(
                         dist['deploymentProperties']['pushConfig']['oidcToken']['serviceAccountEmail']))
                 # Add audience to cmd
-                if 'serviceAccountEmail' in dist['deploymentProperties']['pushConfig']['oidcToken']:
+                if 'audience' in dist['deploymentProperties']['pushConfig']['oidcToken']:
                     cmd.append('--push-auth-token-audience={}'.format(
                         dist['deploymentProperties']['pushConfig']['oidcToken']['audience']))
 

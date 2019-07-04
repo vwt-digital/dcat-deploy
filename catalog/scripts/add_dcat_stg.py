@@ -5,6 +5,19 @@ from datetime import datetime
 catalogfile = open(sys.argv[1], "r")
 project=sys.argv[2]
 
+deploymentZones = {
+    "gew1": "europe-west1",
+    "gew4": "europe-west4"
+}
+
+def get_deployment_zone(projectToGetZoneFor):
+    projectNameParts = projectToGetZoneFor.split('-')
+    if len(projectNameParts) > 3:
+        return deploymentZones.get(projectNameParts[2], 'europe-west1')
+    else:
+        return 'europe-west1'
+
+
 catalog = json.load(catalogfile)
 catalog['dataset'].append({
   "identifier": "{}-dcat-deployed-stg".format(project),
@@ -29,7 +42,7 @@ catalog['dataset'].append({
     {
       "accessURL": "https://console.cloud.google.com/storage/browser/{}-dcat-deployed-stg".format(project),
       "mediaType": "application/json",
-      "deploymentZone": "europe-west1",
+      "deploymentZone": get_deployment_zone(project),
       "format": "blob-storage",
       "title": "{}-dcat-deployed-stg".format(project),
       "description": "VWT development environment at Google europe-west1 containing data catalog blob storage"
