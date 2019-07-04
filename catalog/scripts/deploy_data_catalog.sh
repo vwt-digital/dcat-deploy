@@ -53,6 +53,6 @@ then
 
     gsutil cp ${gcp_catalog} gs://${project_id}-dcat-deployed-stg/data_catalog.json
 else
-    cat ${gcp_template} test.py > ${gcp_template}.test.py
+    cat ${gcp_template} ${basedir}/test.py > ${gcp_template}.test.py
     python3 ${gcp_template}.test.py
 fi
