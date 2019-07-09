@@ -54,9 +54,9 @@ if [ -n "${backup_bucket}" ]
 then
     # Prepare backup job payload
     sed ${dcat_deploy_dir}/backup/cloudbuild_backup.json \
-        -e "s/__DEST_BUCKET__/${backup_bucket}/" \
-        -e "s/__ENCRYPTED_GITHUB_TOKEN__/${encrypted_github_token}/" \
-        -e "s/__DCAT_DEPLOY_BRANCH_NAME__/${BRANCH_NAME}/"
+        -e "s|__DEST_BUCKET__|${backup_bucket}|" \
+        -e "s|__ENCRYPTED_GITHUB_TOKEN__|${encrypted_github_token}|" \
+        -e "s|__DCAT_DEPLOY_BRANCH_NAME__|${BRANCH_NAME}|" > cloudbuild_backup_gen.json
 
     echo "Scheduling backup..."
     # Check if job already exists
@@ -76,7 +76,7 @@ then
     gcloud scheduler jobs create http ${PROJECT_ID}-run-backup \
         --schedule='0 5 * * *' \
         --uri=https://cloudbuild.googleapis.com/v1/projects/${PROJECT_ID}/builds \
-        --message-body-from-file=       \
+        --message-body-from-file=cloudbuild_backup_gen.json \
         --oauth-service-account-email=${PROJECT_ID}@appspot.gserviceaccount.com \
         --oauth-token-scope=https://www.googleapis.com/auth/cloud-platform
 fi
