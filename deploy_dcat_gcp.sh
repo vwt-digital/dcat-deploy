@@ -68,7 +68,7 @@ then
     if [ ${job_exists} -eq 0 ]
     then
         echo " + Deleting existing job ${PROJECT_ID}-run-backup..."
-        gcloud scheduler jobs delete ${PROJECT_ID}-run-backup
+        gcloud scheduler jobs delete --quiet ${PROJECT_ID}-run-backup
     fi
 
     # (Re)create job
