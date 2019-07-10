@@ -26,7 +26,7 @@ python3 ${basedir}/add_dcat_stg.py ${data_catalog} ${project_id} > ${gcp_catalog
 
 {
     echo "catalog = \\"
-    cat ${gcp_catalog}
+    sed "s/:\s*true/: True/g" ${gcp_catalog}
     cat ${basedir}/deploy_data_catalog.py
 } > ${gcp_template}
 
