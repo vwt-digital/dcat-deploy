@@ -8,15 +8,15 @@ keyring=${5}
 key=${6}
 b64_encrypted_github_token=${7}
 
-if [ -z "${PROJECT_ID}" ]
+if [ -z "${dest_bucket}" ]
 then
-    echo "Usage: $0 <data_catalog_file> <project_id> <keyring_region> <keyring> <key> <b64_encrypted_github_token>"
+    echo "Usage: $0 <data_catalog_file> <project_id> <dest_bucket> <keyring_region> <keyring> <key> <b64_encrypted_github_token>"
     exit 1
 fi
 
 basedir=$(dirname $0)
 
-if [ -n "${key}" ]
+if [ -n "${b64_encrypted_github_token}" ]
 then
     echo "decrypting github access token using key ${key}@${keyring}"
     github_token=$(echo ${b64_encrypted_github_token} | base64 -d - | gcloud kms decrypt \
@@ -46,7 +46,7 @@ do
    reponame=${reponamegit%.*}
    python-github-backup/bin/github-backup --token=${github_token} --all --private --fork --organization --repository=${reponame} --output-directory=output ${organization}
 
-   destpath="gs://${dest_bucket}/github/$(date +%Y/%m/%d)/${reponame}.tgz"
+   destpath="gs://${dest_bucket}/backup/github/${reponame}.tgz"
    echo "Copy backup of ${repo} to ${destpath}"
    cd output/repositories
    tar -zcvf ${reponame}.tgz ${reponame}
