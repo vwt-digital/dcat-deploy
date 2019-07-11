@@ -4,22 +4,14 @@
 
 data_catalog_path=${1}
 PROJECT_ID=${2}
-
-if [ -n "${3}" ]
-then
-    BRANCH_NAME=${3}
-else
-    BRANCH_NAME="master"
-fi
-
-backup_bucket=${4}
-encrypted_github_token=${5}
+BRANCH_NAME=${3}
+encrypted_github_token=${4}
 
 dcat_deploy_dir=$(dirname $0)
 
 if [ -z "${PROJECT_ID}" ]
 then
-    echo "Usage: $0 <data_catalog_path> <PROJECT_ID> <BRANCH_NAME> [backup_bucket] [encrypted_github_token]"
+    echo "Usage: $0 <data_catalog_path> <PROJECT_ID> <BRANCH_NAME> [encrypted_github_token]"
     exit 1
 fi
 
@@ -50,11 +42,19 @@ fi
 # Schedule backup job
 ############################################################
 
-if [ -n "${backup_bucket}" ]
+backup_destination=$(python3 ${dcat_deploy_dir}/backup/get_dcat_backup_destination.py ${data_catalog_path})
+
+if [ -n "${backup_destination}" ]
 then
+    if [ -z "${BRANCH_NAME}" ]
+    then
+        echo "Please specify dcat-deploy BRANCH_NAME to use for deploying scheduled backups"
+        exit 1
+    fi
+
     # Prepare backup job payload
     sed ${dcat_deploy_dir}/backup/cloudbuild_backup.json \
-        -e "s|__DEST_BUCKET__|${backup_bucket}|" \
+        -e "s|__DEST_BUCKET__|${backup_destination}|" \
         -e "s|__ENCRYPTED_GITHUB_TOKEN__|${encrypted_github_token}|" \
         -e "s|__DCAT_DEPLOY_BRANCH_NAME__|${BRANCH_NAME}|" > cloudbuild_backup_gen.json
 
