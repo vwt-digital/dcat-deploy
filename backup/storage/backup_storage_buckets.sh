@@ -1,0 +1,25 @@
+#!/bin/bash
+
+data_catalog_file=${1}
+PROJECT_ID=${2}
+dest_bucket=${3}
+
+if [ -z "${dest_bucket}" ]
+then
+    echo "Usage: $0 <data_catalog_file> <project_id> <dest_bucket>"
+    exit 1
+fi
+
+basedir=$(dirname $0)
+
+for bucket in $(python3 ${basedir}/list_storage_buckets.py ${data_catalog_file})
+do
+   echo "Create backup of ${bucket} from ${PROJECT_ID}"
+   gsutil -m rsync -d -r gs://${bucket} gs://${dest_bucket}/backup/storage/${bucket}
+
+   if [ $? -ne 0 ]
+   then
+       echo "ERROR creating backup of ${bucket} from ${PROJECT_ID}"
+       exit 1
+   fi
+done

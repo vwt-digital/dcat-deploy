@@ -239,8 +239,7 @@ def generate_config(context):
             if distribution['format'] == 'mysql-instance':
                 resource_to_append = {
                     'name': distribution['title'],
-                    'type': 'gcp-types/sqladmin-v1beta4:instances',
-                    'properties': distribution['deploymentProperties']
+                    'type': 'gcp-types/sqladmin-v1beta4:instances'
                 }
             if distribution['format'] == 'mysql-db':
                 resource_to_append = {
@@ -253,9 +252,15 @@ def generate_config(context):
                 }
 
             if resource_to_append:
+                if 'deploymentProperties' in distribution:
+                    if 'properties' not in resource_to_append:
+                        resource_to_append['properties'] = {}
+                    resource_to_append['properties'].update(distribution['deploymentProperties'])
+
                 if 'accessLevel' in dataset:
                     append_gcp_policy(resource_to_append, distribution['title'], distribution['format'], dataset['accessLevel'],
                                       context.env['project'], dataset.get('odrlPolicy'))
+
                 resources.append(resource_to_append)
 
     return {'resources': resources}
