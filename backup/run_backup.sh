@@ -15,27 +15,39 @@ then
 fi
 
 basedir=$(dirname $0)
+result=0
 
 #########################################################################
 # Backup repositories
 #########################################################################
+
+echo "Backup source code repositories"
 
 ${basedir}/repositories/backup_github_repos.sh ${data_catalog_file} ${PROJECT_ID} ${dest_bucket} ${keyring_region} ${keyring} ${key} ${b64_encrypted_github_token}
 
 if [ $? -ne 0 ]
 then
     echo "ERROR backing up source code repositories"
-    exit 1
+    result=1
 fi
 
 #########################################################################
 # Backup storage buckets
 #########################################################################
 
+echo "Backup storage buckets"
+
 ${basedir}/storage/backup_storage_buckets.sh ${data_catalog_file} ${PROJECT_ID} ${dest_bucket}
 
 if [ $? -ne 0 ]
 then
     echo "ERROR backing up storage buckets"
-    exit 1
+    result=1
 fi
+
+if [ ${result} -ne 0 ]
+then
+    echo "At least one error occurred during backup"
+fi
+
+exit $result
