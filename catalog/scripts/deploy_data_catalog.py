@@ -8,6 +8,24 @@ def find_topic(dataset):
     return None
 
 
+def update_bindings(bindings, role_to_add, member_to_add):
+    if not bindings:
+        bindings = []
+
+    binding = next((b for b in bindings if b['role'] == role_to_add), None)
+    if not binding:
+        binding = {
+            'role': role_to_add,
+            'members': []
+        }
+        bindings.append(binding)
+
+    if not member_to_add in binding['members']:
+        binding['members'].append(member_to_add)
+
+    return bindings
+
+
 resource_default_policy_bindings = {
     'blob-storage': {
         'public': [
@@ -196,6 +214,7 @@ def append_gcp_policy(resource, resource_title, resource_format, access_level, p
 
 def generate_config(context):
     resources = []
+    project_level_bindings = []
 
     for dataset in catalog['dataset']:
         for distribution in dataset['distribution']:
@@ -225,6 +244,11 @@ def generate_config(context):
                             'topic': distribution['title']
                         }
                 }
+                if 'odrlPolicy' in dataset:
+                    for permission in dataset['odrlPolicy']['permission']:
+                        if permission['target'] == distribution['title'] and permission['action'] == 'modify':
+                            # topic modify requires pubsub.editor at project level
+                            project_level_bindings = update_bindings(project_level_bindings, 'roles/pubsub.editor', permission['assignee'])
             if distribution['format'] == 'subscription':
                 resource_to_append = {
                     'name': distribution['title'],
@@ -233,7 +257,6 @@ def generate_config(context):
                         {
                             'topic': '$(ref.'+find_topic(dataset)+'.name)',
                             'subscription': distribution['title']
-
                         }
                 }
             if distribution['format'] == 'mysql-instance':
@@ -262,5 +285,28 @@ def generate_config(context):
                                       context.env['project'], dataset.get('odrlPolicy'))
 
                 resources.append(resource_to_append)
+
+    if project_level_bindings:
+        resources.append({
+            'name': 'get-iam-policy-' + context.env['project'],
+            'action': 'gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.getIamPolicy',
+            'properties': {
+                'resource': context.env['project'],
+            },
+            'metadata': {
+                'runtimePolicy': ['UPDATE_ALWAYS']
+            }
+        })
+        resources.append({
+            'name': 'patch-iam-policy-' + context.env['project'],
+            'action': 'gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy',
+            'properties': {
+                'resource': context.env['project'],
+                'policy': '$(ref.get-iam-policy-' + context.env['project'] + ')',
+                'gcpIamPolicyPatch': {
+                    'add': project_level_bindings
+                }
+            }
+        })
 
     return {'resources': resources}
