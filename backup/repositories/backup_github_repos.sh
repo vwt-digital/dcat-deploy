@@ -38,6 +38,8 @@ git clone --branch=0.24.0 https://github.com/josegonzalez/python-github-backup.g
 export PYTHONPATH=python-github-backup
 mkdir output
 
+result=0
+
 for repo in $(python3 ${basedir}/list_github_repos.py ${data_catalog_file})
 do
    echo "Create backup of ${repo} from ${PROJECT_ID}"
@@ -46,11 +48,31 @@ do
    reponame=${reponamegit%.*}
    python-github-backup/bin/github-backup --token=${github_token} --all --private --fork --organization --repository=${reponame} --output-directory=output ${organization}
 
+   if [ $? -ne 0 ]
+   then
+       echo "ERROR during backup of ${repo} from ${PROJECT_ID}"
+       result=1
+   fi
+
    destpath="gs://${dest_bucket}/backup/github/${reponame}.tgz"
    echo "Copy backup of ${repo} to ${destpath}"
-   cd output/repositories
-   tar -zcvf ${reponame}.tgz ${reponame}
+   cd output/repositories && \
+   tar -zcvf ${reponame}.tgz ${reponame} && \
    gsutil cp ${reponame}.tgz ${destpath}
+
+   if [ $? -ne 0 ]
+   then
+       echo "ERROR during copy backup of ${repo} to ${destpath}"
+       result=1
+   fi
+
    rm -rf ${reponame} ${reponame}.tgz
    cd ../..
 done
+
+if [ ${result} -ne 0 ]
+then
+    echo "At least one error occurred during repo backup"
+fi
+
+exit ${result}

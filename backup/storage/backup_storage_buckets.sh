@@ -11,6 +11,7 @@ then
 fi
 
 basedir=$(dirname $0)
+result=0
 
 for bucket in $(python3 ${basedir}/list_storage_buckets.py ${data_catalog_file})
 do
@@ -20,6 +21,13 @@ do
    if [ $? -ne 0 ]
    then
        echo "ERROR creating backup of ${bucket} from ${PROJECT_ID}"
-       exit 1
+       result=1
    fi
 done
+
+if [ ${result} -ne 0 ]
+then
+    echo "At least one error occurred during backup of ${PROJECT_ID}"
+fi
+
+exit $result
