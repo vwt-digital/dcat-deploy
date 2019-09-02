@@ -1,0 +1,60 @@
+{
+  "conformsTo": "https://vwt-digital.github.io/project-company-data.github.io/v1.1/schema",
+  "backupDestination": "vwt-d-gew4-dat-backup-vwt-d-gew1-dat-deployment-backup-stg",
+  "dataset": [
+    {
+      "identifier": "vwt/dat/repo/hello-world-config",
+      "title": "hello configuration",
+      "accessLevel": "internal",
+      "rights": "The repository contains configuration of the Hello World APP",
+      "contactPoint": {
+        "fn": "Bernie van Veen",
+        "hasEmail": "mailto:b.vanveen@vwt.digital"
+      },
+      "publisher": {
+        "name": "Digital Ambition Team",
+        "subOrganizationOf": {
+          "name": "VokerWessels Telecom"
+        }
+      },
+      "keyword": [],
+      "issued": "2019-09",
+      "distribution": [
+        {
+          "accessURL": "https://github.com/vwt-digital-config/hello-world-config",
+          "downloadURL": "https://github.com/vwt-digital-config/hello-world-config.git",
+          "format": "gitrepo",
+          "title": "vwt-digital-config/hello-world-config",
+          "description": "GitHub source code repository"
+        }
+      ]
+    },
+    {
+      "identifier": "vwt/dat/repo/hello-world",
+      "title": "hello world code",
+      "accessLevel": "public",
+      "rights": "The repository contains the code of the Hello APP",
+      "contactPoint": {
+        "fn": "Bernie van Veen",
+        "hasEmail": "mailto:b.vanveen@vwt.digital"
+      },
+      "publisher": {
+        "name": "Digital Ambition Team",
+        "subOrganizationOf": {
+          "name": "VokerWessels Telecom"
+        }
+      },
+      "keyword": [],
+      "issued": "2019-09",
+      "distribution": [
+        {
+          "accessURL": "https://github.com/vwt-digital/hello-world",
+          "downloadURL": "https://github.com/vwt-digital/hello-world.git",
+          "format": "gitrepo",
+          "title": "vwt-digital/hello-world",
+          "description": "GitHub source code repository"
+        }
+      ]
+    }
+  ]
+}
