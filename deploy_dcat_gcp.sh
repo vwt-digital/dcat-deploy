@@ -43,7 +43,7 @@ fi
 
 
 #decode the 
-cat ${encrypted_github_token} | base64 -d - | \
+echo ${encrypted_github_token} | base64 -d - | \
 gcloud kms decrypt \
   --ciphertext-file=- \
   --plaintext-file=repos/github_access_token.key \
@@ -51,8 +51,7 @@ gcloud kms decrypt \
   --keyring=github \
   --key=github-access-token
 
-#${dcat_deploy_dir}/repos/create_github_repos.sh ${data_catalog_path} repos/github_access_token.key
-${dcat_deploy_dir}/repos/create_github_repos.sh ./repos/data_catalog.json repos/github_access_token.key
+${dcat_deploy_dir}/repos/create_github_repos.sh ${data_catalog_path} repos/github_access_token.key
 
 ############################################################
 # Schedule backup job
