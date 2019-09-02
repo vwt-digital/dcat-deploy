@@ -16,6 +16,25 @@ then
 fi
 
 ############################################################
+# Create and configure github repos (only when a github token is provided)
+############################################################
+
+if [ -n "${encrypted_github_token}" ]
+then
+    echo ${encrypted_github_token} | base64 -d - | \
+    gcloud kms decrypt \
+      --ciphertext-file=- \
+      --plaintext-file=${dcat_deploy_dir}/repos/github_access_token.key \
+      --location=europe-west1 \
+      --keyring=github \
+      --key=github-access-token
+
+    ${dcat_deploy_dir}/repos/create_github_repos.sh ${data_catalog_path} ${dcat_deploy_dir}/repos/github_access_token.key
+fi
+
+exit
+
+############################################################
 # Deploy datasets
 ############################################################
 
@@ -36,22 +55,6 @@ then
     echo "Error updating pubsub subscription pushConfig"
     exit 1
 fi
-
-############################################################
-# Create and configure github repos
-############################################################
-
-
-#decode the 
-echo ${encrypted_github_token} | base64 -d - | \
-gcloud kms decrypt \
-  --ciphertext-file=- \
-  --plaintext-file=${dcat_deploy_dir}/repos/github_access_token.key \
-  --location=europe-west1 \
-  --keyring=github \
-  --key=github-access-token
-
-${dcat_deploy_dir}/repos/create_github_repos.sh ${data_catalog_path} ${dcat_deploy_dir}/repos/github_access_token.key
 
 ############################################################
 # Schedule backup job
