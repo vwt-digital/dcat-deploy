@@ -24,12 +24,12 @@ then
     echo ${encrypted_github_token} | base64 -d - | \
     gcloud kms decrypt \
       --ciphertext-file=- \
-      --plaintext-file=${dcat_deploy_dir}/repos/github_access_token.key \
+      --plaintext-file=${dcat_deploy_dir}/catalog/repos/github_access_token.key \
       --location=europe-west1 \
       --keyring=github \
       --key=github-access-token
 
-    ${dcat_deploy_dir}/repos/create_github_repos.sh ${data_catalog_path} ${dcat_deploy_dir}/repos/github_access_token.key
+    ${dcat_deploy_dir}/catalog/repos/create_github_repos.sh ${data_catalog_path} ${dcat_deploy_dir}/catalog/repos/github_access_token.key
 fi
 
 ############################################################
