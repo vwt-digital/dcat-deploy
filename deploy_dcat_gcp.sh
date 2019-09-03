@@ -32,8 +32,6 @@ then
     ${dcat_deploy_dir}/repos/create_github_repos.sh ${data_catalog_path} ${dcat_deploy_dir}/repos/github_access_token.key
 fi
 
-exit
-
 ############################################################
 # Deploy datasets
 ############################################################
