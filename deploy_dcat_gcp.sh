@@ -30,7 +30,7 @@ then
       --key=github-access-token
 
     ${dcat_deploy_dir}/catalog/repos/create_github_repos.sh ${data_catalog_path} ${dcat_deploy_dir}/catalog/repos/github_access_token.key
-    pip install -r requirements.txt
+    pip3 install -r requirements.txt
     python3 ${dcat_deploy_dir}/catalog/repos/setup_github_team_repos.py ${data_catalog_path} ${dcat_deploy_dir}/catalog/repos/github_access_token.key
 fi
 
