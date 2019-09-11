@@ -1,8 +1,16 @@
+import base64
+import os
 import json
 import sys
 import requests
 import re
+from google.cloud import kms_v1
 
+github_access_token_encrypted = base64.b64decode(os.environ['GITHUB_ACCESS_TOKEN_ENCRYPTED'])
+kms_client = kms_v1.KeyManagementServiceClient()
+crypto_key_name = kms_client.crypto_key_path_path(os.environ['PROJECT_ID'], 'europe-west1', 'github', 'github-access-token')
+decrypt_response = kms_client.decrypt(crypto_key_name, github_access_token_encrypted)
+github_access_token = decrypt_response.plaintext.decode("utf-8").replace('\n', '')
 
 if len(sys.argv) >= 1:
     projectsfile = open(sys.argv[1])
@@ -23,21 +31,22 @@ if len(sys.argv) >= 1:
                 github_perm = 'pull'
             if (perm['action'] == 'admin'):
                 github_perm = 'admin'
-
-            url = 'https://api.github.com/orgs/' + organisation_name + '/teams'
+            
+            url = f"https://api.github.com/orgs/{organisation_name}/teams"
 
             headers = {'Authorization': ''}
-            headers['Authorization'] = 'token '+sys.argv[2]
+            headers['Authorization'] = 'token '+github_access_token
 
             r = requests.get(url, headers=headers)
 
             for team in r.json():
               if (team['name'] == assignee_group):
                 
-                 url = 'https://api.github.com/teams/' + str(team['id']) + '/repos/' + perm['target']
+                 url = f"https://api.github.com/teams/{team['id']}/repos/{perm['target']}"
+
                  headers = {'Authorization': '',
                             'Accept': 'application/vnd.github.hellcat-preview+json'}
-                 headers['Authorization'] = 'token '+sys.argv[2]
+                 headers['Authorization'] = 'token '+github_access_token
 
                  payload = {'permission':''}
                  payload['permission'] = github_perm
@@ -46,7 +55,6 @@ if len(sys.argv) >= 1:
 
                  print(r.request.url)
                  print(r)
-
 
 
 
