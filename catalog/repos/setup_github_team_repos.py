@@ -26,7 +26,9 @@ if len(sys.argv) >= 1:
 
             url = 'https://api.github.com/orgs/' + organisation_name + '/teams'
 
-            headers = {'Authorization': 'token 08b227c8c80ad0a806976067cb52035fc5f0f23a'}
+            headers = {'Authorization': ''}
+            headers['Authorization'] = 'token '+sys.argv[2]
+
             r = requests.get(url, headers=headers)
 
             for team in r.json():
