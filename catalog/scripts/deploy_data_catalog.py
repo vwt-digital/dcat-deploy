@@ -296,7 +296,8 @@ def generate_config(context):
                 }
 
             if resource_to_append:
-                if 'deploymentProperties' in distribution:
+                # Add deployment properties, unless it's a subscription as pushConfig is not updatable through Deployment Manager (DAT-816)
+                if 'deploymentProperties' in distribution and distribution['format'] != 'subscription':
                     if 'properties' not in resource_to_append:
                         resource_to_append['properties'] = {}
                     resource_to_append['properties'].update(distribution['deploymentProperties'])
