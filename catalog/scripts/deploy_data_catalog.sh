@@ -54,21 +54,28 @@ then
         exit 1
     fi
 
-    gcloud datastore indexes create ${gcp_datastore_indexes} --quiet --project=${project_id}
-
-    if [ $? -ne 0 ]
+    # Deploy DataStore indexes
+    if [ -s ${gcp_datastore_indexes} ]
     then
-        echo "Error deploying datastore indexes."
-        exit 1
+        # Create new DataStore indexes
+        gcloud datastore indexes create ${gcp_datastore_indexes} --quiet --project=${project_id}
+
+        if [ $? -ne 0 ]
+        then
+            echo "Error deploying datastore indexes."
+            exit 1
+        fi
+
+        # Cleanup old DataStore indexes
+        gcloud datastore indexes cleanup ${gcp_datastore_indexes} --quiet --project=${project_id}
+
+        if [ $? -ne 0 ]
+        then
+            echo "Error cleaning up datastore indexes."
+            exit 1
+        fi
     fi
 
-    gcloud datastore indexes cleanup ${gcp_datastore_indexes} --quiet --project=${project_id}
-
-    if [ $? -ne 0 ]
-    then
-        echo "Error cleaning up datastore indexes."
-        exit 1
-    fi
     gsutil cp ${gcp_catalog} gs://${project_id}-dcat-deployed-stg/data_catalog.json
 else
     cat ${gcp_template} ${basedir}/test.py > ${gcp_template}.test.py
