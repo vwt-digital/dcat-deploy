@@ -21,6 +21,7 @@ basedir=$(dirname $0)
 
 gcp_template=$(mktemp ${deployment_name}-XXXXX.py)
 gcp_catalog=$(mktemp ${deployment_name}-catalog-XXXXX.json)
+gcp_datastore_indexes="$(mktemp -d)/index.yaml"
 
 python3 ${basedir}/add_dcat_stg.py ${data_catalog} ${project_id} > ${gcp_catalog}
 
@@ -29,6 +30,8 @@ python3 ${basedir}/add_dcat_stg.py ${data_catalog} ${project_id} > ${gcp_catalog
     sed -e "s/:\s*true/: True/g" -e "s/:\s*false/: False/g" ${gcp_catalog}
     cat ${basedir}/deploy_data_catalog.py
 } > ${gcp_template}
+
+python3 ${basedir}/generate_datastore_indexes.py ${data_catalog} > ${gcp_datastore_indexes}
 
 if [ "${runmode}" = "deploy" ]
 then
@@ -51,8 +54,27 @@ then
         exit 1
     fi
 
+    gcloud datastore indexes create ${gcp_datastore_indexes} --quiet --project=${project_id}
+
+    if [ $? -ne 0 ]
+    then
+        echo "Error deploying datastore indexes."
+        exit 1
+    fi
+
+    gcloud datastore indexes cleanup ${gcp_datastore_indexes} --quiet --project=${project_id}
+
+    if [ $? -ne 0 ]
+    then
+        echo "Error cleaning up datastore indexes."
+        exit 1
+    fi
     gsutil cp ${gcp_catalog} gs://${project_id}-dcat-deployed-stg/data_catalog.json
 else
     cat ${gcp_template} ${basedir}/test.py > ${gcp_template}.test.py
     python3 ${gcp_template}.test.py
+
+    echo
+    echo GCP DataStore index.yaml:
+    cat ${gcp_datastore_indexes}
 fi
