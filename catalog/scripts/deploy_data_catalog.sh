@@ -31,8 +31,7 @@ python3 ${basedir}/add_dcat_stg.py ${data_catalog} ${project_id} > ${gcp_catalog
     cat ${basedir}/deploy_data_catalog.py
 } > ${gcp_template}
 
-pip3 install virtualenv
-virtualenv -p python3 venv
+python3 -m  virtualenv -p python3 venv
 . venv/bin/activate
 pip3 install pyyaml
 python3 ${basedir}/generate_datastore_indexes.py ${data_catalog} > ${gcp_datastore_indexes}
