@@ -33,8 +33,8 @@ python3 ${basedir}/add_dcat_stg.py ${data_catalog} ${project_id} > ${gcp_catalog
 
 pip install virtualenv
 virtualenv -p python3 venv
-source venv/bin/activate
-pip install --upgrade yaml
+. venv/bin/activate
+pip install pyyaml
 python3 ${basedir}/generate_datastore_indexes.py ${data_catalog} > ${gcp_datastore_indexes}
 deactivate
 
