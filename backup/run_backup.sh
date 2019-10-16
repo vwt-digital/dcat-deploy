@@ -45,6 +45,20 @@ then
     result=1
 fi
 
+#########################################################################
+# Backup cloudsql
+#########################################################################
+
+echo "Backup cloudsql databases"
+
+${basedir}/cloudsql/backup_cloudsql_databases.sh ${data_catalog_file} ${PROJECT_ID} ${dest_bucket}
+
+if [ $? -ne 0 ]
+then
+    echo "ERROR backing up cloudsql databases"
+    result=1
+fi
+
 if [ ${result} -ne 0 ]
 then
     echo "At least one error occurred during backup"
