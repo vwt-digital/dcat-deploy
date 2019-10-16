@@ -9,4 +9,4 @@ for entry in catalog['dataset']:
     for dist in entry.get('distribution', []):
         if 'title' in dist and dist.get('format', 'n/a') == 'mysql-db':
             # Delimiter between instance and database name for bash handling
-            print(dist['deploymentProperties']['instance'] + | + dist['title'])
+            print(dist['deploymentProperties']['instance'] + '|' + dist['title'])
