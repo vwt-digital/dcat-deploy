@@ -18,11 +18,6 @@ do
     instance=$(echo ${pair} | cut -d'|' -f 1)
     database=$(echo ${pair} | cut -d'|' -f 2)
 
-    # dit block weghalen
-    SA_NAME=$(gcloud sql instances describe ${instance} --project=${PROJECT_ID} --format="value(serviceAccountEmailAddress)")
-    echo ${SA_NAME}
-    gsutil acl ch -u ${SA_NAME}:W gs://${dest_bucket}
-
     echo "Create backup of ${database} in project ${PROJECT_ID}"
     gcloud sql export sql ${instance} gs://${dest_bucket}/backup/cloudsql/sqldumpfile_${database}.gz \
       --database=${database} \
