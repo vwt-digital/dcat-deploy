@@ -34,10 +34,10 @@ do
         then
             echo "Found pending operation ${PENDING_OPERATIONS}"
             gcloud sql operations wait "${PENDING_OPERATIONS}"
+        else
+            echo "ERROR creating backup of ${database} in project ${PROJECT_ID}"
+            result=1
         fi
-    else
-        echo "ERROR creating backup of ${database} in project ${PROJECT_ID}"
-        result=1
     fi
 done
 
