@@ -19,7 +19,7 @@ do
    database=$(echo ${pair} | cut -d'|' -f 2)
 
    echo "Create backup of ${database} from ${PROJECT_ID}"
-   gcloud sql export sql ${instance} gs://${dest_bucket}/backup/cloudsql/sqldumpfile_${database}.gz --database=${database}
+   gcloud sql export sql ${instance} gs://${dest_bucket}/backup/cloudsql/sqldumpfile_${database}.gz --database=${database} --project=${PROJECT_ID}
 
    if [ $? -ne 0 ]
    then
