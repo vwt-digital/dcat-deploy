@@ -71,12 +71,11 @@ fi
 
 echo "Auto delete Datastore entities"
 
-cd "${basedir}"/datastore || return
 pip install virtualenv
 virtualenv -p python3 venv
 source venv/bin/activate
 pip install google-cloud-datastore==1.8.0
-python3 datastore_auto_delete.py "../${data_catalog_file}"
+python3 "${basedir}"/datastore/datastore_auto_delete.py "${data_catalog_file}"
 
 if [ $? -ne 0 ]
 then
