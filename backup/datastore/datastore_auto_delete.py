@@ -40,8 +40,8 @@ def datastore_auto_delete(dataset):
                 entities = list(query.fetch())
 
                 if len(entities) > 0:
-                    logging.info(f"Auto-deleting {kind} entities older than "
-                                 f"{temporal_days} days")
+                    logging.info(f"Auto-deleting {kind} entities older " +
+                                 f"than {temporal_days} days")
 
                     batch.begin()
                     batch_count = 0
@@ -59,7 +59,7 @@ def datastore_auto_delete(dataset):
                         batch_count_total += 1
 
                     batch.commit()
-                    logging.info(f"Deleted total of "
+                    logging.info(f"Deleted total of " +
                                  f"{batch_count_total} {kind} entities")
                 else:
                     logging.info(f"No deletable {kind} entities found")
