@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2181
 
 data_catalog_file=${1}
 PROJECT_ID=${2}
@@ -14,7 +15,7 @@ then
     exit 1
 fi
 
-basedir=$(dirname $0)
+basedir=$(dirname "$0")
 result=0
 
 #########################################################################
@@ -23,7 +24,7 @@ result=0
 
 echo "Backup source code repositories"
 
-${basedir}/repositories/backup_github_repos.sh ${data_catalog_file} ${PROJECT_ID} ${dest_bucket} ${keyring_region} ${keyring} ${key} ${b64_encrypted_github_token}
+"${basedir}"/repositories/backup_github_repos.sh "${data_catalog_file}" "${PROJECT_ID}" "${dest_bucket}" "${keyring_region}" "${keyring}" "${key}" "${b64_encrypted_github_token}"
 
 if [ $? -ne 0 ]
 then
@@ -37,7 +38,7 @@ fi
 
 echo "Backup storage buckets"
 
-${basedir}/storage/backup_storage_buckets.sh ${data_catalog_file} ${PROJECT_ID} ${dest_bucket}
+"${basedir}"/storage/backup_storage_buckets.sh "${data_catalog_file}" "${PROJECT_ID}" "${dest_bucket}"
 
 if [ $? -ne 0 ]
 then
@@ -51,7 +52,7 @@ fi
 
 echo "Backup cloudsql databases"
 
-${basedir}/cloudsql/backup_cloudsql_databases.sh ${data_catalog_file} ${PROJECT_ID} ${dest_bucket}
+"${basedir}"/cloudsql/backup_cloudsql_databases.sh "${data_catalog_file}" "${PROJECT_ID}" "${dest_bucket}"
 
 if [ $? -ne 0 ]
 then
@@ -62,6 +63,25 @@ fi
 if [ ${result} -ne 0 ]
 then
     echo "At least one error occurred during backup"
+fi
+
+#########################################################################
+# Auto delete Datastore entities
+#########################################################################
+
+echo "Auto delete Datastore entities"
+
+python3 "${basedir}"/datastore/datastore_auto_delete.py "${data_catalog_file}"
+
+if [ $? -ne 0 ]
+then
+    echo "ERROR auto deletion Datastore entities"
+    result=1
+fi
+
+if [ ${result} -ne 0 ]
+then
+    echo "At least one error occurred during auto deletion of Datastore entities"
 fi
 
 exit $result
