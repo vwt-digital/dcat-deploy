@@ -1,5 +1,5 @@
 #!/bin/bash
-# shellcheck disable=SC2181
+# shellcheck disable=SC2181,SC1091
 
 data_catalog_file=${1}
 PROJECT_ID=${2}
@@ -71,7 +71,12 @@ fi
 
 echo "Auto delete Datastore entities"
 
-python3 "${basedir}"/datastore/datastore_auto_delete.py "${data_catalog_file}"
+cd "${basedir}"/datastore || return
+pip install virtualenv
+virtualenv -p python3 venv
+source venv/bin/activate
+pip install google-cloud-datastore==1.8.0
+python3 datastore_auto_delete.py "${data_catalog_file}"
 
 if [ $? -ne 0 ]
 then
