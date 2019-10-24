@@ -40,7 +40,7 @@ def datastore_auto_delete(dataset):
                 entities = list(query.fetch())
 
                 if len(entities) > 0:
-                    logging.info(f"Auto-deleting {kind} entities older than {temporal_days} days")
+                    logging.info("Auto-deleting {} entities older than {} days".format(kind, temporal_days))
 
                     batch.begin()
                     batch_count = 0
@@ -58,11 +58,11 @@ def datastore_auto_delete(dataset):
                         batch_count_total += 1
 
                     batch.commit()
-                    logging.info(f"Deleted total of {batch_count_total} {kind} entities")
+                    logging.info("Deleted total of {} {} entities".format(batch_count_total, kind))
                 else:
-                    logging.info(f"No deletable {kind} entities found")
+                    logging.info("No deletable {} entities found".format(kind))
     else:
-        logging.warning(f"Temporal for {dataset['identifier']} is invalid")
+        logging.warning("Temporal for {} is invalid".format(dataset['identifier']))
 
 
 # Code below is a modified version of duration calculation of isodate package.
