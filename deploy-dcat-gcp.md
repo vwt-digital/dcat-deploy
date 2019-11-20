@@ -32,8 +32,8 @@ topic                              | Pubsub topic\
 subscription                       | Pubsub subscription\
 mysql-instance                     | GCP SQL MySQL instance\
 mysql-db                           | GCP SQL MySQL database\
-postgresql-instance                | GCP SQL PostgreSQL instance\
-postgresql-db                      | GCP SQL PostgreSQL database\
+cloudsql-instance                  | GCP SQL instance\
+cloudsql-db                        | GCP SQL database\
 datastore                          | GCP DataStore (no actual components deployed)\
 datastore-index                    | GCP DataStore composite index (https://cloud.google.com/datastore/docs/concepts/indexes)
 

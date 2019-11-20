@@ -283,26 +283,12 @@ def generate_config(context):
                             'subscription': distribution['title']
                         }
                 }
-            if distribution['format'] == 'mysql-instance':
+            if distribution['format'] == 'mysql-instance' or distribution['format'] == 'cloudsql-instance':
                 resource_to_append = {
                     'name': distribution['title'],
                     'type': 'gcp-types/sqladmin-v1beta4:instances'
                 }
-            if distribution['format'] == 'mysql-db':
-                resource_to_append = {
-                    'name': distribution['title'],
-                    'type': 'gcp-types/sqladmin-v1beta4:databases',
-                    'properties': distribution['deploymentProperties'],
-                    'metadata': {
-                        'dependsOn': [distribution['deploymentProperties']['instance']]
-                    }
-                }
-            if distribution['format'] == 'postgresql-instance':
-                resource_to_append = {
-                    'name': distribution['title'],
-                    'type': 'gcp-types/sqladmin-v1beta4:instances'
-                }
-            if distribution['format'] == 'postgresql-db':
+            if distribution['format'] == 'mysql-db' or distribution['format'] == 'cloudsql-db':
                 resource_to_append = {
                     'name': distribution['title'],
                     'type': 'gcp-types/sqladmin-v1beta4:databases',
