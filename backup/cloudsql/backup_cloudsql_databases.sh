@@ -15,20 +15,36 @@ result=0
 
 for pair in $(python3 ${basedir}/list_cloudsql_databases.py ${data_catalog_file})
 do
-   instance=$(echo ${pair} | cut -d'|' -f 1)
-   database=$(echo ${pair} | cut -d'|' -f 2)
+    instance=$(echo ${pair} | cut -d'|' -f 1)
+    database=$(echo ${pair} | cut -d'|' -f 2)
 
-   echo "Create backup of ${database} from ${PROJECT_ID}"
-   gcloud sql export sql ${instance} gs://${dest_bucket}/backup/cloudsql/sqldumpfile_${database}.gz \
-    --database=${database} \
-    --project=${PROJECT_ID} \
-    --async
+    echo "Create backup of ${database} in project ${PROJECT_ID}"
+    gcloud sql export sql ${instance} gs://${dest_bucket}/backup/cloudsql/sqldumpfile_${database}.gz \
+      --database=${database} \
+      --project=${PROJECT_ID}
 
-   if [ $? -ne 0 ]
-   then
-       echo "ERROR creating backup of ${database} from ${PROJECT_ID}"
-       result=1
-   fi
+    if [ $? -ne 0 ]
+    then
+        echo "Checking for pending operations for backup of ${database} in project ${PROJECT_ID}..."
+        PENDING_OPERATIONS=$(gcloud sql operations list \
+          --instance=${instance} \
+          --filter='status!=DONE' \
+          --format='value(name)')
+        if [ ! -z "${PENDING_OPERATIONS}" ]
+        then
+            echo "Found pending operation ${PENDING_OPERATIONS}"
+            # Waiting for pending operations, default timeout is 300s
+            gcloud sql operations wait "${PENDING_OPERATIONS}" --timeout=300
+            if [ $? -ne 0 ]
+            then
+                echo "ERROR waiting for pending backup operations"
+                result=1
+            fi
+        else
+            echo "ERROR creating backup of ${database} in project ${PROJECT_ID}"
+            result=1
+        fi
+    fi
 done
 
 if [ ${result} -ne 0 ]
