@@ -33,8 +33,8 @@ do
         if [ ! -z "${PENDING_OPERATIONS}" ]
         then
             echo "Found pending operation ${PENDING_OPERATIONS}"
-            # Waiting for pending operations, default timeout is 300s
-            gcloud sql operations wait "${PENDING_OPERATIONS}" --timeout=300
+            # Waiting for pending operations for a specified amount of seconds
+            gcloud sql operations wait "${PENDING_OPERATIONS}" --timeout=1800
             if [ $? -ne 0 ]
             then
                 echo "ERROR waiting for pending backup operations"
