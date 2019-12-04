@@ -152,6 +152,7 @@ def parse_duration(datestring):
 
 
 # Entry steps
-for entry in catalog['dataset']:
-    if 'temporal' in entry:
-        datastore_auto_delete(entry)
+if 'dataset' in catalog:
+    for entry in catalog['dataset']:
+        if 'temporal' in entry:
+            datastore_auto_delete(entry)
