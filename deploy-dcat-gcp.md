@@ -25,14 +25,16 @@ to one of the formats in the below table, the corresponding resource will be cre
 The following table also shows the storage formats that are supported by the GCP deploy_data_catalog template. 
 
 {: .table .table-striped}
-Format                             | GCP resource
---------------                     | --------------
-blob-storage                       | Storage bucket
-topic                              | Pubsub topic
-subscription                       | Pubsub subscription
-mysql-instance                     | GCP SQL MySQL instance
-mysql-db                           | GCP SQL MySQL database
-datastore                          | GCP DataStore (no actual components deployed)
+Format                             | GCP resource\
+--------------                     | --------------\
+blob-storage                       | Storage bucket\
+topic                              | Pubsub topic\
+subscription                       | Pubsub subscription\
+mysql-instance                     | GCP SQL MySQL instance\
+mysql-db                           | GCP SQL MySQL database\
+cloudsql-instance                  | GCP SQL instance\
+cloudsql-db                        | GCP SQL database\
+datastore                          | GCP DataStore (no actual components deployed)\
 datastore-index                    | GCP DataStore composite index (https://cloud.google.com/datastore/docs/concepts/indexes)
 
 ## 3. Access permissions

@@ -1,5 +1,8 @@
-# To run this script, a variable catalog shoudl be defined, containing the data catalog to be deployed by
+# To run this script, a variable catalog should be defined, containing the data catalog to be deployed by
 # this deployment template.
+import re
+from datetime import timedelta
+
 
 def find_topic(dataset):
     for distribution in dataset['distribution']:
@@ -20,7 +23,7 @@ def update_bindings(bindings, role_to_add, member_to_add):
         }
         bindings.append(binding)
 
-    if not member_to_add in binding['members']:
+    if member_to_add not in binding['members']:
         binding['members'].append(member_to_add)
 
     return bindings
@@ -195,7 +198,7 @@ def gather_permissions(access_level, resource_title, resource_format, project_id
 
     if bindings is not None:
         for binding in bindings:
-            binding['members'] = [member.format(project_id = project_id) for member in binding['members']]
+            binding['members'] = [member.format(project_id=project_id) for member in binding['members']]
 
         return bindings
     else:
@@ -236,7 +239,7 @@ def generate_config(context):
     resources = []
     project_level_bindings = []
 
-    for dataset in catalog['dataset']:
+    for dataset in catalog['dataset']:  # noqa: F821
         for distribution in dataset['distribution']:
             resource_to_append = None
             if distribution['format'] == 'blob-storage':
@@ -280,12 +283,12 @@ def generate_config(context):
                             'subscription': distribution['title']
                         }
                 }
-            if distribution['format'] == 'mysql-instance':
+            if distribution['format'] == 'mysql-instance' or distribution['format'] == 'cloudsql-instance':
                 resource_to_append = {
                     'name': distribution['title'],
                     'type': 'gcp-types/sqladmin-v1beta4:instances'
                 }
-            if distribution['format'] == 'mysql-db':
+            if distribution['format'] == 'mysql-db' or distribution['format'] == 'cloudsql-db':
                 resource_to_append = {
                     'name': distribution['title'],
                     'type': 'gcp-types/sqladmin-v1beta4:databases',
@@ -363,10 +366,6 @@ def generate_config(context):
 # INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 # CONTRACT, STRICT LIABILITY, OR TORT
 ##############################################################################
-
-
-import re
-from datetime import timedelta
 
 
 ISO8601_PERIOD_REGEX = re.compile(
