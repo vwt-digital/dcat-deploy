@@ -19,7 +19,7 @@ def gather_bucket_lifecycle(temporal):
 
 def datastore_auto_delete(dataset):
     temporal_days = gather_bucket_lifecycle(entry['temporal'])
-    if temporal_days and temporal_days > 0:
+    if temporal_days and temporal_days > 0 and 'distribution' in dataset:
         for distribution in dataset['distribution']:
             if 'datastore-kind' in distribution['format'] \
                     and 'deploymentProperties' in distribution \
