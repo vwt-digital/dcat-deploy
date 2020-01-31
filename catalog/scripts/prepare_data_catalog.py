@@ -57,19 +57,19 @@ for i, dataset in enumerate(catalog.get('dataset', [])):
         if distribution.get('format') == 'topic':
             resources_to_append = [
                 {
-                    "accessURL": f"https://console.cloud.google.com/cloudpubsub/subscriptions/{distribution.get('title')}-history-sub",
+                    "accessURL": "https://console.cloud.google.com/cloudpubsub/subscriptions/{}-history-sub".format(distribution.get('title')),
                     "mediaType": "application/json",
                     "format": "subscription",
-                    "title": f"{distribution.get('title')}-history-sub",
-                    "description": f"{distribution.get('description')} history subscription"
+                    "title": "{}-history-sub".format(distribution.get('title')),
+                    "description": "{} history subscription".format(distribution.get('description'))
                 },
                 {
-                    "accessURL": f"https://console.cloud.google.com/storage/browser/{distribution.get('title')}-history-stg",
+                    "accessURL": "https://console.cloud.google.com/storage/browser/{}-history-stg".format(distribution.get('title')),
                     "mediaType": "application/json",
                     "deploymentZone": get_deployment_zone(project),
                     "format": "blob-storage",
-                    "title": f"{distribution.get('title')}-history-stg",
-                    "description": f"{distribution.get('description')} history storage"
+                    "title": "{}-history-stg".format(distribution.get('title')),
+                    "description": "{} history storage".format(distribution.get('description'))
                 }
             ]
             catalog['dataset'][i]['distribution'].extend(resources_to_append)
