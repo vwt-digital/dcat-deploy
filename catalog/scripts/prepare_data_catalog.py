@@ -3,12 +3,13 @@ import json
 from datetime import datetime
 
 catalogfile = open(sys.argv[1], "r")
-project=sys.argv[2]
+project = sys.argv[2]
 
 deploymentZones = {
     "gew1": "europe-west1",
     "gew4": "europe-west4"
 }
+
 
 def get_deployment_zone(projectToGetZoneFor):
     projectNameParts = projectToGetZoneFor.split('-')
@@ -49,4 +50,28 @@ catalog['dataset'].append({
     }
   ]
 })
+
+# Add event history/offload subscription and storage to existing topics
+for i, dataset in enumerate(catalog.get('dataset', [])):
+    for distribution in dataset.get('distribution', []):
+        if distribution.get('format') == 'topic':
+            resources_to_append = [
+                {
+                    "accessURL": f"https://console.cloud.google.com/cloudpubsub/subscriptions/{distribution.get('title')}-history-sub",
+                    "mediaType": "application/json",
+                    "format": "subscription",
+                    "title": f"{distribution.get('title')}-history-sub",
+                    "description": f"{distribution.get('description')} history subscription"
+                },
+                {
+                    "accessURL": f"https://console.cloud.google.com/storage/browser/{distribution.get('title')}-history-stg",
+                    "mediaType": "application/json",
+                    "deploymentZone": "europe-west1",
+                    "format": "blob-storage",
+                    "title": f"{distribution.get('title')}-history-stg",
+                    "description": f"{distribution.get('description')} history storage"
+                }
+            ]
+            catalog['dataset'][i]['distribution'].extend(resources_to_append)
+
 print(json.dumps(catalog, indent=4))
