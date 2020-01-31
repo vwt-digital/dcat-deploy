@@ -66,7 +66,7 @@ for i, dataset in enumerate(catalog.get('dataset', [])):
                 {
                     "accessURL": f"https://console.cloud.google.com/storage/browser/{distribution.get('title')}-history-stg",
                     "mediaType": "application/json",
-                    "deploymentZone": "europe-west1",
+                    "deploymentZone": get_deployment_zone(project),
                     "format": "blob-storage",
                     "title": f"{distribution.get('title')}-history-stg",
                     "description": f"{distribution.get('description')} history storage"
