@@ -125,9 +125,11 @@ then
       --set-env-vars=PROJECT_ID=${PROJECT_ID},MAX_RETRIES="3",MAX_MESSAGES="1000",TOTAL_MESSAGES="250000")
 
     echo " + Setting permissions for ${PROJECT_ID}-history-func..."
-    cat << EOF > backup_func_permissions.json
-    { "bindings": [ { "members": [ "serviceAccount:${PROJECT_ID}@appspot.gserviceaccount.com" ], "role": "roles/cloudfunctions.invoker" } ] }
-    EOF
+
+cat << EOF > backup_func_permissions.json
+{ "bindings": [ { "members": [ "serviceAccount:${PROJECT_ID}@appspot.gserviceaccount.com" ], "role": "roles/cloudfunctions.invoker" } ] }
+EOF
+
     gcloud beta functions set-iam-policy ${PROJECT_ID}-history-func \
       --region=europe-west1 \
       --project=${PROJECT_ID} \
