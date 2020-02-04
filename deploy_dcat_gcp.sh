@@ -101,27 +101,27 @@ fi
 # Schedule topic history jobs
 ############################################################
 
-gcloud scheduler jobs list --project=${PROJECT_ID} | grep ^-history_job | awk '{ print $1 }' |
-while read -r job_name; do
-    echo " + Deleting existing job $job_name..."
-    gcloud scheduler jobs delete "$job_name" --quiet
+for job in $(gcloud scheduler jobs list  --project=${PROJECT_ID} | grep history-job | awk '{ print $1 }')
+do
+    echo " + Deleting existing job $job..."
+    gcloud scheduler jobs delete "$job" --quiet
 done
 
 pairs=$(python3 ${dcat_deploy_dir}/catalog/scripts/generate_topic_list.py ${data_catalog_path})
 
 if [ ! -z "$pairs" ]
 then
-  echo " + Cloning pubsub-backup repo..."
-  git clone --branch=${BRANCH_NAME} https://github.com/vwt-digital/pubsub-backup.git
-  (cd pubsub-backup/functions/pubsub-backup && gcloud functions deploy ${PROJECT_ID}-history-func \
-    --entry-point=handler \
-    --runtime=python37 \
-    --trigger-http \
-    --project=${PROJECT_ID} \
-    --region=europe-west1 \
-    --memory=2048MB \
-    --timeout=540s \
-    --set-env-vars=PROJECT_ID=${PROJECT_ID},MAX_RETRIES="3",MAX_MESSAGES="1000",TOTAL_MESSAGES="250000")
+    echo " + Cloning pubsub-backup repo..."
+    git clone --branch=${BRANCH_NAME} https://github.com/vwt-digital/pubsub-backup.git
+    (cd pubsub-backup/functions/pubsub-backup && gcloud functions deploy ${PROJECT_ID}-history-func \
+      --entry-point=handler \
+      --runtime=python37 \
+      --trigger-http \
+      --project=${PROJECT_ID} \
+      --region=europe-west1 \
+      --memory=2048MB \
+      --timeout=540s \
+      --set-env-vars=PROJECT_ID=${PROJECT_ID},MAX_RETRIES="3",MAX_MESSAGES="1000",TOTAL_MESSAGES="250000")
 fi
 
 for pair in $pairs
