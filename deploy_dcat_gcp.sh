@@ -97,3 +97,51 @@ then
         --oauth-token-scope=https://www.googleapis.com/auth/cloud-platform
 fi
 
+############################################################
+# Schedule topic history jobs
+############################################################
+
+gcloud scheduler jobs list --project=${PROJECT_ID} | grep ^-history_job | awk '{ print $1 }' |
+while read -r job_name; do
+    echo " + Deleting existing job $job_name..."
+    gcloud scheduler jobs delete "$job_name" --quiet
+done
+
+pairs=$(python3 ${dcat_deploy_dir}/catalog/scripts/generate_topic_list.py ${data_catalog_path})
+
+if [ ! -z "$pairs" ]
+then
+  echo " + Cloning pubsub-backup repo..."
+  git clone --branch=${BRANCH_NAME} https://github.com/vwt-digital/pubsub-backup.git
+  (cd pubsub-backup/functions/pubsub-backup && gcloud functions deploy ${PROJECT_ID}-history-func \
+    --entry-point=handler \
+    --runtime=python37 \
+    --trigger-http \
+    --project=${PROJECT_ID} \
+    --region=europe-west1 \
+    --memory=2048MB \
+    --timeout=540s \
+    --set-env-vars=PROJECT_ID=${PROJECT_ID},MAX_RETRIES="3",MAX_MESSAGES="1000",TOTAL_MESSAGES="250000")
+fi
+
+for pair in $pairs
+do
+    topic=$(echo ${pair} | cut -d'|' -f 1)
+    period=$(echo ${pair} | cut -d'|' -f 2)
+
+    if [[ $period =~ T+.(M$|S$) ]]
+    then
+      cron="0 * * * *"
+    else
+      cron="0 00,06,12,18 * * *"
+    fi
+
+    echo " + Creating job ${topic}-history-job..."
+    gcloud scheduler jobs create http ${topic}-history-job \
+      --schedule="${cron}" \
+      --uri=https://europe-west1-${PROJECT_ID}.cloudfunctions.net/${PROJECT_ID}-history-func/ \
+      --http-method=POST \
+      --oidc-service-account-email=${PROJECT_ID}@appspot.gserviceaccount.com \
+      --oidc-token-audience=https://europe-west1-${PROJECT_ID}.cloudfunctions.net/${PROJECT_ID}-history-func \
+      --message-body="${topic}-history-sub"
+done
