@@ -123,11 +123,12 @@ then
       --timeout=540s \
       --set-env-vars=PROJECT_ID=${PROJECT_ID},MAX_RETRIES="3",MAX_MESSAGES="1000",TOTAL_MESSAGES="250000")
 
-      echo '{ "bindings": [ { "members": [ "serviceAccount:${PROJECT_ID}@appspot.gserviceaccount.com" ], "role": "roles/cloudfunctions.invoker" } ] }' > backup_func_permissions.json
-      gcloud beta functions set-iam-policy ${PROJECT_ID}-history-func \
-        --region=europe-west1 \
-        --project=${PROJECT_ID} \
-        backup_func_permissions.json
+    echo " + Setting permissions for ${PROJECT_ID}-history-func..."
+    echo '{ "bindings": [ { "members": [ "serviceAccount:${PROJECT_ID}@appspot.gserviceaccount.com" ], "role": "roles/cloudfunctions.invoker" } ] }' > backup_func_permissions.json
+    gcloud beta functions set-iam-policy ${PROJECT_ID}-history-func \
+      --region=europe-west1 \
+      --project=${PROJECT_ID} \
+      backup_func_permissions.json
 fi
 
 for pair in $pairs
