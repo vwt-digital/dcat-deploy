@@ -104,7 +104,7 @@ fi
 for job in $(gcloud scheduler jobs list  --project=${PROJECT_ID} | grep history-job | awk '{ print $1 }')
 do
     echo " + Deleting existing job $job..."
-    gcloud scheduler jobs delete "$job" --quiet
+    gcloud scheduler jobs delete "$job" --project=${PROJECT_ID} --quiet 
 done
 
 pairs=$(python3 ${dcat_deploy_dir}/catalog/scripts/generate_topic_list.py ${data_catalog_path})
