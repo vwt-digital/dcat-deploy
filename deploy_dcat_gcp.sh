@@ -126,9 +126,9 @@ then
 
     echo " + Setting permissions for ${PROJECT_ID}-history-func..."
 
-    cat <<- EOF > backup_func_permissions.json
-    { "bindings": [ { "members": [ "serviceAccount:${PROJECT_ID}@appspot.gserviceaccount.com" ], "role": "roles/cloudfunctions.invoker" } ] }
-    EOF
+cat << EOF > backup_func_permissions.json
+{ "bindings": [ { "members": [ "serviceAccount:${PROJECT_ID}@appspot.gserviceaccount.com" ], "role": "roles/cloudfunctions.invoker" } ] }
+EOF
 
     gcloud beta functions set-iam-policy ${PROJECT_ID}-history-func \
       --region=europe-west1 \
