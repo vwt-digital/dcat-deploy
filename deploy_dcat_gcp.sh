@@ -102,7 +102,7 @@ fi
 ############################################################
 
 echo " + Deleting existing jobs..."
-for job in $(gcloud scheduler jobs list  --project=${PROJECT_ID} | grep history-job | awk '{ print $1 }')
+for job in $(gcloud scheduler jobs list  --project=${PROJECT_ID} | grep history-job$ | awk '{ print $1 }')
 do
     echo " + Deleting existing job $job..."
     gcloud scheduler jobs delete "$job" --project=${PROJECT_ID} --quiet
@@ -126,9 +126,9 @@ then
 
     echo " + Setting permissions for ${PROJECT_ID}-history-func..."
 
-cat << EOF > backup_func_permissions.json
-{ "bindings": [ { "members": [ "serviceAccount:${PROJECT_ID}@appspot.gserviceaccount.com" ], "role": "roles/cloudfunctions.invoker" } ] }
-EOF
+    cat <<- EOF > backup_func_permissions.json
+    { "bindings": [ { "members": [ "serviceAccount:${PROJECT_ID}@appspot.gserviceaccount.com" ], "role": "roles/cloudfunctions.invoker" } ] }
+    EOF
 
     gcloud beta functions set-iam-policy ${PROJECT_ID}-history-func \
       --region=europe-west1 \
@@ -141,7 +141,7 @@ do
     topic=$(echo ${pair} | cut -d'|' -f 1)
     period=$(echo ${pair} | cut -d'|' -f 2)
 
-    if [[ $period =~ T+.(M$|S$) ]]
+    if [[ $period =~ T.+(M$|S$) ]]
     then
       cron="0 * * * *"
     else
