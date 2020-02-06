@@ -277,11 +277,13 @@ def generate_config(context):
                 resource_to_append = {
                     'name': distribution['title'],
                     'type': 'pubsub.v1.subscription',
-                    'properties':
-                        {
-                            'topic': '$(ref.'+find_topic(dataset)+'.name)',
-                            'subscription': distribution['title']
-                        }
+                    'properties': {
+                        'topic': '$(ref.'+find_topic(dataset)+'.name)',
+                        'subscription': distribution['title']
+                    },
+                    'metadata': {
+                        'dependsOn': [find_topic(dataset)]
+                    }
                 }
             if distribution['format'] == 'mysql-instance' or distribution['format'] == 'cloudsql-instance':
                 resource_to_append = {

@@ -23,7 +23,7 @@ gcp_template=$(mktemp ${deployment_name}-XXXXX.py)
 gcp_catalog=$(mktemp ${deployment_name}-catalog-XXXXX.json)
 gcp_datastore_indexes="$(mktemp -d)/index.yaml"
 
-python3 ${basedir}/add_dcat_stg.py ${data_catalog} ${project_id} > ${gcp_catalog}
+python3 ${basedir}/prepare_data_catalog.py ${data_catalog} ${project_id} > ${gcp_catalog}
 
 {
     echo "catalog = \\"
