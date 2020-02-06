@@ -102,7 +102,7 @@ fi
 ############################################################
 
 echo " + Deleting existing jobs..."
-for job in $(gcloud scheduler jobs list  --project=${PROJECT_ID} | grep history-job$ | awk '{ print $1 }')
+for job in $(gcloud scheduler jobs list  --project=${PROJECT_ID} | grep history-job | awk '{ print $1 }')
 do
     echo " + Deleting existing job $job..."
     gcloud scheduler jobs delete "$job" --project=${PROJECT_ID} --quiet
