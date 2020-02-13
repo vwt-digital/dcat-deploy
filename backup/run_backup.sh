@@ -90,7 +90,7 @@ fi
 
 echo "Auto delete Datastore entities"
 
-pip install virtualenv
+pip install virtualenv==16.7.9
 virtualenv -p python3 datastore_venv
 source datastore_venv/bin/activate
 pip install google-cloud-datastore==1.8.0

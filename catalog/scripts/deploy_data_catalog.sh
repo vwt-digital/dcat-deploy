@@ -31,7 +31,7 @@ python3 ${basedir}/prepare_data_catalog.py ${data_catalog} ${project_id} > ${gcp
     cat ${basedir}/deploy_data_catalog.py
 } > ${gcp_template}
 
-pip install virtualenv
+pip install virtualenv==16.7.9
 virtualenv -p python3 venv
 . venv/bin/activate
 pip install pyyaml
