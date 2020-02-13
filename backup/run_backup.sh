@@ -66,7 +66,7 @@ fi
 
 echo "Backup firestore collections"
 
-pip install virtualenv
+pip install virtualenv==16.7.9
 virtualenv -p python3 firestore_venv
 source firestore_venv/bin/activate
 pip install google-cloud-firestore==1.6.0
