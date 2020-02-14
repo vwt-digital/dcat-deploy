@@ -19,7 +19,7 @@ do
 
     if [ $? -ne 0 ]
     then
-        echo "ERROR creating backup of ${bucket} from ${PROJECT_ID}"
+        echo "ERROR creating backup of ${collection} from ${PROJECT_ID}"
         result=1
     fi
 done
