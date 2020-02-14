@@ -60,6 +60,25 @@ then
     result=1
 fi
 
+#########################################################################
+# Backup firestore
+#########################################################################
+
+echo "Backup firestore collections"
+
+pip install virtualenv==16.7.9
+virtualenv -p python3 firestore_venv
+source firestore_venv/bin/activate
+pip install google-cloud-firestore==1.6.0
+"${basedir}"/firestore/backup_firestore_collections.sh "${PROJECT_ID}" "${dest_bucket}"
+deactivate
+
+if [ $? -ne 0 ]
+then
+    echo "ERROR backing up firestore collections"
+    result=1
+fi
+
 if [ ${result} -ne 0 ]
 then
     echo "At least one error occurred during backup"
@@ -72,10 +91,11 @@ fi
 echo "Auto delete Datastore entities"
 
 pip install virtualenv==16.7.9
-virtualenv -p python3 venv
-source venv/bin/activate
+virtualenv -p python3 datastore_venv
+source datastore_venv/bin/activate
 pip install google-cloud-datastore==1.8.0
 python3 "${basedir}"/datastore/datastore_auto_delete.py "${data_catalog_file}"
+deactivate
 
 if [ $? -ne 0 ]
 then
