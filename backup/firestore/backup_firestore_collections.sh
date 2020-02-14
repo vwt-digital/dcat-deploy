@@ -15,18 +15,19 @@ result=0
 for collection in $(python3 ${basedir}/list_firestore_collections.py)
 do
     echo "Create backup of ${collection} from ${PROJECT_ID}"
-    gcloud firestore export gs://${dest_bucket}/backup/firestore --collection-ids=${collection}
+    destpath="gs://${dest_bucket}/backup/firestore/${collection}"
+    gcloud firestore export ${destpath} --collection-ids=${collection}
 
     if [ $? -ne 0 ]
     then
-        echo "ERROR creating backup of ${collection} from ${PROJECT_ID}"
+        echo "ERROR creating backup of ${collection} to ${destpath}"
         result=1
     fi
 done
 
 if [ ${result} -ne 0 ]
 then
-    echo "At least one error occurred during backup of ${PROJECT_ID}"
+    echo "At least one error occurred during firestore backup"
 fi
 
 exit $result
