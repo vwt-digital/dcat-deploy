@@ -15,7 +15,7 @@ result=0
 for collection in $(python3 ${basedir}/list_firestore_collections.py)
 do
     echo "Create backup of ${collection} from ${PROJECT_ID}"
-    destpath="gs://${dest_bucket}/backup/firestore/${collection}"
+    destpath="gs://${dest_bucket}/backup/firestore/${collection}/$(date +%s)"
     gcloud firestore export ${destpath} --collection-ids=${collection}
 
     if [ $? -ne 0 ]
