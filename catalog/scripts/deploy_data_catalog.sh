@@ -85,7 +85,7 @@ then
 
     # Post the data catalog to the data catalogs topic
     source venv/bin/activate
-    pip install google-cloud==0.34.0
+    pip install google-cloud-pubsub==1.2.0
     python ${basedir}/publish_dcat_to_topic.py -d ${gcp_catalog} -p ${project_id}
     if [ $? -ne 0 ]
     then
