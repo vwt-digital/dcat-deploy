@@ -84,9 +84,9 @@ then
     gsutil cp ${gcp_catalog} gs://${project_id}-dcat-deployed-stg/data_catalog.json
 
     # Post the data catalog to the data catalogs topic
-    source venv/bin/activate
+    . venv/bin/activate
     pip install google-cloud-pubsub==1.2.0
-    python ${basedir}/publish_dcat_to_topic.py -d ${gcp_catalog} -p ${project_id}
+    python3 ${basedir}/publish_dcat_to_topic.py -d ${gcp_catalog} -p ${project_id}
     if [ $? -ne 0 ]
     then
         echo "Error publishing data_catalog."
