@@ -19,7 +19,8 @@ def publish_to_topic(args):
             topic_name = catalog['publishDataCatalog']['topic']
             # Publish to topic
             publisher = pubsub_v1.PublisherClient()
-            topic_path = f"projects/{topic_project_id}/topics/{topic_name}"
+            topic_path = "projects/{}/topics/{}".format(
+                topic_project_id, topic_name)
             msg = {
                 "gobits": [
                     {}
@@ -30,12 +31,14 @@ def publish_to_topic(args):
             future = publisher.publish(
                 topic_path, bytes(json.dumps(msg).encode('utf-8')))
             future.add_done_callback(
-                lambda x: logging.debug(
-                    f'Published data catalog of project with project ID {dc_project_id}')
+                lambda x: logging.debug('Published data catalog of project ' +
+                                        'with project ID {}'.format(
+                                            dc_project_id))
             )
         return True
     except Exception as e:
-        logging.exception('Unable to publish data catalog to topic because of {}'.format(e))
+        logging.exception('Unable to publish data catalog ' +
+                          'to topic because of {}'.format(e))
     return False
 
 
