@@ -1,6 +1,10 @@
 {
   "conformsTo": "https://vwt-digital.github.io/project-company-data.github.io/v1.1/schema",
-  "backupDestination": "vwt-d-gew4-dat-backup-vwt-d-gew1-dat-deployment-backup-stg",
+  "backupDestination": "gcpbackupproject-currentgcpproject-backup-stg",
+  "publishDataCatalog":{
+    "topic": "the-topic",
+    "project": "project-containing-topic"
+  },
   "dataset": [
     {
       "identifier": "vwt/dat/repo/hello-world-config",
