@@ -69,7 +69,7 @@ echo "Backup firestore collections"
 pip install virtualenv==16.7.9
 virtualenv -p python3 firestore_venv
 source firestore_venv/bin/activate
-pip install google-cloud-firestore==1.6.0
+pip install google-cloud-firestore==1.6.0 google-api-core==1.16.0 grpcio==1.27.2
 "${basedir}"/firestore/backup_firestore_collections.sh "${PROJECT_ID}" "${dest_bucket}"
 deactivate
 
