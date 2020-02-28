@@ -164,8 +164,11 @@ if __name__ == '__main__':
                     datastore_auto_delete(entry)
                 except Exception as e:
                     logging.exception(e)
+                    sys.exit(1)
 
         if no_temporal:
             logging.info('No datasets with temporals found')
     else:
         logging.info('No datasets found')
+
+    sys.exit(0)
