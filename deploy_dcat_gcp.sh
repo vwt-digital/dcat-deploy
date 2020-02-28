@@ -141,11 +141,14 @@ do
     topic=$(echo ${pair} | cut -d'|' -f 1)
     period=$(echo ${pair} | cut -d'|' -f 2)
 
-    if [[ $period =~ T.+(M$|S$) ]]
+    if [[ $period =~ .T1M$ ]]
     then
-      cron="0 * * * *"
+        cron="*/15 * * * *"
+    elif [[ $period =~ .T5M$ ]]
+    then
+        cron="0 * * * *"
     else
-      cron="0 00,06,12,18 * * *"
+        cron="0 00,06,12,18 * * *"
     fi
 
     echo " + Creating job ${topic}-history-job..."
