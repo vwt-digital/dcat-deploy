@@ -163,5 +163,6 @@ do
       --max-doublings 0 \
       --max-retry-attempts 0 \
       --max-retry-duration 10m \
-      --min-backoff 0s
+      --min-backoff 0s \
+      --attempt-deadline 10m
 done
