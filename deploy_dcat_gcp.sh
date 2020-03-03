@@ -158,5 +158,10 @@ do
       --http-method=POST \
       --oidc-service-account-email=${PROJECT_ID}@appspot.gserviceaccount.com \
       --oidc-token-audience=https://europe-west1-${PROJECT_ID}.cloudfunctions.net/${PROJECT_ID}-history-func \
-      --message-body="${topic}-history-sub"
+      --message-body="${topic}-history-sub" \
+      --max-backoff 0s \
+      --max-doublings 0 \
+      --max-retry-attempts 0 \
+      --max-retry-duration 10m \
+      --min-backoff 0s
 done
