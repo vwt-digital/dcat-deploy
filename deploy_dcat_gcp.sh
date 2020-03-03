@@ -120,7 +120,7 @@ then
       --trigger-http \
       --project=${PROJECT_ID} \
       --region=europe-west1 \
-      --memory=2048MB \
+      --memory=1024MB \
       --timeout=540s \
       --set-env-vars=PROJECT_ID=${PROJECT_ID},MAX_RETRIES="3",MAX_MESSAGES="1000",TOTAL_MESSAGES="250000")
 
