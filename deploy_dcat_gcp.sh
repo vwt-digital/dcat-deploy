@@ -127,19 +127,21 @@ EOF
       backup_func_permissions.json
 fi
 
-for pair in $pairs
+for i in ${!pairs[@]}
 do
-    topic=$(echo ${pair} | cut -d'|' -f 1)
-    period=$(echo ${pair} | cut -d'|' -f 2)
+    topic=$(echo ${pairs[$i]} | cut -d'|' -f 1)
+    period=$(echo ${pairs[$i]} | cut -d'|' -f 2)
+
+    skew=$(($i % 15))
 
     if [[ $period =~ .T1M$ ]]
     then
-        cron="*/15 * * * *"
+        cron="$skew/15 * * * *"
     elif [[ $period =~ .T5M$ ]]
     then
-        cron="0 * * * *"
+        cron="$skew * * * *"
     else
-        cron="0 00,06,12,18 * * *"
+        cron="$skew 00,06,12,18 * * *"
     fi
 
     echo " + Creating job ${topic}-history-job..."
