@@ -45,15 +45,6 @@ then
     exit 1
 fi
 
-# Update pushConfig of topic subscriptions (currently not supported by Deployment Manager)
-python ${dcat_deploy_dir}/catalog/scripts/update_subscriptions.py -d ${data_catalog_path} -p ${PROJECT_ID}
-
-if [ $? -ne 0 ]
-then
-    echo "Error updating pubsub subscription pushConfig"
-    exit 1
-fi
-
 ############################################################
 # Schedule backup job
 ############################################################
