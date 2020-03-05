@@ -61,7 +61,10 @@ for i, dataset in enumerate(catalog.get('dataset', [])):
                     "mediaType": "application/json",
                     "format": "subscription",
                     "title": "{}-history-sub".format(distribution.get('title')),
-                    "description": "{} history subscription".format(distribution.get('description'))
+                    "description": "{} history subscription".format(distribution.get('description')),
+                    "deploymentProperties": {
+                        "ackDeadlineSeconds": 600
+                    }
                 },
                 {
                     "accessURL": "https://console.cloud.google.com/storage/browser/{}-history-stg".format(distribution.get('title')),
