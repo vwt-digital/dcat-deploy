@@ -127,11 +127,13 @@ EOF
       backup_func_permissions.json
 fi
 
-for i in ${!pairs[@]}
+i=0
+for pair in $pairs
 do
-    topic=$(echo ${pairs[$i]} | cut -d'|' -f 1)
-    period=$(echo ${pairs[$i]} | cut -d'|' -f 2)
+    topic=$(echo $pair | cut -d'|' -f 1)
+    period=$(echo $pair | cut -d'|' -f 2)
 
+    # Workaround for scheduler INTERNAL 500 error
     skew=$(($i % 15))
 
     if [[ $period =~ .T1M$ ]]
@@ -155,4 +157,6 @@ do
       --max-retry-attempts 3 \
       --max-backoff 10s \
       --attempt-deadline 10m
+
+    i=$((i+1))
 done
