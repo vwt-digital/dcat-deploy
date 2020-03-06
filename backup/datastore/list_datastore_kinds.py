@@ -11,7 +11,8 @@ try:
     query.keys_only()
     kinds = [entity.key.id_or_name for entity in query.fetch()]
     for kind in kinds:
-        print(kind)
+        if not (kind.startswith("__") and kind.endswith("__")):
+            print(kind)
 except exceptions.FailedPrecondition as e:
     logging.warning(str(e))
     pass
