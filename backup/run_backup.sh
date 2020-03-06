@@ -47,7 +47,7 @@ then
 fi
 
 #########################################################################
-# Backup cloudsql
+# Backup cloudsql databases
 #########################################################################
 
 echo "Backup cloudsql databases"
@@ -61,7 +61,7 @@ then
 fi
 
 #########################################################################
-# Backup firestore
+# Backup firestore collections
 #########################################################################
 
 echo "Backup firestore collections"
@@ -85,27 +85,51 @@ then
 fi
 
 #########################################################################
-# Auto delete Datastore entities
+# Backup datastore kinds
 #########################################################################
-
-echo "Auto delete Datastore entities"
 
 pip install virtualenv==16.7.9
 virtualenv -p python3 datastore_venv
 source datastore_venv/bin/activate
-pip install google-cloud-datastore==1.8.0
-python3 "${basedir}"/datastore/datastore_auto_delete.py "${data_catalog_file}"
+pip install google-cloud-datastore==1.8.0 google-api-core==1.16.0 grpcio==1.27.2
+deactivate
+
+echo "Backup datastore kinds"
+
+source datastore_venv/bin/activate
+"${basedir}"/datastore/backup_datastore_kinds.sh "${PROJECT_ID}" "${dest_bucket}"
 deactivate
 
 if [ $? -ne 0 ]
 then
-    echo "ERROR auto deletion Datastore entities"
+    echo "ERROR backing up datastore kinds"
     result=1
 fi
 
 if [ ${result} -ne 0 ]
 then
-    echo "At least one error occurred during auto deletion of Datastore entities"
+    echo "At least one error occurred during backup"
+fi
+
+#########################################################################
+# Auto delete datastore entities
+#########################################################################
+
+echo "Auto delete datastore entities"
+
+source datastore_venv/bin/activate
+python3 "${basedir}"/datastore/datastore_auto_delete.py "${data_catalog_file}"
+deactivate
+
+if [ $? -ne 0 ]
+then
+    echo "ERROR auto deletion datastore entities"
+    result=1
+fi
+
+if [ ${result} -ne 0 ]
+then
+    echo "At least one error occurred during auto deletion of datastore entities"
 fi
 
 exit $result

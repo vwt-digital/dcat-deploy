@@ -18,7 +18,7 @@ do
     instance=$(echo ${pair} | cut -d'|' -f 1)
     database=$(echo ${pair} | cut -d'|' -f 2)
 
-    echo "Create backup of ${database} in project ${PROJECT_ID}"
+    echo "Create backup of database ${database} in project ${PROJECT_ID}"
     gcloud sql export sql ${instance} gs://${dest_bucket}/backup/cloudsql/sqldumpfile_${database}.gz \
       --database=${database} \
       --project=${PROJECT_ID}
