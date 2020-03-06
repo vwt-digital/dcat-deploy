@@ -15,7 +15,7 @@ result=0
 for kind in $(python3 ${basedir}/list_datastore_kinds.py)
 do
     echo "Create backup of kind ${kind} from ${PROJECT_ID}"
-    destpath="gs://${dest_bucket}/backup/datastore/$(date '+%Y/%m/%d/%H/%M')/${kind}"
+    destpath="gs://${dest_bucket}/backup/datastore/$(date '+%Y/%m/%d/%H')/${kind}"
     gcloud datastore export ${destpath} --kinds="${kind}"
 
     if [ $? -ne 0 ]
