@@ -83,11 +83,11 @@ for i, dataset in enumerate(catalog.get('dataset', [])):
         if distribution.get('format') == 'firestore':
             resources_to_append = [
                 {
-                    "accessURL": "https://console.cloud.google.com/storage/browser/{}-ephemeral-backup-stg".format(distribution.get('title')),
+                    "accessURL": "https://console.cloud.google.com/storage/browser/{}-firestore-ephemeral-backup-stg".format(project),
                     "mediaType": "application/json",
                     "deploymentZone": get_deployment_zone(project),
                     "format": "blob-storage",
-                    "title": "{}-ephemeral-backup-stg".format(distribution.get('title')),
+                    "title": "{}-firestore-ephemeral-backup-stg".format(project),
                     "description": "{} ephemeral backup storage".format(distribution.get('description'))
                 }
             ]
