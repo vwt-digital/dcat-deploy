@@ -92,5 +92,9 @@ for i, dataset in enumerate(catalog.get('dataset', [])):
                 }
             ]
             catalog['dataset'][i]['distribution'].extend(resources_to_append)
+            break
+    else:
+        continue
+    break
 
 print(json.dumps(catalog, indent=4))
