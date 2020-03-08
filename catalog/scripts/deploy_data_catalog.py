@@ -285,6 +285,8 @@ def generate_config(context):
                         'dependsOn': [find_topic(dataset)]
                     }
                 }
+                if distribution.get('deploymentProperties'):
+                    resource_to_append['properties'].update(distribution['deploymentProperties'])
             if distribution['format'] == 'mysql-instance' or distribution['format'] == 'cloudsql-instance':
                 resource_to_append = {
                     'name': distribution['title'],

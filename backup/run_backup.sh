@@ -47,7 +47,7 @@ then
 fi
 
 #########################################################################
-# Backup cloudsql
+# Backup cloudsql databases
 #########################################################################
 
 echo "Backup cloudsql databases"
@@ -61,51 +61,86 @@ then
 fi
 
 #########################################################################
-# Backup firestore
+# Backup firestore collections
 #########################################################################
 
-echo "Backup firestore collections"
-
-pip install virtualenv==16.7.9
-virtualenv -p python3 firestore_venv
-source firestore_venv/bin/activate
-pip install google-cloud-firestore==1.6.0
-"${basedir}"/firestore/backup_firestore_collections.sh "${PROJECT_ID}" "${dest_bucket}"
-deactivate
-
-if [ $? -ne 0 ]
+firestores=$(python3 ${basedir}/firestore/list_firestores.py ${data_catalog_file})
+if [ ! -z "${firestores}" ]
 then
-    echo "ERROR backing up firestore collections"
-    result=1
-fi
+    echo "Backup firestore collections"
 
-if [ ${result} -ne 0 ]
-then
-    echo "At least one error occurred during backup"
+    pip install virtualenv==16.7.9
+    virtualenv -p python3 firestore_venv
+    source firestore_venv/bin/activate
+    pip install google-cloud-firestore==1.6.0 google-api-core==1.16.0 grpcio==1.27.2
+    "${basedir}"/firestore/backup_firestore_collections.sh "${PROJECT_ID}" "${dest_bucket}"
+    deactivate
+
+    if [ $? -ne 0 ]
+    then
+        echo "ERROR backing up firestore collections"
+        result=1
+    fi
+
+    if [ ${result} -ne 0 ]
+    then
+        echo "At least one error occurred during backup"
+    fi
 fi
 
 #########################################################################
-# Auto delete Datastore entities
+# Backup datastore kinds
 #########################################################################
 
-echo "Auto delete Datastore entities"
-
-pip install virtualenv==16.7.9
-virtualenv -p python3 datastore_venv
-source datastore_venv/bin/activate
-pip install google-cloud-datastore==1.8.0
-python3 "${basedir}"/datastore/datastore_auto_delete.py "${data_catalog_file}"
-deactivate
-
-if [ $? -ne 0 ]
+datastores=$(python3 ${basedir}/datastore/list_datastores.py ${data_catalog_file})
+if [ ! -z "${datastores}" ]
 then
-    echo "ERROR auto deletion Datastore entities"
-    result=1
+    pip install virtualenv==16.7.9
+    virtualenv -p python3 datastore_venv
+    source datastore_venv/bin/activate
+    pip install google-cloud-datastore==1.8.0 google-api-core==1.16.0 grpcio==1.27.2
+    deactivate
+
+    echo "Backup datastore kinds"
+
+    source datastore_venv/bin/activate
+    "${basedir}"/datastore/backup_datastore_kinds.sh "${PROJECT_ID}" "${dest_bucket}"
+    deactivate
+
+    if [ $? -ne 0 ]
+    then
+        echo "ERROR backing up datastore kinds"
+        result=1
+    fi
+
+    if [ ${result} -ne 0 ]
+    then
+        echo "At least one error occurred during backup"
+    fi
 fi
 
-if [ ${result} -ne 0 ]
-then
-    echo "At least one error occurred during auto deletion of Datastore entities"
-fi
+#########################################################################
+# Auto delete datastore entities
+#########################################################################
 
-exit $result
+if [ ! -z "${datastores}" ]
+then
+    echo "Auto delete datastore entities"
+
+    source datastore_venv/bin/activate
+    python3 "${basedir}"/datastore/datastore_auto_delete.py "${data_catalog_file}"
+    deactivate
+
+    if [ $? -ne 0 ]
+    then
+        echo "ERROR auto deletion datastore entities"
+        result=1
+    fi
+
+    if [ ${result} -ne 0 ]
+    then
+        echo "At least one error occurred during auto deletion of datastore entities"
+    fi
+
+    exit $result
+fi

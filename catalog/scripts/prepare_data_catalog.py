@@ -61,7 +61,10 @@ for i, dataset in enumerate(catalog.get('dataset', [])):
                     "mediaType": "application/json",
                     "format": "subscription",
                     "title": "{}-history-sub".format(distribution.get('title')),
-                    "description": "{} history subscription".format(distribution.get('description'))
+                    "description": "{} history subscription".format(distribution.get('description')),
+                    "deploymentProperties": {
+                        "ackDeadlineSeconds": 600
+                    }
                 },
                 {
                     "accessURL": "https://console.cloud.google.com/storage/browser/{}-history-stg".format(distribution.get('title')),
@@ -73,5 +76,25 @@ for i, dataset in enumerate(catalog.get('dataset', [])):
                 }
             ]
             catalog['dataset'][i]['distribution'].extend(resources_to_append)
+
+# Add ephemeral backup storage for firestore
+for i, dataset in enumerate(catalog.get('dataset', [])):
+    for distribution in dataset.get('distribution', []):
+        if distribution.get('format') == 'firestore':
+            resources_to_append = [
+                {
+                    "accessURL": "https://console.cloud.google.com/storage/browser/{}-firestore-ephemeral-backup-stg".format(project),
+                    "mediaType": "application/json",
+                    "deploymentZone": get_deployment_zone(project),
+                    "format": "blob-storage",
+                    "title": "{}-firestore-ephemeral-backup-stg".format(project),
+                    "description": "{} ephemeral backup storage".format(distribution.get('description'))
+                }
+            ]
+            catalog['dataset'][i]['distribution'].extend(resources_to_append)
+            break
+    else:
+        continue
+    break
 
 print(json.dumps(catalog, indent=4))

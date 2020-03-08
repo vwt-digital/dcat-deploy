@@ -1,3 +1,4 @@
+import logging
 import json
 import sys
 import datetime
@@ -151,8 +152,23 @@ def parse_duration(datestring):
     return ret
 
 
-# Entry steps
-if 'dataset' in catalog:
-    for entry in catalog['dataset']:
-        if 'temporal' in entry:
-            datastore_auto_delete(entry)
+if __name__ == '__main__':
+    logging.getLogger().setLevel(logging.INFO)
+
+    if 'dataset' in catalog:
+        no_temporal = True
+        for entry in catalog['dataset']:
+            if 'temporal' in entry:
+                no_temporal = False
+                try:
+                    datastore_auto_delete(entry)
+                except Exception as e:
+                    logging.exception(e)
+                    sys.exit(1)
+
+        if no_temporal:
+            logging.info('No datasets with temporals found')
+    else:
+        logging.info('No datasets found')
+
+    sys.exit(0)

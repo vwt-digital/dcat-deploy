@@ -45,15 +45,6 @@ then
     exit 1
 fi
 
-# Update pushConfig of topic subscriptions (currently not supported by Deployment Manager)
-python ${dcat_deploy_dir}/catalog/scripts/update_subscriptions.py -d ${data_catalog_path} -p ${PROJECT_ID}
-
-if [ $? -ne 0 ]
-then
-    echo "Error updating pubsub subscription pushConfig"
-    exit 1
-fi
-
 ############################################################
 # Schedule backup job
 ############################################################
@@ -120,7 +111,7 @@ then
       --trigger-http \
       --project=${PROJECT_ID} \
       --region=europe-west1 \
-      --memory=2048MB \
+      --memory=1024MB \
       --timeout=540s \
       --set-env-vars=PROJECT_ID=${PROJECT_ID},MAX_RETRIES="3",MAX_MESSAGES="1000",TOTAL_MESSAGES="250000")
 
@@ -136,19 +127,23 @@ EOF
       backup_func_permissions.json
 fi
 
+i=0
 for pair in $pairs
 do
-    topic=$(echo ${pair} | cut -d'|' -f 1)
-    period=$(echo ${pair} | cut -d'|' -f 2)
+    topic=$(echo $pair | cut -d'|' -f 1)
+    period=$(echo $pair | cut -d'|' -f 2)
+
+    # Workaround for scheduler INTERNAL 500 error
+    skew=$(($i % 15))
 
     if [[ $period =~ .T1M$ ]]
     then
-        cron="*/15 * * * *"
+        cron="$skew/15 * * * *"
     elif [[ $period =~ .T5M$ ]]
     then
-        cron="0 * * * *"
+        cron="$skew * * * *"
     else
-        cron="0 00,06,12,18 * * *"
+        cron="$skew 00,06,12,18 * * *"
     fi
 
     echo " + Creating job ${topic}-history-job..."
@@ -158,5 +153,10 @@ do
       --http-method=POST \
       --oidc-service-account-email=${PROJECT_ID}@appspot.gserviceaccount.com \
       --oidc-token-audience=https://europe-west1-${PROJECT_ID}.cloudfunctions.net/${PROJECT_ID}-history-func \
-      --message-body="${topic}-history-sub"
+      --message-body="${topic}-history-sub" \
+      --max-retry-attempts 3 \
+      --max-backoff 10s \
+      --attempt-deadline 10m
+
+    i=$((i+1))
 done
