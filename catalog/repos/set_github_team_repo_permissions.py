@@ -26,7 +26,7 @@ if len(sys.argv) >= 2:
                     if (perm['action'] == 'admin'):
                         github_perm = 'admin'
 
-                    url = "https://api.github.com/orgs/{}/teams".format(organisation_name)
+                    url = f"https://api.github.com/orgs/{organisation_name}/teams"
 
                     headers = {'Authorization': ''}
                     headers['Authorization'] = 'token '+github_access_token
@@ -36,7 +36,7 @@ if len(sys.argv) >= 2:
                     for team in r.json():
                         if (team['name'] == assignee_group):
 
-                            url = "https://api.github.com/teams/{}/repos/{}".format(team['id'], perm['target'])
+                            url = f"https://api.github.com/teams/{team['id']}/repos/{perm['target']}"
 
                             headers = {'Authorization': '',
                                        'Accept': 'application/vnd.github.hellcat-preview+json'}
