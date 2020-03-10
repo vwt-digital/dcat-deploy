@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2181
 
 BACKUP_BUCKET=${1}
 SOURCE_BUCKET=${2}
@@ -11,15 +12,14 @@ then
     exit 1
 fi
 
-basedir=$(dirname $0)
 result=0
 
 echo -e "Restoring backup from:"
 echo -e "\t gs://${BACKUP_BUCKET}/backup/storage/${SOURCE_BUCKET}"
-echo -e "To:"
-echo -e "\t gs://${DEST_BUCKET} in project ${PROJECT_ID}"
+echo -e "To bucket in project ${PROJECT_ID}:"
+echo -e "\t gs://${DEST_BUCKET}"
 
-gsutil -m cp -r gs://${BACKUP_BUCKET}/backup/storage/${SOURCE_BUCKET}/* gs://${DEST_BUCKET}
+gsutil -m cp -r "gs://${BACKUP_BUCKET}/backup/storage/${SOURCE_BUCKET}/*" "gs://${DEST_BUCKET}"
 
 if [ $? -ne 0 ]
 then
