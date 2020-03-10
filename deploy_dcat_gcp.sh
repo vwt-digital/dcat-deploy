@@ -21,13 +21,24 @@ fi
 
 if [ -n "${encrypted_github_token}" ]
 then
-    echo ${encrypted_github_token} | base64 -d - | \
-    gcloud kms decrypt \
-      --ciphertext-file=- \
-      --plaintext-file=${dcat_deploy_dir}/catalog/repos/github_access_token.key \
-      --location=europe-west1 \
-      --keyring=github \
-      --key=github-access-token
+    if echo "${PROJECT_ID}" | grep -q "repo"
+    then
+        echo ${encrypted_github_token} | base64 -d - | \
+        gcloud kms decrypt \
+          --ciphertext-file=- \
+          --plaintext-file=${dcat_deploy_dir}/catalog/repos/github_access_token.key \
+          --location=europe \
+          --keyring=${PROJECT_ID}-github \
+          --key=github-access-token
+    else
+        echo ${encrypted_github_token} | base64 -d - | \
+        gcloud kms decrypt \
+          --ciphertext-file=- \
+          --plaintext-file=${dcat_deploy_dir}/catalog/repos/github_access_token.key \
+          --location=europe-west1 \
+          --keyring=github \
+          --key=github-access-token
+    fi
 
     ${dcat_deploy_dir}/catalog/repos/create_github_repos.sh ${data_catalog_path} ${dcat_deploy_dir}/catalog/repos/github_access_token.key
 fi
