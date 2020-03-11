@@ -287,12 +287,12 @@ def generate_config(context):
                 }
                 if distribution.get('deploymentProperties'):
                     resource_to_append['properties'].update(distribution['deploymentProperties'])
-            if distribution['format'] == 'mysql-instance' or distribution['format'] == 'cloudsql-instance':
+            if distribution['format'] == 'cloudsql-instance':
                 resource_to_append = {
                     'name': distribution['title'],
                     'type': 'gcp-types/sqladmin-v1beta4:instances'
                 }
-            if distribution['format'] == 'mysql-db' or distribution['format'] == 'cloudsql-db':
+            if distribution['format'] == 'cloudsql-db':
                 resource_to_append = {
                     'name': distribution['title'],
                     'type': 'gcp-types/sqladmin-v1beta4:databases',
