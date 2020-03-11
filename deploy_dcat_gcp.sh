@@ -75,7 +75,7 @@ then
         -e "s|__DEST_BUCKET__|${backup_destination}|" \
         -e "s|__ENCRYPTED_GITHUB_TOKEN__|${encrypted_github_token}|" \
         -e "s|__KMS_KEYRING_REGION__|${kms_keyring_region}|" \
-        -e "s|__KMS_KEYRING__|${ksm_keyring}|" \
+        -e "s|__KMS_KEYRING__|${kms_keyring}|" \
         -e "s|__KMS_KEY__|${kms_key}|" \
         -e "s|__DCAT_DEPLOY_BRANCH_NAME__|${BRANCH_NAME}|" > cloudbuild_backup_gen.json
 
