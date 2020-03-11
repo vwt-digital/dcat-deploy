@@ -2,41 +2,49 @@
 # shellcheck disable=SC2181
 
 BACKUP_BUCKET=${1}
-SOURCE_DATABASE=${2}
-DEST_INSTANCE=${3}
-DEST_DATABASE=${4}
-PROJECT_ID=${5}
+SOURCE_INSTANCE=${2}
+SOURCE_DATABASE=${3}
+DEST_INSTANCE=${4}
+DEST_DATABASE=${5}
+PROJECT_ID=${6}
 
-if [ -z "${BACKUP_BUCKET}" ] || [ -z "${SOURCE_DATABASE}" ] || [ -z "${DEST_INSTANCE}" ] || [ -z "${DEST_DATABASE}" ] || [ -z "${PROJECT_ID}" ]
+if [ -z "${BACKUP_BUCKET}" ] || [ -z "${SOURCE_INSTANCE}" ] ||
+   [ -z "${SOURCE_DATABASE}" ] || [ -z "${DEST_INSTANCE}" ] ||
+   [ -z "${DEST_DATABASE}" ] || [ -z "${PROJECT_ID}" ]
 then
-    echo "Usage: $0 <backup_bucket> <source_database> <dest_instance> <dest_database> <project_id>"
+    echo "Usage: $0 <backup_bucket> <source_instance> <source_database> <dest_instance> <dest_database> <project_id>"
     exit 1
 fi
 
 result=0
 
 echo -e "Restoring backup from:"
-echo -e "\t gs://${BACKUP_BUCKET}/backup/cloudsql/${SOURCE_DATABASE}"
+echo -e "\t Bucket: gs://${BACKUP_BUCKET}"
+echo -e "\t Instance: ${SOURCE_INSTANCE}"
+echo -e "\t Database: ${SOURCE_DATABASE}"
 echo -e "To database in project ${PROJECT_ID}:"
 echo -e "\t Instance: ${DEST_INSTANCE}"
 echo -e "\t Database: ${DEST_DATABASE}"
 
-sa=$(gcloud sql instances describe test-database \
-  --project=vwt-d-gew1-backup-restore-chk | grep serviceAccountEmailAddress: | cut -d ' ' -f 2)
+sa=$(gcloud sql instances describe "${DEST_INSTANCE}" \
+  --format="value(serviceAccountEmailAddress)" \
+  --project="${PROJECT_ID}")
 
-# Set temporary role for backup restore
-gsutil iam ch serviceAccount:"${sa}":roles/storage.legacyBucketWriter gs://${BACKUP_BUCKET}
-gsutil iam ch serviceAccount:"${sa}":roles/storage.objectViewer gs://${BACKUP_BUCKET}
+echo -e "Make sure ${sa} has the following permissions:"
+echo -e "\t Resource: ${BACKUP_BUCKET}"
+echo -e "\t Role: roles/storage.legacyBucketWriter"
+echo -e "\t Role: roles/storage.objectViewer"
 
-gcloud sql import sql ${DEST_INSTANCE} gs://${BACKUP_BUCKET}/backup/cloudsql/${SOURCE_DATABASE}/ \
-  --database=${DEST_DATABASE}
+file="gs://${BACKUP_BUCKET}/backup/cloudsql/${SOURCE_INSTANCE}/${SOURCE_DATABASE}/sqldumpfile.gz"
 
-# Remove temporary role for backup restore
-gsutil iam ch -d serviceAccount:"${sa}" gs://${BACKUP_BUCKET}
+gcloud sql import sql "${DEST_INSTANCE}" "${file}" \
+  --database="${DEST_DATABASE}" \
+  --project="${PROJECT_ID}" \
+  --quiet
 
 if [ $? -ne 0 ]
 then
-   echo "ERROR restoring backup from gs://${BACKUP_BUCKET}/backup/clouddsql/${SOURCE_DATABASE}"
+   echo "ERROR restoring backup from ${file}"
    result=1
 fi
 
