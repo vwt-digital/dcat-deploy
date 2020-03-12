@@ -152,7 +152,8 @@ do
 
     if [[ $period =~ .T1M$ ]]
     then
-        cron="$skew/15 * * * *"
+        # Workaround for scheduler 12/15 * * * * does not work
+        cron="*/15 * * * *"
     elif [[ $period =~ .T5M$ ]]
     then
         cron="$skew * * * *"
