@@ -238,7 +238,7 @@ def gather_bucket_lifecycle(temporal):
 def gather_bucket_retentionPolicy(temporal):
     print('temporal {}'.format(temporal))
     if temporal and temporal.startswith('P'):
-        retentionPeriod = parse_duration(temporal) * 86400
+        retentionPeriod = parse_duration(temporal)
         return {
             'retentionPeriod': retentionPeriod
         }
