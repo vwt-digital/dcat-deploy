@@ -235,6 +235,17 @@ def gather_bucket_lifecycle(temporal):
         return {}
 
 
+def gather_bucket_retentionPolicy(temporal):
+    print('temporal {}'.format(temporal))
+    if temporal and temporal.startswith('P'):
+        retentionPeriod = parse_duration(temporal) * 86400
+        return {
+            'retentionPeriod': retentionPeriod
+        }
+    else:
+        return {}
+
+
 def generate_config(context):
     resources = []
     project_level_bindings = []
@@ -259,6 +270,7 @@ def generate_config(context):
                         }
                     })
                 resource_to_append['properties']['lifecycle'] = gather_bucket_lifecycle(dataset.get('temporal', ''))
+                resource_to_append['properties']['retentionPolicy'] = gather_bucket_retentionPolicy(dataset.get('temporal', ''))
             if distribution['format'] == 'topic':
                 resource_to_append = {
                     'name': distribution['title'],
