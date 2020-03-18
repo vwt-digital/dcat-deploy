@@ -32,8 +32,8 @@ sa=$(gcloud sql instances describe "${DEST_INSTANCE}" \
 
 echo -e "Make sure ${sa} has the following permissions:"
 echo -e "\t Resource: ${BACKUP_BUCKET}"
-echo -e "\t Role: roles/storage.legacyBucketWriter"
-echo -e "\t Role: roles/storage.objectViewer"
+echo -e "\t Role: roles/storage.legacyBucketReader"
+echo -e "\t Role: roles/storage.legacyObjectReader"
 
 file="gs://${BACKUP_BUCKET}/backup/cloudsql/${SOURCE_INSTANCE}/${SOURCE_DATABASE}/sqldumpfile.gz"
 
@@ -44,8 +44,8 @@ gcloud sql import sql "${DEST_INSTANCE}" "${file}" \
 
 if [ $? -ne 0 ]
 then
-   echo "ERROR restoring backup from ${file}"
-   result=1
+    echo "ERROR restoring backup from ${file}"
+    result=1
 fi
 
 exit $result

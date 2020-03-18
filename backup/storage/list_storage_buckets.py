@@ -1,11 +1,10 @@
 import json
 import sys
 
-
 json_file = open(sys.argv[1], 'r')
 catalog = json.load(json_file)
 
-for entry in catalog['dataset']:
-    for dist in entry.get('distribution', []):
-        if 'title' in dist and dist.get('format', 'n/a') == 'blob-storage':
-            print(dist['title'])
+for dataset in catalog.get('dataset'):
+    for distribution in catalog.get('distribution'):
+        if distribution.get('format') == 'blob-storage':
+            print(distribution.get('title', ''))
