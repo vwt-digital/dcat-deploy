@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2181
 
 PROJECT_ID=${1}
 dest_bucket=${2}
@@ -9,25 +10,17 @@ then
     exit 1
 fi
 
-basedir=$(dirname $0)
 result=0
 
-for kind in $(python3 ${basedir}/list_datastore_kinds.py)
-do
-    echo "Create backup of kind ${kind} from ${PROJECT_ID}"
-    destpath="gs://${dest_bucket}/backup/datastore/$(date '+%Y/%m/%d/%H')/${kind}"
-    gcloud datastore export ${destpath} --kinds="${kind}"
+echo "Create backup of datastore in project ${PROJECT_ID}"
 
-    if [ $? -ne 0 ]
-    then
-        echo "ERROR creating backup of ${kind} to ${destpath}"
-        result=1
-    fi
-done
+destpath="gs://${dest_bucket}/backup/datastore/$(date '+%Y/%m/%d/%H')"
+gcloud datastore export "${destpath}" --project="${PROJECT_ID}"
 
-if [ ${result} -ne 0 ]
+if [ $? -ne 0 ]
 then
-    echo "At least one error occurred during datastore backup"
+    echo "ERROR creating backup of datastore to ${destpath}"
+    result=1
 fi
 
 exit $result

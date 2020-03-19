@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2181
 
 data_catalog_file=${1}
 PROJECT_ID=${2}
@@ -10,27 +11,27 @@ then
     exit 1
 fi
 
-basedir=$(dirname $0)
+basedir=$(dirname "$0")
 result=0
 
-for pair in $(python3 ${basedir}/list_cloudsql_databases.py ${data_catalog_file})
+for pair in $(python3 "${basedir}"/list_cloudsql_databases.py "${data_catalog_file}")
 do
-    instance=$(echo ${pair} | cut -d'|' -f 1)
-    database=$(echo ${pair} | cut -d'|' -f 2)
+    instance=$(echo "${pair}" | cut -d'|' -f 1)
+    database=$(echo "${pair}" | cut -d'|' -f 2)
 
     echo "Create backup of database ${database} in project ${PROJECT_ID}"
-    gcloud sql export sql ${instance} gs://${dest_bucket}/backup/cloudsql/sqldumpfile_${database}.gz \
-      --database=${database} \
-      --project=${PROJECT_ID}
+    gcloud sql export sql "${instance}" "gs://${dest_bucket}/backup/cloudsql/${instance}/${database}/sqldumpfile.gz" \
+      --database="${database}" \
+      --project="${PROJECT_ID}"
 
     if [ $? -ne 0 ]
     then
         echo "Checking for pending operations for backup of ${database} in project ${PROJECT_ID}..."
         PENDING_OPERATIONS=$(gcloud sql operations list \
-          --instance=${instance} \
+          --instance="${instance}" \
           --filter='status!=DONE' \
           --format='value(name)')
-        if [ ! -z "${PENDING_OPERATIONS}" ]
+        if [ -n "${PENDING_OPERATIONS}" ]
         then
             echo "Found pending operation ${PENDING_OPERATIONS}"
             # Waiting for pending operations for a specified amount of seconds

@@ -14,4 +14,3 @@ for dataset in catalog['dataset']:
 
 if indexes:
     print(yaml.dump({'indexes': indexes}))
-
