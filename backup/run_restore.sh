@@ -1,13 +1,13 @@
 #!/bin/bash
 # shellcheck disable=SC2181
 
-BACKUP_BUCKET=${1}
-DATA_CATALOG=${2}
-PROJECT_ID=${4}
+DATA_CATALOG=${1}
+BACKUP_BUCKET=${2}
+PROJECT_ID=${3}
 
-if [ -z "${BACKUP_BUCKET}" ] || [ -z "${DATA_CATALOG}" ] || [ -z "${PROJECT_ID}" ]
+if [ -z "${DATA_CATALOG}" ] || [ -z "${BACKUP_BUCKET}" ] || [ -z "${PROJECT_ID}" ]
 then
-    echo "Usage: $0 <backup_bucket> <source_bucket> <dest_bucket> <project_id>"
+    echo "Usage: $0 <data_catalog> <backup_bucket> <project_id>"
     exit 1
 fi
 
@@ -24,10 +24,14 @@ for bucket in $(python3 "${basedir}"/storage/list_storage_buckets.py "${DATA_CAT
 do
     source_bucket=$(python3 "${basedir}"/get_dcat_backup_source.py "${bucket}")
 
-    "${basedir}"/cloudsql/restore_cloudsql_databases.sh "${BACKUP_BUCKET}" \
-      "${source_bucket}" \
-      "${bucket}" \
-      "${PROJECT_ID}"
+    if [[ -n "${source_bucket}" ]]
+    then
+      "${basedir}"/storage/restore_storage_buckets.sh "${BACKUP_BUCKET}" \
+        "${source_bucket}" \
+        "${bucket}" \
+        "${PROJECT_ID}"
+    fi
+
 done
 
 if [ $? -ne 0 ]

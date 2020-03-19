@@ -8,4 +8,4 @@ catalog = json.load(json_file)
 for dataset in catalog.get('dataset'):
     for distribution in dataset.get('distribution'):
         if distribution.get('title') == title:
-            print(distribution.get('backupSource'))
+            print(distribution.get('backupSource', ''))
