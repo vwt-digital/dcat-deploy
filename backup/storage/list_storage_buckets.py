@@ -4,7 +4,7 @@ import sys
 json_file = open(sys.argv[1], 'r')
 catalog = json.load(json_file)
 
-for dataset in catalog.get('dataset'):
-    for distribution in catalog.get('distribution'):
+for dataset in catalog.get('dataset', []):
+    for distribution in dataset.get('distribution', []):
         if distribution.get('format') == 'blob-storage':
             print(distribution.get('title', ''))
