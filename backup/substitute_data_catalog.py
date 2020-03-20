@@ -63,6 +63,7 @@ catalog.get('dataset').append({
   "keyword": [],
   "modified": datetime.datetime.now().strftime("%Y-%m-%d"),
   "spatial": "Netherlands",
+  "temporal": "P1W",
   "issued": datetime.datetime.now().strftime("%Y-%m"),
   "distribution": [
     {
