@@ -21,6 +21,32 @@ def get_deployment_zone(projectToGetZoneFor):
         return 'europe-west1'
 
 
+def dict_replace_value(d, old, new):
+    x = {}
+    for k, v in d.items():
+        if isinstance(v, dict):
+            v = dict_replace_value(v, old, new)
+        elif isinstance(v, list):
+            v = list_replace_value(v, old, new)
+        elif isinstance(v, str):
+            v = v.replace(old, new)
+        x[k] = v
+    return x
+
+
+def list_replace_value(l, old, new):
+    x = []
+    for e in l:
+        if isinstance(e, list):
+            e = list_replace_value(e, old, new)
+        elif isinstance(e, dict):
+            e = dict_replace_value(e, old, new)
+        elif isinstance(e, str):
+            e = e.replace(old, new)
+        x.append(e)
+    return x
+
+
 with open(data_catalog, 'r') as file:
     catalog = json.load(file)
 
@@ -32,8 +58,10 @@ for outer, dataset in enumerate(catalog.get('dataset')):
     if dataset.get('identifier') == old_project_id + '-dcat-deployed-stg':
         catalog.get('dataset').pop(outer)
     for inner, distribution in enumerate(dataset.get('distribution')):
-        distribution['backupSource'] = distribution.get('title')
-        distribution['title'] = distribution.get('title', '').replace(old_project_id, new_project_id)
+        title = distribution.get('title')
+        distribution = dict_replace_value(distribution, old_project_id, new_project_id)
+        distribution['backupSource'] = title
+        dataset.get('distribution')[inner] = distribution
         if distribution.get('title') == '{}-firestore-ephemeral-backup-stg'.format(new_project_id):
             dataset.get('distribution').pop(inner)
 
