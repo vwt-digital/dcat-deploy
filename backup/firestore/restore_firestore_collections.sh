@@ -12,15 +12,19 @@ fi
 
 result=0
 
-metadata_file=$(gsutil ls -r "gs://${BACKUP_BUCKET}/backup/firestore" | grep overall_export_metadata | tail -r | head -1)
+metadata_files=$(gsutil ls -r "gs://${BACKUP_BUCKET}/backup/firestore" | grep overall_export_metadata)
 
-echo -e "Restoring firestore backup from ${metadata_file}"
-gcloud firestore import "${metadata_file}" --project="${PROJECT_ID}"
+if [[ -n "${metadata_files}" ]]
+then
+    latest=$(echo "${metadata_files}" | tac | head -1)
+    echo -e " + Restoring firestore backup from ${latest}"
+    gcloud firestore import "${latest}" --project="${PROJECT_ID}"
+fi
 
 if [ $? -ne 0 ]
 then
-   echo "ERROR restoring firestore backup from ${metadata_file}"
-   result=1
+    echo "ERROR restoring firestore backup from ${latest}"
+    result=1
 fi
 
 exit $result
