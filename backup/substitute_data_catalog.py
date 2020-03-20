@@ -27,13 +27,15 @@ with open(data_catalog, 'r') as file:
 catalog.pop('backupDestination', None)
 catalog.pop('publishDataCatalog', None)
 
-for idx, dataset in enumerate(catalog.get('dataset')):
+for outer, dataset in enumerate(catalog.get('dataset')):
     dataset.pop('odrlPolicy', None)
     if dataset.get('identifier') == old_project_id + '-dcat-deployed-stg':
-        catalog.get('dataset').pop(idx)
-    for distribution in dataset.get('distribution'):
+        catalog.get('dataset').pop(outer)
+    for inner, distribution in enumerate(dataset.get('distribution')):
         distribution['backupSource'] = distribution.get('title')
         distribution['title'] = distribution.get('title', '').replace(old_project_id, new_project_id)
+        if distribution.get('title') == '{}-firestore-ephemeral-backup-stg'.format(new_project_id):
+            dataset.get('distribution').pop(inner)
 
 permissions = [
     {
