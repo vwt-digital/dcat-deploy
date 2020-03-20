@@ -12,18 +12,19 @@ fi
 
 result=0
 
-metadata_files=$(gsutil ls -r "gs://${BACKUP_BUCKET}/backup/datastore" | grep overall_export_metadata)
+# Suppress error message when no backup is found
+metadata_files=$(gsutil ls -r "gs://${BACKUP_BUCKET}/backup/datastore" 2> /dev/null | grep overall_export_metadata || true )
 
 if [[ -n "${metadata_files}" ]]
 then
     latest=$(echo "${metadata_files}" | tac | head -1)
     echo -e " + Restoring datastore backup from ${latest}"
-    gcloud firestore import "${latest}" --project="${PROJECT_ID}"
+    gcloud datastore import "${latest}" --project="${PROJECT_ID}"
 fi
 
 if [ $? -ne 0 ]
 then
-    echo "ERROR restoring firestore backup from ${latest}"
+    echo "ERROR restoring datastore backup from ${latest}"
     result=1
 fi
 
