@@ -22,7 +22,7 @@ echo "Restoring blob-storage..."
 
 for bucket in $(python3 "${basedir}"/storage/list_storage_buckets.py "${DATA_CATALOG}")
 do
-    source_bucket=$(python3 "${basedir}"/get_dcat_backup_source.py "${bucket}")
+    source_bucket=$(python3 "${basedir}"/get_dcat_backup_source.py "${DATA_CATALOG}" "${bucket}")
 
     if [[ -n "${source_bucket}" ]]
     then
@@ -51,8 +51,8 @@ do
     destination_instance=$(echo "${pair}" | cut -d'|' -f 1)
     destination_database=$(echo "${pair}" | cut -d'|' -f 2)
 
-    source_instance=$(python3 "${basedir}"/get_dcat_backup_source.py "${destination_instance}")
-    source_database=$(python3 "${basedir}"/get_dcat_backup_source.py "${destination_database}")
+    source_instance=$(python3 "${basedir}"/get_dcat_backup_source.py "${DATA_CATALOG}" "${destination_instance}")
+    source_database=$(python3 "${basedir}"/get_dcat_backup_source.py "${DATA_CATALOG}" "${destination_database}")
 
     "${basedir}"/cloudsql/restore_cloudsql_databases.sh "${BACKUP_BUCKET}" \
       "${source_instance}" \
