@@ -53,6 +53,14 @@ with open(data_catalog, 'r') as file:
 catalog.pop('backupDestination', None)
 catalog.pop('publishDataCatalog', None)
 
+permissions = [
+    {
+        "target": "{}-tmp-backup-stg".format(new_project_id),
+        "action": "write",
+        "assignee": "serviceAccount:{}".format(service_account)
+    }
+]
+
 for outer, dataset in enumerate(catalog.get('dataset')):
     dataset.pop('odrlPolicy', None)
     if dataset.get('identifier') == old_project_id + '-dcat-deployed-stg':
@@ -64,14 +72,12 @@ for outer, dataset in enumerate(catalog.get('dataset')):
         dataset.get('distribution')[inner] = distribution
         if distribution.get('title') == '{}-firestore-ephemeral-backup-stg'.format(new_project_id):
             dataset.get('distribution').pop(inner)
-
-permissions = [
-    {
-        "target": "{}-tmp-backup-stg".format(new_project_id),
-        "action": "write",
-        "assignee": "serviceAccount:{}".format(service_account)
-    }
-]
+        if distribution.get('format') == 'cloudsql-instance':
+            permissions.append({
+                "target": "{}-tmp-backup-stg".format(new_project_id),
+                "action": "read",
+                "assignee": "serviceAccount:$(ref.{}.serviceAccountEmailAddress)".format(distribution.get('title'))
+            })
 
 catalog.get('dataset').append({
   "identifier": "{}-tmp-backup-stg".format(new_project_id),
