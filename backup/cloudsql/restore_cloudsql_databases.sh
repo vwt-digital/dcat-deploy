@@ -40,6 +40,7 @@ file="gs://${BACKUP_BUCKET}/backup/cloudsql/${SOURCE_INSTANCE}/${SOURCE_DATABASE
 gcloud sql import sql "${DEST_INSTANCE}" "${file}" \
   --database="${DEST_DATABASE}" \
   --project="${PROJECT_ID}" \
+  --async \
   --quiet
 
 if [ $? -ne 0 ]
