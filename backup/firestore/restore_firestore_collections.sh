@@ -19,7 +19,7 @@ if [[ -n "${metadata_files}" ]]
 then
     latest=$(echo "${metadata_files}" | tac | head -1)
     echo -e " + Restoring firestore backup from ${latest%/*}"
-    gcloud firestore import "${latest%/*}" --project="${PROJECT_ID}"
+    gcloud firestore import "${latest%/*}" --project="${PROJECT_ID}" --async
 fi
 
 if [ $? -ne 0 ]
