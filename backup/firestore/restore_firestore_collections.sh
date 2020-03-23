@@ -18,7 +18,7 @@ metadata_files=$(gsutil ls -r "gs://${BACKUP_BUCKET}/backup/firestore" 2> /dev/n
 if [[ -n "${metadata_files}" ]]
 then
     echo -e " + Enabling firestore native mode..."
-    gcloud alpha firestore databases create --project "${PROJECT_ID}" --region europe-west
+    gcloud alpha firestore databases create --project="${PROJECT_ID}" --region=europe-west
 
     latest=$(echo "${metadata_files}" | tac | head -1)
     echo -e " + Restoring firestore backup from ${latest%/*}"
