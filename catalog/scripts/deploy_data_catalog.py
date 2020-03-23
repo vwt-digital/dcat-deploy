@@ -240,7 +240,7 @@ def gather_bucket_retentionPolicy(temporal):
     if temporal and temporal.startswith('P'):
         retentionPeriod = parse_duration(temporal)
         return {
-            'retentionPeriod': retentionPeriod.days * 86400
+            'retentionPeriod': retentionPeriod.total_seconds()
         }
     else:
         return {}
