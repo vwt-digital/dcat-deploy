@@ -63,7 +63,7 @@ for i, dataset in enumerate(catalog.get('dataset', [])):
                 "title": "{}-history-sub".format(distribution.get('title')),
                 "description": "{} history subscription".format(distribution.get('description')),
                 "deploymentProperties": {
-                  "ackDeadlineSeconds": 540
+                  "ackDeadlineSeconds": 600
                 }
               },
               {

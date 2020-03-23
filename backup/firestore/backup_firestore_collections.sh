@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2181
 
 PROJECT_ID=${1}
 dest_bucket=${2}
@@ -21,7 +22,8 @@ gsutil -m mv "${localpath}" "${destpath}"
 
 if [ ${result} -ne 0 ]
 then
-    echo "At least one error occurred during firestore backup"
+    echo "ERROR creating backup of firestore to ${destpath}"
+    result=1
 fi
 
 exit $result

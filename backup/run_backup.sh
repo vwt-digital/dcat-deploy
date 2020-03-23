@@ -64,8 +64,8 @@ fi
 # Backup firestore collections
 #########################################################################
 
-firestores=$(python3 ${basedir}/firestore/list_firestores.py ${data_catalog_file})
-if [ ! -z "${firestores}" ]
+firestores=$(python3 "${basedir}/firestore/list_firestores.py" "${data_catalog_file}")
+if [ -n "${firestores}" ]
 then
     echo "Backup firestore collections"
 
@@ -81,19 +81,14 @@ then
         echo "ERROR backing up firestore collections"
         result=1
     fi
-
-    if [ ${result} -ne 0 ]
-    then
-        echo "At least one error occurred during backup"
-    fi
 fi
 
 #########################################################################
 # Backup datastore kinds
 #########################################################################
 
-datastores=$(python3 ${basedir}/datastore/list_datastores.py ${data_catalog_file})
-if [ ! -z "${datastores}" ]
+datastores=$(python3 "${basedir}/datastore/list_datastores.py" "${data_catalog_file}")
+if [ -n "${datastores}" ]
 then
     pip install virtualenv==16.7.9
     virtualenv -p python3 datastore_venv
@@ -112,18 +107,13 @@ then
         echo "ERROR backing up datastore kinds"
         result=1
     fi
-
-    if [ ${result} -ne 0 ]
-    then
-        echo "At least one error occurred during backup"
-    fi
 fi
 
 #########################################################################
 # Auto delete datastore entities
 #########################################################################
 
-if [ ! -z "${datastores}" ]
+if [ -n "${datastores}" ]
 then
     echo "Auto delete datastore entities"
 
@@ -136,11 +126,11 @@ then
         echo "ERROR auto deletion datastore entities"
         result=1
     fi
-
-    if [ ${result} -ne 0 ]
-    then
-        echo "At least one error occurred during auto deletion of datastore entities"
-    fi
-
-    exit $result
 fi
+
+if [ ${result} -ne 0 ]
+then
+    echo "At least one error occurred during backup"
+fi
+
+exit $result

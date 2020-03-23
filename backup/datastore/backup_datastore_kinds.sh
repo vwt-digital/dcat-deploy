@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2181
 
 PROJECT_ID=${1}
 dest_bucket=${2}
@@ -14,9 +15,10 @@ result=0
 destpath="gs://${dest_bucket}/backup/datastore/$(date '+%Y/%m/%d/%H')"
 gcloud datastore export "${destpath}" --project="${PROJECT_ID}"
 
-if [ ${result} -ne 0 ]
+if [ $? -ne 0 ]
 then
-    echo "At least one error occurred during datastore backup"
+    echo "ERROR creating backup of datastore to ${destpath}"
+    result=1
 fi
 
 exit $result
