@@ -12,8 +12,6 @@ fi
 
 result=0
 
-echo "Create backup of datastore in project ${PROJECT_ID}"
-
 destpath="gs://${dest_bucket}/backup/datastore/$(date '+%Y/%m/%d/%H')"
 gcloud datastore export "${destpath}" --project="${PROJECT_ID}"
 

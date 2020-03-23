@@ -12,16 +12,15 @@ fi
 
 result=0
 
-echo "Create backup of firestore in project ${PROJECT_ID}"
+date_suffix=$(date '+%Y/%m/%d/%H')
 
-# Workaround because of weak firestore export permissions
-localpath="gs://${PROJECT_ID}-firestore-ephemeral-backup-stg/backup/firestore/$(date '+%Y/%m/%d/%H')"
+localpath="gs://${PROJECT_ID}-firestore-ephemeral-backup-stg/backup/firestore/${date_suffix}"
 gcloud firestore export "${localpath}" --project="${PROJECT_ID}"
 
-destpath="gs://${dest_bucket}/backup/firestore/$(date '+%Y/%m/%d/%H')"
+destpath="gs://${dest_bucket}/backup/firestore/${date_suffix}"
 gsutil -m mv "${localpath}" "${destpath}"
 
-if [ $? -ne 0 ]
+if [ ${result} -ne 0 ]
 then
     echo "ERROR creating backup of firestore to ${destpath}"
     result=1
