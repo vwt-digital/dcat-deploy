@@ -7,16 +7,29 @@ old_project_id = sys.argv[2]
 new_project_id = sys.argv[3]
 service_account = sys.argv[4]
 
-deploymentZones = {
+deployment_zones = {
     "gew1": "europe-west1",
     "gew4": "europe-west4"
 }
 
+environments = {
+    "d": "development",
+    "p": "production"
+}
 
-def get_deployment_zone(projectToGetZoneFor):
-    projectNameParts = projectToGetZoneFor.split('-')
-    if len(projectNameParts) > 3:
-        return deploymentZones.get(projectNameParts[2], 'europe-west1')
+
+def get_stage(project):
+    parts = project.split('-')
+    if len(parts) > 2:
+        return environments.get(parts[1], 'development')
+    else:
+        return 'development'
+
+
+def get_deployment_zone(project):
+    parts = project.split('-')
+    if len(project) > 3:
+        return deployment_zones.get(parts[2], 'europe-west1')
     else:
         return 'europe-west1'
 
@@ -79,8 +92,8 @@ for outer, dataset in enumerate(catalog.get('dataset')):
                 "assignee": "serviceAccount:$(ref.{}.serviceAccountEmailAddress)".format(distribution.get('title'))
             })
 
-catalog.get('dataset').append({
-  "identifier": "{}-tmp-backup-stg".format(new_project_id),
+catalog.get('dataset', []).append({
+  "identifier": "{}-tmp-backup".format(new_project_id),
   "title": "Storage containing temporary backup deployed to {}".format(new_project_id),
   "accessLevel": "restricted",
   "rights": "The dataset could contain PII, therefore access level is restricted",
@@ -94,11 +107,11 @@ catalog.get('dataset').append({
       "name": "VolkerWessels Telecom"
     }
   },
-  "keyword": [],
+  "keyword": ["backup", "restore"],
   "modified": datetime.datetime.now().strftime("%Y-%m-%d"),
   "spatial": "Netherlands",
   "temporal": "P1W",
-  "issued": datetime.datetime.now().strftime("%Y-%m"),
+  "issued": "2020-03",
   "distribution": [
     {
       "accessURL": "https://console.cloud.google.com/storage/browser/{}-tmp-backup-stg".format(new_project_id),
@@ -106,7 +119,7 @@ catalog.get('dataset').append({
       "deploymentZone": get_deployment_zone(new_project_id),
       "format": "blob-storage",
       "title": "{}-tmp-backup-stg".format(new_project_id),
-      "description": "VWT development environment at Google europe-west1 containing data catalog blob storage"
+      "description": f"VWT {get_stage(new_project_id)} environment at Google europe-west1 containing data catalog blob storage"
     }
   ],
   "odrlPolicy": {
