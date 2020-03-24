@@ -26,16 +26,20 @@ do
 
     if [ $? -ne 0 ]
     then
-        echo "Checking for pending operations for backup of ${database} in project ${PROJECT_ID}..."
-        PENDING_OPERATIONS=$(gcloud sql operations list \
+
+        echo "Checking for pending operations..."
+        PENDING_OPERATION=$(gcloud sql operations list \
           --instance="${instance}" \
           --filter='status!=DONE' \
-          --format='value(name)')
-        if [ -n "${PENDING_OPERATIONS}" ]
+          --format='value(name)' \
+          --limit=1)
+
+        if [ -n "${PENDING_OPERATION}" ]
         then
-            echo "Found pending operation ${PENDING_OPERATIONS}"
-            # Waiting for pending operations for a specified amount of seconds
-            gcloud sql operations wait "${PENDING_OPERATIONS}" --timeout=1800
+
+            echo "Found pending operation ${PENDING_OPERATION}"
+            gcloud sql operations wait "${PENDING_OPERATION}" --timeout=1800
+
             if [ $? -ne 0 ]
             then
                 echo "ERROR waiting for pending backup operations"
@@ -45,7 +49,9 @@ do
             echo "ERROR creating backup of ${database} in project ${PROJECT_ID}"
             result=1
         fi
+
     fi
+
 done
 
 if [ ${result} -ne 0 ]

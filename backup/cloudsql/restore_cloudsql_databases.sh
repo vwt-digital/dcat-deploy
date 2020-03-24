@@ -39,14 +39,35 @@ file="gs://${BACKUP_BUCKET}/backup/cloudsql/${SOURCE_INSTANCE}/${SOURCE_DATABASE
 
 gcloud sql import sql "${DEST_INSTANCE}" "${file}" \
   --database="${DEST_DATABASE}" \
-  --project="${PROJECT_ID}" \
-  --async \
-  --quiet
+  --project="${PROJECT_ID}"
 
 if [ $? -ne 0 ]
 then
-    echo "ERROR restoring backup from ${file}"
-    result=1
+
+    echo "Checking for pending operations..."
+    PENDING_OPERATION=$(gcloud sql operations list \
+      --instance="${DEST_INSTANCE}" \
+      --filter='status!=DONE' \
+      --format='value(name)' \
+      --limit=1)
+
+    if [ -n "${PENDING_OPERATION}" ]
+    then
+
+        echo "Found pending operation ${PENDING_OPERATION}"
+        gcloud sql operations wait "${PENDING_OPERATION}" --timeout=unlimited
+
+        if [ $? -ne 0 ]
+        then
+            echo "ERROR waiting for pending restore operations"
+            result=1
+        fi
+
+    else
+        echo "ERROR restoring backup from ${file}"
+        result=1
+    fi
+
 fi
 
 exit $result
