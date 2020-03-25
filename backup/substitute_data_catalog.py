@@ -119,7 +119,7 @@ catalog.get('dataset', []).append({
       "deploymentZone": get_deployment_zone(new_project_id),
       "format": "blob-storage",
       "title": "{}-tmp-backup-stg".format(new_project_id),
-      "description": f"VWT {get_stage(new_project_id)} environment at Google europe-west1 containing data catalog blob storage"
+      "description": "VWT {} environment at Google europe-west1 containing data catalog blob storage".format(get_stage(new_project_id))
     }
   ],
   "odrlPolicy": {
