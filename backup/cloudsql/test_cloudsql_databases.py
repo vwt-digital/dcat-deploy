@@ -19,7 +19,7 @@ aggregation.per_series_aligner = (
 
 results = client.list_time_series(
     project_name,
-    f'metric.type = "{metric}"',
+    'metric.type = "{}"'.format(metric),
     interval,
     monitoring_v3.enums.ListTimeSeriesRequest.TimeSeriesView.FULL,
     aggregation)

@@ -14,8 +14,8 @@ basedir=$(dirname "$0")
 result=0
 
 pip install virtualenv==16.7.9
-virtualenv -p python3 datastore_venv
-source storage_venv/bin/activate
+virtualenv -p python3 consistency_venv
+source consistency_venv/bin/activate
 pip install google-cloud-storage==1.26.0 \
   google-cloud-monitoring==0.34.0 \
   google-cloud-firestore==1.6.2 \
@@ -46,12 +46,15 @@ fi
 
 echo "Performing consistency check on cloudsql databases..."
 
-size=$(python3 "${basedir}"/cloudsql/test_cloudsql_databases.py "${PROJECT_ID}" "cloudsql.googleapis.com/database/disk/bytes_used")
-echo "${size} bytes"
+if [[ -n $(python3 "${basedir}"/cloudsql/list_cloudsql_databases.py "${DATA_CATALOG}") ]]
+then
+    size=$(python3 "${basedir}"/cloudsql/test_cloudsql_databases.py "${PROJECT_ID}" "cloudsql.googleapis.com/database/disk/bytes_used")
+    echo "${size}"
+fi
 
 if [ $? -ne 0 ]
 then
-    echo "ERROR clousql databases not consistent"
+    echo "ERROR cloudsql databases not consistent"
     result=1
 fi
 
@@ -82,5 +85,7 @@ then
     echo "ERROR datastore kinds not consistent"
     result=1
 fi
+
+deactivate
 
 exit $result
