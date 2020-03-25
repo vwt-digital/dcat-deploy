@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC1091,SC2181
 
 if [ -z "${3}" ]
 then
@@ -27,7 +28,7 @@ if ! python3 "${basedir}"/data_catalog_sanity_check.py "${data_catalog}"
 then
     echo "Sanity check failed"
     exit 1
-fi 
+fi
 
 echo "Sanity chec passed"
 
@@ -41,8 +42,6 @@ python3 "${basedir}"/prepare_data_catalog.py "${data_catalog}" "${project_id}" >
 
 pip install virtualenv==16.7.9
 virtualenv -p python3 venv
-
-# shellcheck disable=SC1091
 . venv/bin/activate
 pip install pyyaml
 python3 "${basedir}"/generate_datastore_indexes.py "${data_catalog}" > "${gcp_datastore_indexes}"
@@ -54,16 +53,16 @@ then
     gcloud deployment-manager deployments describe "${deployment_name}" --project="${project_id}" >/dev/null 2>&1
     result=$?
 
-    if [ ${result} -ne 0 ]
+    if [ "${result}" -ne 0 ]
     then
         # Create if deployment does not yet exist
-        result=gcloud deployment-manager deployments create "${deployment_name}" --template="${gcp_template}" --project="${project_id}"
+        gcloud deployment-manager deployments create "${deployment_name}" --template="${gcp_template}" --project="${project_id}"
     else
         # Update if deployment exists already
-        result=gcloud deployment-manager deployments update "${deployment_name}" --template="${gcp_template}" --project="${project_id}"
+        gcloud deployment-manager deployments update "${deployment_name}" --template="${gcp_template}" --project="${project_id}"
     fi
 
-    if [ ${result} -ne 0 ]
+    if [ $? -ne 0 ]
     then
         echo "Error deploying data catalog."
         exit 1
@@ -90,8 +89,6 @@ then
     gsutil cp "${gcp_catalog}" gs://"${project_id}"-dcat-deployed-stg/data_catalog.json
 
     # Post the data catalog to the data catalogs topic
-
-# shellcheck disable=SC1091
     . venv/bin/activate
     pip install google-cloud-pubsub==1.2.0
     if ! python3 "${basedir}"/publish_dcat_to_topic.py -d "${gcp_catalog}" -p "${project_id}"
