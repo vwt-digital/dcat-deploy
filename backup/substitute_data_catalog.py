@@ -12,7 +12,7 @@ deployment_zones = {
     "gew4": "europe-west4"
 }
 
-environments = {
+stages = {
     "d": "development",
     "p": "production"
 }
@@ -21,7 +21,7 @@ environments = {
 def get_stage(project):
     parts = project.split('-')
     if len(parts) > 2:
-        return environments.get(parts[1], 'development')
+        return stages.get(parts[1], 'development')
     else:
         return 'development'
 

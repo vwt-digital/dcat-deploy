@@ -10,7 +10,7 @@ deployment_zones = {
     "gew4": "europe-west4"
 }
 
-environments = {
+stages = {
     "d": "development",
     "p": "production"
 }
@@ -19,7 +19,7 @@ environments = {
 def get_stage(project):
     parts = project.split('-')
     if len(parts) > 2:
-        return environments.get(parts[1], 'development')
+        return stages.get(parts[1], 'development')
     else:
         return 'development'
 
@@ -59,7 +59,7 @@ catalog.get('dataset', []).append({
       "deploymentZone": get_deployment_zone(project),
       "format": "blob-storage",
       "title": "{}-dcat-deployed-stg".format(project),
-      "description": f"VWT {get_stage(project)} environment at Google europe-west1 containing data catalog blob storage"
+      "description": "VWT {} environment at Google europe-west1 containing data catalog blob storage".format(get_stage(project))
     }
   ]
 })
