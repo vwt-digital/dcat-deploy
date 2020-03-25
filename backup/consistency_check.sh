@@ -2,12 +2,11 @@
 # shellcheck disable=SC2181,SC1091
 
 DATA_CATALOG=${1}
-BACKUP_BUCKET=${2}
-PROJECT_ID=${3}
+PROJECT_ID=${2}
 
-if [ -z "${DATA_CATALOG}" ] || [ -z "${BACKUP_BUCKET}" ] || [ -z "${PROJECT_ID}" ]
+if [ -z "${DATA_CATALOG}" ] || [ -z "${PROJECT_ID}" ]
 then
-    echo "Usage: $0 <data_catalog> <backup_bucket> <project_id>"
+    echo "Usage: $0 <data_catalog> <project_id>"
     exit 1
 fi
 
@@ -30,7 +29,10 @@ pip install google-cloud-storage==1.26.0 \
 
 echo "Performing consistency check on storage buckets..."
 
-python3 "${basedir}"/storage/test_storage_buckets.py
+for bucket in $(python3 "${basedir}"/storage/list_storage_buckets.py "${DATA_CATALOG}")
+do
+    python3 "${basedir}"/storage/test_storage_buckets.py "${bucket}"
+done
 
 if [ $? -ne 0 ]
 then
