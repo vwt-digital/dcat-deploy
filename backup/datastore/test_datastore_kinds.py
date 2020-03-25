@@ -10,18 +10,16 @@ try:
     query = client.query(kind='__kind__')
     query.keys_only()
     kinds = [entity.key.id_or_name for entity in query.fetch()]
-    k = []
+
     for kind in kinds:
         if not (kind.startswith("__") and kind.endswith("__")):
-            k.append(kind)
-
-    if len(k) > 0:
-        query = client.query(kind=k[0])
-        results = list(query.fetch(limit=1))
-
-        for item in results:
-            if not isinstance(item, dict):
-                raise TypeError("Item must be a JSON")
+            query = client.query(kind=kind)
+            results = list(query.fetch(limit=1))
+            for item in results:
+                if not isinstance(item, dict):
+                    raise TypeError('Item must be a JSON')
+                else:
+                    logging.info(' + kind {} is OK!'.format(kind))
 
 except exceptions.FailedPrecondition as e:
     logging.warning(str(e))

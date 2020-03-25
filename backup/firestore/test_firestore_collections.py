@@ -11,11 +11,14 @@ try:
     colls = [coll.id for coll in collections]
 
     if len(colls) > 0:
-        documents = client.collection(colls[0]).limit(1).stream()
-        results = [doc.to_dict() for doc in documents]
-        for item in results:
-            if not isinstance(item, dict):
-                raise TypeError("Item must be a JSON")
+        for coll in colls:
+            documents = client.collection(coll).limit(1).stream()
+            results = [doc.to_dict() for doc in documents]
+            for item in results:
+                if not isinstance(item, dict):
+                    raise TypeError('Item must be a JSON')
+                else:
+                    logging.info(' + collection {} is OK!'.format(coll))
 
 except exceptions.FailedPrecondition as e:
     logging.info(str(e))
