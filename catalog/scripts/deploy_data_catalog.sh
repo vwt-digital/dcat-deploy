@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck disable=SC1091
+# shellcheck disable=SC1091,SC2181
 
 if [ -z "${3}" ]
 then
@@ -50,18 +50,19 @@ deactivate
 if [ "${runmode}" = "deploy" ]
 then
     # Check if deployment exists
-    result=$(gcloud deployment-manager deployments describe "${deployment_name}" --project="${project_id}" >/dev/null 2>&1)
+    gcloud deployment-manager deployments describe "${deployment_name}" --project="${project_id}" >/dev/null 2>&1
+    result=$?
 
     if [ "${result}" -ne 0 ]
     then
         # Create if deployment does not yet exist
-        result=$(gcloud deployment-manager deployments create "${deployment_name}" --template="${gcp_template}" --project="${project_id}")
+        gcloud deployment-manager deployments create "${deployment_name}" --template="${gcp_template}" --project="${project_id}"
     else
         # Update if deployment exists already
-        result=$(gcloud deployment-manager deployments update "${deployment_name}" --template="${gcp_template}" --project="${project_id}")
+        gcloud deployment-manager deployments update "${deployment_name}" --template="${gcp_template}" --project="${project_id}"
     fi
 
-    if [ "${result}" -ne 0 ]
+    if [ $? -ne 0 ]
     then
         echo "Error deploying data catalog."
         exit 1
