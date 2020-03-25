@@ -30,7 +30,7 @@ then
     exit 1
 fi
 
-echo "Sanity chec passed"
+echo "Sanity check passed"
 
 python3 "${basedir}"/prepare_data_catalog.py "${data_catalog}" "${project_id}" > "${gcp_catalog}"
 
