@@ -64,7 +64,10 @@ fi
 
 echo "Performing consistency check on firestore collections..."
 
-python3 "${basedir}"/firestore/test_firestore_collections.py
+if [[ -n $(python3 "${basedir}"/firestore/list_firestores.py "${DATA_CATALOG}") ]]
+then
+    python3 "${basedir}"/firestore/test_firestore_collections.py
+fi
 
 if [ $? -ne 0 ]
 then
@@ -78,7 +81,10 @@ fi
 
 echo "Performing consistency check on datastore kinds..."
 
-python3 "${basedir}"/datastore/test_datastore_kinds.py
+if [[ -n $(python3 "${basedir}"/datastore/list_datastores.py "${DATA_CATALOG}") ]]
+then
+    python3 "${basedir}"/datastore/test_datastore_kinds.py
+fi
 
 if [ $? -ne 0 ]
 then
