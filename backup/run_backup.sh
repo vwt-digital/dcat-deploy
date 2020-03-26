@@ -22,7 +22,7 @@ result=0
 # Backup repositories
 #########################################################################
 
-echo "Backup source code repositories"
+echo "Backup source code repositories..."
 
 "${basedir}"/repositories/backup_github_repos.sh "${data_catalog_file}" "${PROJECT_ID}" "${dest_bucket}" "${keyring_region}" "${keyring}" "${key}" "${b64_encrypted_github_token}"
 
@@ -36,7 +36,7 @@ fi
 # Backup storage buckets
 #########################################################################
 
-echo "Backup storage buckets"
+echo "Backup storage buckets..."
 
 "${basedir}"/storage/backup_storage_buckets.sh "${data_catalog_file}" "${PROJECT_ID}" "${dest_bucket}"
 
@@ -50,7 +50,7 @@ fi
 # Backup cloudsql databases
 #########################################################################
 
-echo "Backup cloudsql databases"
+echo "Backup cloudsql databases..."
 
 "${basedir}"/cloudsql/backup_cloudsql_databases.sh "${data_catalog_file}" "${PROJECT_ID}" "${dest_bucket}"
 
@@ -67,14 +67,9 @@ fi
 firestores=$(python3 "${basedir}/firestore/list_firestores.py" "${data_catalog_file}")
 if [ -n "${firestores}" ]
 then
-    echo "Backup firestore collections"
+    echo "Backup firestore collections..."
 
-    pip install virtualenv==16.7.9
-    virtualenv -p python3 firestore_venv
-    source firestore_venv/bin/activate
-    pip install google-cloud-firestore==1.6.0 google-api-core==1.16.0 grpcio==1.27.2
     "${basedir}"/firestore/backup_firestore_collections.sh "${PROJECT_ID}" "${dest_bucket}"
-    deactivate
 
     if [ $? -ne 0 ]
     then
@@ -90,17 +85,10 @@ fi
 datastores=$(python3 "${basedir}/datastore/list_datastores.py" "${data_catalog_file}")
 if [ -n "${datastores}" ]
 then
-    pip install virtualenv==16.7.9
-    virtualenv -p python3 datastore_venv
-    source datastore_venv/bin/activate
-    pip install google-cloud-datastore==1.8.0 google-api-core==1.16.0 grpcio==1.27.2
-    deactivate
 
-    echo "Backup datastore kinds"
+    echo "Backup datastore kinds..."
 
-    source datastore_venv/bin/activate
     "${basedir}"/datastore/backup_datastore_kinds.sh "${PROJECT_ID}" "${dest_bucket}"
-    deactivate
 
     if [ $? -ne 0 ]
     then
@@ -115,9 +103,12 @@ fi
 
 if [ -n "${datastores}" ]
 then
-    echo "Auto delete datastore entities"
+    echo "Auto delete datastore entities..."
 
+    pip install virtualenv==16.7.9
+    virtualenv -p python3 datastore_venv
     source datastore_venv/bin/activate
+    pip install google-cloud-datastore==1.8.0 google-api-core==1.16.0 grpcio==1.27.2
     python3 "${basedir}"/datastore/datastore_auto_delete.py "${data_catalog_file}"
     deactivate
 
