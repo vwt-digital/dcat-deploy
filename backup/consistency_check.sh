@@ -48,8 +48,7 @@ echo "Performing consistency check on cloudsql databases..."
 
 if [[ -n $(python3 "${basedir}"/cloudsql/list_cloudsql_databases.py "${DATA_CATALOG}") ]]
 then
-    size=$(python3 "${basedir}"/cloudsql/test_cloudsql_databases.py "${PROJECT_ID}" "cloudsql.googleapis.com/database/disk/bytes_used")
-    echo "${size}"
+    python3 "${basedir}"/cloudsql/test_cloudsql_databases.py "${PROJECT_ID}"
 fi
 
 if [ $? -ne 0 ]

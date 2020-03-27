@@ -1,10 +1,10 @@
 import sys
 import time
+import logging
 
 from google.cloud import monitoring_v3
 
 project = sys.argv[1]
-metric = sys.argv[2]
 
 client = monitoring_v3.MetricServiceClient()
 project_name = client.project_path(project)
@@ -19,11 +19,15 @@ aggregation.per_series_aligner = (
 
 results = client.list_time_series(
     project_name,
-    'metric.type = "{}"'.format(metric),
+    'metric.type = "cloudsql.googleapis.com/database/disk/bytes_used"',
     interval,
     monitoring_v3.enums.ListTimeSeriesRequest.TimeSeriesView.FULL,
     aggregation)
 
 for result in results:
     for point in result.points:
-        print(int(point.value.double_value))
+        # Compare with size in bytes of empty cloudsql database
+        if int(point.value.double_value) < 1221918195:
+            raise Exception('Cloudsql database is empty')
+        else:
+            logging.info(' + Cloudsql database OK!')

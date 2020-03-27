@@ -3,8 +3,6 @@ import logging
 from google.cloud import datastore
 from google.api_core import exceptions
 
-logging.getLogger().setLevel(logging.INFO)
-
 try:
     client = datastore.Client()
     query = client.query(kind='__kind__')
@@ -22,7 +20,8 @@ try:
                     logging.info(' + kind {} is OK!'.format(kind))
 
 except exceptions.FailedPrecondition as e:
-    logging.warning(str(e))
-    pass
+    logging.info(str(e))
+except exceptions.NotFound as e:
+    logging.info(str(e))
 except Exception as e:
     logging.exception(e)
