@@ -24,17 +24,17 @@
             "args": [
                 "-c",
                 "_id=${_RESTORE_PROJECT_PREFIX}$(openssl rand -hex 4,,)",
-                "echo $${_id} > id.cfg"
+                "echo $${_id} > id.cfg",
+                "cp id.cfg dcat-deploy/backup/",
+                "cp id.cfg cloud-deployment/config/"
             ]
         },
         {
-            "id": "Copy config",
+            "id": "Copy config files",
             "name": "gcr.io/cloud-builders/gcloud",
             "entrypoint": "bash",
             "args": [
                 "-c",
-                "cp id.cfg dcat-deploy/backup/",
-                "cp id.cfg cloud-deployment/config/",
                 "cp config/${PROJECT_ID}/* cloud-deployment/config/"
             ]
         },
@@ -136,8 +136,8 @@
     ],
     "substitutions": {
         "_DEVELOPERS": "__DEVELOPERS__",
-        "_PARENT_FOLDER_ID": "__PARENT_FOLDER_ID__",
         "_BACKUP_PROJECT": "__BACKUP_PROJECT__",
+        "_PARENT_FOLDER_ID": "__PARENT_FOLDER_ID__",
         "_BILLING_ACCOUNT_NAME": "__BILLING_ACCOUNT_NAME__",
         "_RESTORE_PROJECT_PREFIX": "__RESTORE_PROJECT_PREFIX__",
         "_RESTORE_PROJECT_NUMBER": "__RESTORE_PROJECT_NUMBER__",
