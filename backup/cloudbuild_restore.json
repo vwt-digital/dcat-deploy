@@ -30,15 +30,6 @@
             ]
         },
         {
-            "id": "Copy config files",
-            "name": "gcr.io/cloud-builders/gcloud",
-            "entrypoint": "bash",
-            "args": [
-                "-c",
-                "cp config/${PROJECT_ID}/* cloud-deployment/config/"
-            ]
-        },
-        {
             "id": "Substitute projects.json",
             "name": "gcr.io/cloud-builders/gcloud",
             "dir": "cloud-deployment/config",
