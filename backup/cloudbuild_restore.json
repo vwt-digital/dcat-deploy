@@ -46,6 +46,7 @@
             "args": [
                 "-c",
                 "_id=$(cat id.cfg)",
+                "echo ${_BILLING_ACCOUNT_NAME} > billing_account_name.cfg",
                 "cat projects.json.template | sed -e 's|__PROJECT_ID__|$${_id|' projects.json",
                 "cat projects.json.template | sed -e 's|__DEVELOPERS__|${_DEVELOPERS}|' projects.json",
                 "cat projects.json.template | sed -e 's|__RESTORE_PROJECT_NUMBER__|${_RESTORE_PROJECT_NUMBER}|' projects.json"
