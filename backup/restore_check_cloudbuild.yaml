@@ -1,0 +1,10 @@
+timeout: 1200s
+steps:
+# Deploy data catalog
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    git clone --branch=${_BRANCH_NAME} https://github.com/vwt-digital/dcat-deploy.git
+    dcat-deploy/backup/consistency_check.sh data_catalog.json "${PROJECT_ID}"
