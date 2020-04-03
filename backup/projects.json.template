@@ -12,7 +12,8 @@
                 "sql-component.googleapis.com",
                 "sqladmin.googleapis.com",
                 "datastore.googleapis.com",
-                "firestore.googleapis.com"
+                "firestore.googleapis.com",
+                "monitoring.googleapis.com"
             ],
             "odrlPolicy": {
                 "uid": "__PROJECT_ID__-policy",
@@ -25,7 +26,7 @@
                     {
                         "target": "__PROJECT_ID__",
                         "assignee": "group:__DEVELOPERS__",
-                        "action": "roles/viewer"
+                        "action": "roles/editor"
                     }
                 ]
             }
