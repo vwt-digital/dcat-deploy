@@ -13,7 +13,8 @@
                 "sqladmin.googleapis.com",
                 "datastore.googleapis.com",
                 "firestore.googleapis.com",
-                "monitoring.googleapis.com"
+                "monitoring.googleapis.com",
+                "stackdriver.googleapis.com"
             ],
             "odrlPolicy": {
                 "uid": "__PROJECT_ID__-policy",
