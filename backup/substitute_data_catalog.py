@@ -76,15 +76,15 @@ permissions = [
 
 for outer, dataset in enumerate(catalog.get('dataset')):
     dataset.pop('odrlPolicy', None)
-    if dataset.get('identifier') == old_project_id + '-dcat-deployed-stg':
-        catalog['dataset'].pop(outer)
+    if dataset.get('identifier') == old_project_id + '-dcat-deployed':
+        catalog['dataset'].pop(outer, None)
     for inner, distribution in enumerate(dataset.get('distribution')):
         title = distribution.get('title')
         distribution = dict_replace_value(distribution, old_project_id, new_project_id)
         distribution['backupSource'] = title
         dataset['distribution'][inner] = distribution
         if distribution.get('title') == '{}-firestore-ephemeral-backup-stg'.format(new_project_id):
-            dataset['distribution'].pop(inner)
+            dataset['distribution'].pop(inner, None)
         if distribution.get('format') == 'cloudsql-instance':
             permissions.append({
                 "target": "{}-tmp-backup-stg".format(new_project_id),
