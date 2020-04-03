@@ -27,7 +27,7 @@
                     {
                         "target": "__PROJECT_ID__",
                         "assignee": "group:__DEVELOPERS__",
-                        "action": "roles/editor"
+                        "action": "roles/owner"
                     }
                 ]
             }
