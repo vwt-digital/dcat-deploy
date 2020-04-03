@@ -76,7 +76,7 @@ permissions = [
 
 for outer, dataset in enumerate(catalog.get('dataset')):
     dataset.pop('odrlPolicy', None)
-    if dataset.get('identifier') == old_project_id + '-dcat-deployedcd ':
+    if dataset.get('identifier') == old_project_id + '-dcat-deployed':
         catalog['dataset'].pop(outer)
     for inner, distribution in enumerate(dataset.get('distribution')):
         title = distribution.get('title')
