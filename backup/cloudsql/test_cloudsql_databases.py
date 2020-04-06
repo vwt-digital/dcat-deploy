@@ -13,7 +13,7 @@ now = time.time()
 interval.end_time.seconds = int(now)
 interval.start_time.seconds = int(now)
 aggregation = monitoring_v3.types.Aggregation()
-aggregation.alignment_period.seconds = 60
+aggregation.alignment_period.seconds = 600
 aggregation.per_series_aligner = (
     monitoring_v3.enums.Aggregation.Aligner.ALIGN_MAX)
 

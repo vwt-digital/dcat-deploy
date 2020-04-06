@@ -126,12 +126,12 @@
         }
     ],
     "substitutions": {
-        "_DEVELOPERS": "development@vwt.digital",
-        "_BACKUP_PROJECT": "vwt-d-gew4-dat-backup",
-        "_PARENT_FOLDER_ID": "686685211664",
-        "_BILLING_ACCOUNT_NAME": "billingAccounts/015034-F4A404-CD4A51",
-        "_RESTORE_PROJECT_PREFIX": "vwt-d-gew1-restore-",
-        "_RESTORE_PROJECT_NUMBER": "124682631531",
-        "_BRANCH_NAME": "DAT-2458"
+        "_DEVELOPERS": "__DEVELOPERS__",
+        "_BACKUP_PROJECT": "__BACKUP_PROJECT__",
+        "_PARENT_FOLDER_ID": "__PARENT_FOLDER_ID__",
+        "_BILLING_ACCOUNT_NAME": "__BILLING_ACCOUNT_NAME__",
+        "_RESTORE_PROJECT_PREFIX": "__RESTORE_PROJECT_PREFIX__",
+        "_RESTORE_PROJECT_NUMBER": "__RESTORE_PROJECT_NUMBER__",
+        "_BRANCH_NAME": "__BRANCH_NAME__"
     }
 }
