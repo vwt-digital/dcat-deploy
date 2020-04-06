@@ -26,8 +26,9 @@ results = client.list_time_series(
 
 for result in results:
     for point in result.points:
-        # Compare with size in bytes of empty cloudsql database
-        if int(point.value.double_value) < 1221918195:
-            raise Exception('Cloudsql database is empty')
+        # Compare with size in bytes of an empty cloudsql database
+        size = int(point.value.double_value)
+        if size < 1221918195:
+            raise Exception('Cloudsql database is empty! The size is {} bytes'.format(size))
         else:
-            logging.info(' + Cloudsql database OK!')
+            logging.info(' + Cloudsql database OK! The size is {} bytes'.format(size))
