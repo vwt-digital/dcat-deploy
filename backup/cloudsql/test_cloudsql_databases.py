@@ -13,9 +13,9 @@ now = time.time()
 interval.end_time.seconds = int(now)
 interval.start_time.seconds = int(now)
 aggregation = monitoring_v3.types.Aggregation()
-aggregation.alignment_period.seconds = 1200
+aggregation.alignment_period.seconds = 60
 aggregation.per_series_aligner = (
-    monitoring_v3.enums.Aggregation.Aligner.ALIGN_MEAN)
+    monitoring_v3.enums.Aggregation.Aligner.ALIGN_MAX)
 
 results = client.list_time_series(
     project_name,
