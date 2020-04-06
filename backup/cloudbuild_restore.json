@@ -33,7 +33,7 @@
             "entrypoint": "bash",
             "args": [
                 "-c",
-                "echo ${_BILLING_ACCOUNT_NAME} > billing_account_name.cfg && echo ${_PARENT_FOLDER_ID} > parent_folder_id.cfg && sed -e \"s|__PROJECT_ID__|$(cat id.cfg)|\" projects.json.template > projects.json && sed -i \"s|__DEVELOPERS__|${_DEVELOPERS}|\" projects.json && sed -i \"s|__RESTORE_PROJECT_NUMBER__|${_RESTORE_PROJECT_NUMBER}|\" projects.json"
+                "echo ${_BILLING_ACCOUNT_NAME} > billing_account_name.cfg && echo ${_PARENT_FOLDER_ID} > parent_folder_id.cfg && sed -e \"s|__PROJECT_ID__|$(cat id.cfg)|\" projects.json.template > projects.json && sed -i \"s|__DEVELOPERS__|${_DEVELOPERS}|\" projects.json && sed -i \"s|__PROJECT_NUMBER__|${_RESTORE_PROJECT_NUMBER}|\" projects.json"
             ]
         },
         {
