@@ -1,3 +1,5 @@
+[![CodeFactor](https://www.codefactor.io/repository/github/vwt-digital/dcat-deploy/badge)](https://www.codefactor.io/repository/github/vwt-digital/dcat-deploy)
+
 # dcat-deploy
 Deploy data catalog on cloud infrastructure
 
