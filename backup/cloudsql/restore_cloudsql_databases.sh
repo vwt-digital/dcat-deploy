@@ -31,7 +31,7 @@ sa=$(gcloud sql instances describe "${DEST_INSTANCE}" \
   --project="${PROJECT_ID}")
 
 echo -e "Make sure ${sa} has the following permissions:"
-echo -e "\t Resource: ${BACKUP_BUCKET}"
+echo -e "\t Resource: gs://${BACKUP_BUCKET}"
 echo -e "\t Role: roles/storage.legacyBucketReader"
 echo -e "\t Role: roles/storage.legacyObjectReader"
 
@@ -47,6 +47,7 @@ then
     echo "Checking for pending operations..."
     PENDING_OPERATION=$(gcloud sql operations list \
       --instance="${DEST_INSTANCE}" \
+      --project="${PROJECT_ID}" \
       --filter='status!=DONE' \
       --format='value(name)' \
       --limit=1)
