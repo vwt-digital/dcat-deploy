@@ -29,6 +29,6 @@ for result in results:
         # Compare with size in bytes of an empty cloudsql database
         size = int(point.value.double_value)
         if size < 1221918195:
-            raise Exception('Cloudsql database is empty! The size is {} bytes'.format(size))
+            logging.exception(' + Cloudsql database is empty! The size is {} bytes'.format(size))
         else:
             logging.info(' + Cloudsql database OK! The size is {} bytes'.format(size))
