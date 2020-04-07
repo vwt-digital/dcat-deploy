@@ -102,6 +102,12 @@ then
         --oauth-token-scope=https://www.googleapis.com/auth/cloud-platform
 fi
 
+if [ $? -ne 0 ]
+then
+    echo "Error scheduling backup job"
+    exit 1
+fi
+
 ############################################################
 # Schedule topic history jobs
 ############################################################
@@ -144,6 +150,7 @@ fi
 i=0
 for pair in $pairs
 do
+
     topic=$(echo $pair | cut -d'|' -f 1)
     period=$(echo $pair | cut -d'|' -f 2)
 
@@ -174,4 +181,11 @@ do
       --attempt-deadline 10m
 
     i=$((i+1))
+
 done
+
+if [ $? -ne 0 ]
+then
+    echo "Error creating pub/sub topic history job"
+    exit 1
+fi
