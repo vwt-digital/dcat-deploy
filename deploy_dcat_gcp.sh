@@ -80,13 +80,13 @@ then
         -e "s|__DCAT_DEPLOY_BRANCH_NAME__|${BRANCH_NAME}|" > cloudbuild_backup_gen.json
 
     echo "Scheduling backup..."
+
     # Check if job already exists
     echo " + Check if job ${PROJECT_ID}-run-backup exists..."
-    gcloud scheduler jobs describe ${PROJECT_ID}-run-backup
-    job_exists=$?
+    job_exists=$(gcloud scheduler jobs list --project=${PROJECT_ID} | grep ${PROJECT_ID}-run-backup)
 
     # Delete job if it already exists
-    if [ ${job_exists} -eq 0 ]
+    if [ -n ${job_exists} ]
     then
         echo " + Deleting existing job ${PROJECT_ID}-run-backup..."
         gcloud scheduler jobs delete --quiet ${PROJECT_ID}-run-backup
