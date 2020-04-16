@@ -325,7 +325,7 @@ def generate_config(context):
             if distribution['format'] == 'bigquery-dataset':
                 resource_to_append = {
                     'name': distribution['title'],
-                    'type': 'bigquery.v2.dataset',
+                    'type': 'gcp-types/bigquery-v2:datasets',
                     'properties': {
                         'datasetReference':
                             {
