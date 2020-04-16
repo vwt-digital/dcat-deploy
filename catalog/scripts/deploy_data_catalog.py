@@ -163,14 +163,16 @@ resource_odrl_policy_bindings = {
         ],
         'write': [],
         'modify': []
-    },
+    }
+}
+
+excluded_odrl_policy_bindings = {
     'bigquery-dataset': {
         'read': [
-            'roles/bigQuery.dataViewer'
+            'roles/bigquery.dataViewer'
         ],
-        'write': [],
         'modify': [
-            'roles/bigQuery.dataEditor'
+            'roles/bigquery.dataEditor'
         ]
     }
 }
@@ -190,20 +192,22 @@ def gather_permissions(access_level, resource_title, resource_format, project_id
     if bindings_per_level:
         bindings = bindings_per_level[access_level]
 
-    if odrlPolicy is not None:
-        for permission in [p for p in odrlPolicy.get('permission', []) if p.get('target', '') == resource_title]:
-            for role_to_add in gather_odrl_policy_roles_to_add(resource_format, permission['action']):
-                if not bindings:
-                    bindings = []
-                binding = next((b for b in bindings if b['role'] == role_to_add), None)
-                if not binding:
-                    binding = {
-                        'role': role_to_add,
-                        'members': []
-                    }
-                    bindings.append(binding)
-                if not permission['assignee'] in binding['members']:
-                    binding['members'].append(permission['assignee'])
+    if odrlPolicy:
+        for permission in odrlPolicy.get('permission', []):
+            target = permission.get('target')
+            if target == resource_title and target != excluded_odrl_policy_bindings.get(target):
+                for role_to_add in gather_odrl_policy_roles_to_add(resource_format, permission['action']):
+                    if not bindings:
+                        bindings = []
+                    binding = next((b for b in bindings if b['role'] == role_to_add), None)
+                    if not binding:
+                        binding = {
+                            'role': role_to_add,
+                            'members': []
+                        }
+                        bindings.append(binding)
+                    if not permission['assignee'] in binding['members']:
+                        binding['members'].append(permission['assignee'])
 
     if bindings is not None:
         for binding in bindings:
@@ -212,6 +216,25 @@ def gather_permissions(access_level, resource_title, resource_format, project_id
         return bindings
     else:
         return None
+
+
+# Note: bigquery still uses legacy access property to set permissions
+# https://github.com/GoogleCloudPlatform/deploymentmanager-samples/issues/502
+def get_bigquery_access_policy(resource, odrlPolicy):
+    access_policy = []
+    for permission in odrlPolicy.get('permissions', []):
+        if permission['title'] == resource['title']:
+            if 'serviceAccount' in permission['assignee'] or 'user' in permission['assignee']:
+                access_policy.append({
+                    'role': '',
+                    'userByEmail': permission['assignee']
+                })
+            elif 'group' in permission['assignee']:
+                access_policy.append({
+                    'role': '',
+                    'groupByEmail': permission['assignee'],
+                })
+    return access_policy
 
 
 def append_gcp_policy(resource, resource_title, resource_format, access_level, project_id, odrlPolicy):
@@ -332,7 +355,8 @@ def generate_config(context):
                                 'datasetId': distribution['title'],
                                 'projectId': catalog['projectId']  # noqa: F821
                             },
-                        'location': distribution['deploymentZone']
+                        'location': distribution['deploymentZone'],
+                        'access': get_bigquery_access_policy(distribution, dataset.get('odrlPolicy'))
                     }
                 }
 
