@@ -313,6 +313,19 @@ def generate_config(context):
                         'dependsOn': [distribution['deploymentProperties']['instance']]
                     }
                 }
+            if distribution['format'] == 'bigquery-dataset':
+                resource_to_append = {
+                    'name': distribution['title'],
+                    'type': 'bigquery.v2.dataset',
+                    'properties': {
+                        'datasetReference':
+                            {
+                                'datasetId': distribution['title'],
+                                'projectId': catalog['projectId']  # noqa: F821
+                            },
+                        'location': distribution['deploymentZone']
+                    }
+                }
 
             if resource_to_append:
                 # Add deployment properties, unless it's a subscription as pushConfig is not updatable through Deployment Manager (DAT-816)
