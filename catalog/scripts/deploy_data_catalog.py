@@ -226,13 +226,13 @@ def get_bigquery_access_policy(resource, odrlPolicy):
         if permission['target'] == resource['title']:
             if 'serviceAccount' in permission['assignee'] or 'user' in permission['assignee']:
                 access_policy.append({
-                    'role': '',
-                    'userByEmail': permission['assignee']
+                    'role': excluded_odrl_policy_bindings[resource['format']]['action'],
+                    'userByEmail': permission['assignee'].split(':')[1]
                 })
             elif 'group' in permission['assignee']:
                 access_policy.append({
-                    'role': '',
-                    'groupByEmail': permission['assignee'],
+                    'role': excluded_odrl_policy_bindings[resource['format']]['action'],
+                    'groupByEmail': permission['assignee'].split(':')[1]
                 })
     return access_policy
 
