@@ -168,12 +168,8 @@ resource_odrl_policy_bindings = {
 
 excluded_odrl_policy_bindings = {
     'bigquery-dataset': {
-        'read': [
-            'roles/bigquery.dataViewer'
-        ],
-        'modify': [
-            'roles/bigquery.dataEditor'
-        ]
+        'read': 'roles/bigquery.dataViewer',
+        'modify': 'roles/bigquery.dataEditor'
     }
 }
 
