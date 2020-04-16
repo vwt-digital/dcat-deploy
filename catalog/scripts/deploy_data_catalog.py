@@ -163,6 +163,15 @@ resource_odrl_policy_bindings = {
         ],
         'write': [],
         'modify': []
+    },
+    'bigquery-dataset': {
+        'read': [
+            'roles/bigQuery.dataViewer'
+        ],
+        'write': [],
+        'modify': [
+            'roles/bigQuery.dataEditor'
+        ]
     }
 }
 
