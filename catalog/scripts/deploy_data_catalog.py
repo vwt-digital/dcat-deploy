@@ -222,7 +222,7 @@ def gather_permissions(access_level, resource_title, resource_format, project_id
 # https://github.com/GoogleCloudPlatform/deploymentmanager-samples/issues/502
 def get_bigquery_access_policy(resource, odrlPolicy):
     access_policy = []
-    for permission in odrlPolicy.get('permissions', []):
+    for permission in odrlPolicy.get('permission', []):
         if permission['title'] == resource['title']:
             if 'serviceAccount' in permission['assignee'] or 'user' in permission['assignee']:
                 access_policy.append({
