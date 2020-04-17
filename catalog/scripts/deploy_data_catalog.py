@@ -166,13 +166,6 @@ resource_odrl_policy_bindings = {
     }
 }
 
-excluded_odrl_policy_bindings = {
-    'bigquery-dataset': {
-        'read': 'roles/bigquery.dataViewer',
-        'modify': 'roles/bigquery.dataEditor'
-    }
-}
-
 
 def gather_odrl_policy_roles_to_add(resource_format, action):
     if resource_format in resource_odrl_policy_bindings:
@@ -190,8 +183,7 @@ def gather_permissions(access_level, resource_title, resource_format, project_id
 
     if odrlPolicy:
         for permission in odrlPolicy.get('permission', []):
-            target = permission.get('target')
-            if target == resource_title and target != excluded_odrl_policy_bindings.get(target):
+            if permission.get('target') == resource_title:
                 for role_to_add in gather_odrl_policy_roles_to_add(resource_format, permission['action']):
                     if not bindings:
                         bindings = []
@@ -212,25 +204,6 @@ def gather_permissions(access_level, resource_title, resource_format, project_id
         return bindings
     else:
         return None
-
-
-# Note: bigquery still uses legacy access property to set permissions
-# https://github.com/GoogleCloudPlatform/deploymentmanager-samples/issues/502
-def get_bigquery_access_policy(resource, odrlPolicy):
-    access_policy = []
-    for permission in odrlPolicy.get('permission', []):
-        if permission['target'] == resource['title']:
-            if 'serviceAccount' in permission['assignee'] or 'user' in permission['assignee']:
-                access_policy.append({
-                    'role': excluded_odrl_policy_bindings[resource['format']][permission['action']],
-                    'userByEmail': permission['assignee'].split(':')[1]
-                })
-            elif 'group' in permission['assignee']:
-                access_policy.append({
-                    'role': excluded_odrl_policy_bindings[resource['format']][permission['action']],
-                    'groupByEmail': permission['assignee'].split(':')[1]
-                })
-    return access_policy
 
 
 def append_gcp_policy(resource, resource_title, resource_format, access_level, project_id, odrlPolicy):
@@ -351,10 +324,19 @@ def generate_config(context):
                                 'datasetId': distribution['title'],
                                 'projectId': catalog['projectId']  # noqa: F821
                             },
-                        'location': distribution['deploymentZone'],
-                        'access': get_bigquery_access_policy(distribution, dataset.get('odrlPolicy'))
+                        'location': distribution['deploymentZone']
                     }
                 }
+                if dataset.get('odrlPolicy'):
+                    for permission in dataset['odrlPolicy']['permission']:
+                        if permission['target'] == distribution['title']:
+                            # Bigquery dataset read and modify require project level bindings
+                            if permission['action'] == 'read':
+                                project_level_bindings = update_bindings(project_level_bindings,
+                                                                         'roles/bigquery.dataViewer', permission['assignee'])
+                            if permission['action'] == 'modify':
+                                project_level_bindings = update_bindings(project_level_bindings,
+                                                                         'roles/bigquery.dataEditor', permission['assignee'])
 
             if resource_to_append:
                 # Add deployment properties, unless it's a subscription as pushConfig is not updatable through Deployment Manager (DAT-816)
