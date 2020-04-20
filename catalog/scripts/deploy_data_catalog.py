@@ -181,20 +181,21 @@ def gather_permissions(access_level, resource_title, resource_format, project_id
     if bindings_per_level:
         bindings = bindings_per_level[access_level]
 
-    if odrlPolicy is not None:
-        for permission in [p for p in odrlPolicy.get('permission', []) if p.get('target', '') == resource_title]:
-            for role_to_add in gather_odrl_policy_roles_to_add(resource_format, permission['action']):
-                if not bindings:
-                    bindings = []
-                binding = next((b for b in bindings if b['role'] == role_to_add), None)
-                if not binding:
-                    binding = {
-                        'role': role_to_add,
-                        'members': []
-                    }
-                    bindings.append(binding)
-                if not permission['assignee'] in binding['members']:
-                    binding['members'].append(permission['assignee'])
+    if odrlPolicy:
+        for permission in odrlPolicy.get('permission', []):
+            if permission.get('target') == resource_title:
+                for role_to_add in gather_odrl_policy_roles_to_add(resource_format, permission['action']):
+                    if not bindings:
+                        bindings = []
+                    binding = next((b for b in bindings if b['role'] == role_to_add), None)
+                    if not binding:
+                        binding = {
+                            'role': role_to_add,
+                            'members': []
+                        }
+                        bindings.append(binding)
+                    if not permission['assignee'] in binding['members']:
+                        binding['members'].append(permission['assignee'])
 
     if bindings is not None:
         for binding in bindings:
@@ -313,6 +314,29 @@ def generate_config(context):
                         'dependsOn': [distribution['deploymentProperties']['instance']]
                     }
                 }
+            if distribution['format'] == 'bigquery-dataset':
+                resource_to_append = {
+                    'name': distribution['title'],
+                    'type': 'gcp-types/bigquery-v2:datasets',
+                    'properties': {
+                        'datasetReference':
+                            {
+                                'datasetId': distribution['title'],
+                                'projectId': catalog['projectId']  # noqa: F821
+                            },
+                        'location': distribution['deploymentZone']
+                    }
+                }
+                if dataset.get('odrlPolicy'):
+                    for permission in dataset['odrlPolicy']['permission']:
+                        if permission['target'] == distribution['title']:
+                            # Bigquery dataset read and modify require project level bindings
+                            if permission['action'] == 'read':
+                                project_level_bindings = update_bindings(project_level_bindings,
+                                                                         'roles/bigquery.dataViewer', permission['assignee'])
+                            if permission['action'] == 'modify':
+                                project_level_bindings = update_bindings(project_level_bindings,
+                                                                         'roles/bigquery.dataEditor', permission['assignee'])
 
             if resource_to_append:
                 # Add deployment properties, unless it's a subscription as pushConfig is not updatable through Deployment Manager (DAT-816)

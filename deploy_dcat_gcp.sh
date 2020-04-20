@@ -80,16 +80,16 @@ then
         -e "s|__DCAT_DEPLOY_BRANCH_NAME__|${BRANCH_NAME}|" > cloudbuild_backup_gen.json
 
     echo "Scheduling backup..."
+
     # Check if job already exists
     echo " + Check if job ${PROJECT_ID}-run-backup exists..."
-    gcloud scheduler jobs describe ${PROJECT_ID}-run-backup
-    job_exists=$?
+    job_exists=$(gcloud scheduler jobs list --project=${PROJECT_ID} | grep ${PROJECT_ID}-run-backup)
 
     # Delete job if it already exists
-    if [ ${job_exists} -eq 0 ]
+    if [[ -n "${job_exists}" ]]
     then
         echo " + Deleting existing job ${PROJECT_ID}-run-backup..."
-        gcloud scheduler jobs delete --quiet ${PROJECT_ID}-run-backup
+        gcloud scheduler jobs delete ${PROJECT_ID}-run-backup --quiet
     fi
 
     # (Re)create job
@@ -100,6 +100,12 @@ then
         --message-body-from-file=cloudbuild_backup_gen.json \
         --oauth-service-account-email=${PROJECT_ID}@appspot.gserviceaccount.com \
         --oauth-token-scope=https://www.googleapis.com/auth/cloud-platform
+fi
+
+if [ $? -ne 0 ]
+then
+    echo "Error scheduling backup job"
+    exit 1
 fi
 
 ############################################################
@@ -144,6 +150,7 @@ fi
 i=0
 for pair in $pairs
 do
+
     topic=$(echo $pair | cut -d'|' -f 1)
     period=$(echo $pair | cut -d'|' -f 2)
 
@@ -174,4 +181,11 @@ do
       --attempt-deadline 10m
 
     i=$((i+1))
+
 done
+
+if [ $? -ne 0 ]
+then
+    echo "Error creating pub/sub topic history job"
+    exit 1
+fi

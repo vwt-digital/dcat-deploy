@@ -1,0 +1,137 @@
+{
+    "timeout": "21600s",
+    "steps": [
+        {
+            "name": "gcr.io/cloud-builders/git",
+            "args": [
+                "clone",
+                "--branch=${_BRANCH_NAME}",
+                "https://github.com/vwt-digital/dcat-deploy.git"
+            ]
+        },
+        {
+            "name": "gcr.io/cloud-builders/git",
+            "args": [
+                "clone",
+                "--branch=${_BRANCH_NAME}",
+                "https://github.com/vwt-digital/cloud-deployment.git"
+            ]
+        },
+        {
+            "id": "Generate unique project id",
+            "name": "gcr.io/cloud-builders/gcloud",
+            "entrypoint": "bash",
+            "args": [
+                "-c",
+                "echo ${_RESTORE_PROJECT_PREFIX}$(openssl rand -hex 4,,) > id.cfg && cp id.cfg dcat-deploy/backup/ && cp id.cfg cloud-deployment/config/"
+            ]
+        },
+        {
+            "id": "Substitute projects.json",
+            "name": "gcr.io/cloud-builders/gcloud",
+            "dir": "cloud-deployment/config",
+            "entrypoint": "bash",
+            "args": [
+                "-c",
+                "echo ${_BILLING_ACCOUNT_NAME} > billing_account_name.cfg && echo ${_PARENT_FOLDER_ID} > parent_folder_id.cfg && sed -e \"s|__PROJECT_ID__|$(cat id.cfg)|\" projects.json.template > projects.json && sed -i \"s|__USER_GROUP__|${_DEVELOPERS}|\" projects.json && sed -i \"s|__PROJECT_NUMBER__|${_RESTORE_PROJECT_NUMBER}|\" projects.json"
+            ]
+        },
+        {
+            "id": "Create project",
+            "name": "gcr.io/cloud-builders/gcloud",
+            "dir": "cloud-deployment/scripts",
+            "entrypoint": "bash",
+            "args": [
+                "-c",
+                "./create_projects.sh ${PROJECT_ID}"
+            ]
+        },
+        {
+            "id": "Get backup bucket",
+            "name": "gcr.io/cloud-builders/gcloud",
+            "dir": "dcat-deploy/backup",
+            "entrypoint": "bash",
+            "args": [
+                "-c",
+                "gsutil ls -l -p ${_BACKUP_PROJECT} | grep -v dcat-deployed-stg | sed -n $(date +%U)p > backup_bucket.cfg"
+            ]
+        },
+        {
+            "id": "Get data_catalog.json",
+            "name": "gcr.io/cloud-builders/gcloud",
+            "dir": "dcat-deploy/backup",
+            "entrypoint": "bash",
+            "args": [
+                "-c",
+                "gsutil cp $(cat backup_bucket.cfg)backup/storage/*-dcat-deployed-stg/data_catalog.json tmp_data_catalog.json"
+            ]
+        },
+        {
+            "id": "Substitute data_catalog.json",
+            "name": "gcr.io/cloud-builders/gcloud",
+            "dir": "dcat-deploy/backup",
+            "entrypoint": "bash",
+            "args": [
+                "-c",
+                "_project_id=$(python3 -c 'import json; print(json.load(open(\"tmp_data_catalog.json\")).get(\"projectId\"))') && python3 substitute_data_catalog.py tmp_data_catalog.json $${_project_id} $(cat id.cfg) ${_RESTORE_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com > data_catalog.json"
+            ]
+        },
+        {
+            "id": "Deploy data_catalog.json",
+            "name": "gcr.io/cloud-builders/gcloud",
+            "dir": "dcat-deploy/backup",
+            "entrypoint": "bash",
+            "args": [
+                "-c",
+                "gcloud builds submit . --config dcat_deploy_cloudbuild.yaml --substitutions _BRANCH_NAME=${_BRANCH_NAME} --project $(cat id.cfg)"
+            ]
+        },
+        {
+            "id": "Sync backup bucket ",
+            "name": "gcr.io/cloud-builders/gcloud",
+            "dir": "dcat-deploy/backup",
+            "entrypoint": "bash",
+            "args": [
+                "-c",
+                "gsutil -m rsync -d -r $(cat backup_bucket.cfg) gs://$(cat id.cfg)-tmp-backup-stg"
+            ]
+        },
+        {
+            "id": "Run restore script",
+            "name": "gcr.io/cloud-builders/gcloud",
+            "dir": "dcat-deploy/backup",
+            "entrypoint": "bash",
+            "args": [
+                "-c",
+                "./run_restore.sh data_catalog.json $(cat id.cfg)-tmp-backup-stg $(cat id.cfg)"
+            ]
+        },
+        {
+            "id": "Check consistency of restored data",
+            "name": "gcr.io/cloud-builders/gcloud",
+            "dir": "dcat-deploy/backup",
+            "entrypoint": "bash",
+            "args": [
+                "-c",
+                "gcloud builds submit . --config restore_check_cloudbuild.yaml --substitutions _BRANCH_NAME=${_BRANCH_NAME} --project $(cat id.cfg)"
+            ]
+        },
+        {
+            "name": "gcr.io/cloud-builders/gcloud",
+            "entrypoint": "bash",
+            "args": [
+                "-c",
+                "gcloud projects delete $(cat id.cfg)"
+            ]
+        }
+    ],
+    "substitutions": {
+        "_DEVELOPERS": "__DEVELOPERS__",
+        "_BACKUP_PROJECT": "__BACKUP_PROJECT__",
+        "_PARENT_FOLDER_ID": "__PARENT_FOLDER_ID__",
+        "_BILLING_ACCOUNT_NAME": "__BILLING_ACCOUNT_NAME__",
+        "_RESTORE_PROJECT_PREFIX": "__RESTORE_PROJECT_PREFIX__",
+        "_RESTORE_PROJECT_NUMBER": "__RESTORE_PROJECT_NUMBER__",
+        "_BRANCH_NAME": "__BRANCH_NAME__"
+    }
+}
