@@ -6,6 +6,7 @@ data_catalog_path=${1}
 PROJECT_ID=${2}
 BRANCH_NAME=${3}
 encrypted_github_token=${4}
+SERVICE_ACCOUNT
 
 dcat_deploy_dir=$(dirname $0)
 
@@ -52,7 +53,7 @@ ${dcat_deploy_dir}/catalog/scripts/deploy_data_catalog.sh ${PROJECT_ID}-dcat-dep
 
 if [ $? -ne 0 ]
 then
-    echo "Error deploying data catalog"
+    echo "ERROR deploying data catalog"
     exit 1
 fi
 
@@ -104,7 +105,7 @@ fi
 
 if [ $? -ne 0 ]
 then
-    echo "Error scheduling backup job"
+    echo "ERROR scheduling backup job"
     exit 1
 fi
 
@@ -112,80 +113,23 @@ fi
 # Schedule topic history jobs
 ############################################################
 
-echo " + Deleting existing jobs..."
-for job in $(gcloud scheduler jobs list  --project=${PROJECT_ID} | grep history-job | awk '{ print $1 }')
-do
-    echo " + Deleting existing job $job..."
-    gcloud scheduler jobs delete "$job" --project=${PROJECT_ID} --quiet
-done
+topics_and_periods=$(python3 "${dcat_deploy_dir}"/catalog/scripts/generate_topic_list.py ${data_catalog_path})
 
-pairs=$(python3 ${dcat_deploy_dir}/catalog/scripts/generate_topic_list.py ${data_catalog_path})
-
-if [ ! -z "$pairs" ]
+if [ -n "${topics_and_periods}" ]
 then
-    echo " + Cloning pubsub-backup repo..."
-    git clone --branch=${BRANCH_NAME} https://github.com/vwt-digital/pubsub-backup.git
-    (cd pubsub-backup/functions/pubsub-backup && gcloud functions deploy ${PROJECT_ID}-history-func \
-      --entry-point=handler \
-      --runtime=python37 \
-      --trigger-http \
-      --project=${PROJECT_ID} \
-      --region=europe-west1 \
-      --memory=1024MB \
-      --timeout=540s \
-      --set-env-vars=PROJECT_ID=${PROJECT_ID},MAX_RETRIES="3",MAX_MESSAGES="1000",TOTAL_MESSAGES="250000")
 
-    echo " + Setting permissions for ${PROJECT_ID}-history-func..."
-
-cat << EOF > backup_func_permissions.json
-{ "bindings": [ { "members": [ "serviceAccount:${PROJECT_ID}@appspot.gserviceaccount.com" ], "role": "roles/cloudfunctions.invoker" } ] }
-EOF
-
-    gcloud beta functions set-iam-policy ${PROJECT_ID}-history-func \
-      --region=europe-west1 \
-      --project=${PROJECT_ID} \
-      backup_func_permissions.json
-fi
-
-i=0
-for pair in $pairs
-do
-
-    topic=$(echo $pair | cut -d'|' -f 1)
-    period=$(echo $pair | cut -d'|' -f 2)
-
-    # Workaround for scheduler INTERNAL 500 error
-    skew=$(($i % 15))
-
-    if [[ $period =~ .T1M$ ]]
+    if [ -z "${SERVICE_ACCOUNT}" ]
     then
-        # Workaround for scheduler 12/15 * * * * does not work
-        cron="*/15 * * * *"
-    elif [[ $period =~ .T5M$ ]]
-    then
-        cron="$skew * * * *"
-    else
-        cron="$skew 00,06,12,18 * * *"
+        echo "ERROR service account should be specified when project contains a topic"
+        exit 1
     fi
 
-    echo " + Creating job ${topic}-history-job..."
-    gcloud scheduler jobs create http ${topic}-history-job \
-      --schedule="${cron}" \
-      --uri=https://europe-west1-${PROJECT_ID}.cloudfunctions.net/${PROJECT_ID}-history-func/ \
-      --http-method=POST \
-      --oidc-service-account-email=${PROJECT_ID}@appspot.gserviceaccount.com \
-      --oidc-token-audience=https://europe-west1-${PROJECT_ID}.cloudfunctions.net/${PROJECT_ID}-history-func \
-      --message-body="${topic}-history-sub" \
-      --max-retry-attempts 3 \
-      --max-backoff 10s \
-      --attempt-deadline 10m
-
-    i=$((i+1))
-
-done
+    "${dcat_deploy_dir}"/history/create_history_function.sh "${PROJECT_ID}" "${BRANCH_NAME}" "${SERVICE_ACCOUNT}"
+    "${dcat_deploy_dir}"/history/create_history_scheduler.sh "${topics_and_periods}"
+fi
 
 if [ $? -ne 0 ]
 then
-    echo "Error creating pub/sub topic history job"
+    echo "ERROR creating pub/sub topic history function and job"
     exit 1
 fi
