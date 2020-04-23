@@ -6,7 +6,7 @@ data_catalog_path=${1}
 PROJECT_ID=${2}
 BRANCH_NAME=${3}
 encrypted_github_token=${4}
-SERVICE_ACCOUNT
+SERVICE_ACCOUNT=${5}
 
 dcat_deploy_dir=$(dirname $0)
 
