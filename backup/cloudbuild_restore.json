@@ -47,6 +47,16 @@
             ]
         },
         {
+            "id": "Create default cloudbuild bucket",
+            "name": "gcr.io/cloud-builders/gcloud",
+            "dir": "cloud-deployment",
+            "entrypoint": "bash",
+            "args": [
+                "-c",
+                "./scripts/create_cloudbuild_buckets.sh config/projects.json eu"
+            ]
+        },
+        {
             "id": "Get backup bucket",
             "name": "gcr.io/cloud-builders/gcloud",
             "dir": "dcat-deploy/backup",
