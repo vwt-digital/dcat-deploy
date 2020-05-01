@@ -61,6 +61,20 @@ then
 fi
 
 #########################################################################
+# Backup bigquery datasets
+#########################################################################
+
+echo "Backup bigquery datasets..."
+
+"${basedir}"/bigquery/backup_bigquery_datasets.sh "${data_catalog_file}" "${PROJECT_ID}" "${dest_bucket}"
+
+if [ $? -ne 0 ]
+then
+    echo "ERROR backing up bigquery datasets"
+    result=1
+fi
+
+#########################################################################
 # Backup firestore collections
 #########################################################################
 
