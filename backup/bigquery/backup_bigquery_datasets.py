@@ -25,38 +25,39 @@ def main(args):
         partitions = get_partitions(bigquery_client, args.project, args.dataset, table)
         filtered_partitions = filter_partitions(partitions)
 
-        prefix = "backup/bigquery/{}/{}/".format(args.dataset, table)
-        backed_up_partitions = list_backups(storage_client, args.bucket, prefix)
-
-        to_backup = [item for item in filtered_partitions if item not in backed_up_partitions]
-        for partition in to_backup:
-
-            partition_name = '{}:{}.{}${}'.format(args.project, args.dataset, table, partition)
-            schema = get_schema(partition_name)
+        for partition in filtered_partitions:
 
             partition_date = parse(partition).strftime('%Y/%m/%d')
-            schema_path = '{}{}/schema.json'.format(prefix, partition_date)
-            backup_schema(storage_client, args.bucket, schema_path, schema)
+            partition_path = "backup/bigquery/{}/{}/{}".format(args.dataset, table, partition_date)
+            partition_name = '{}:{}.{}${}'.format(args.project, args.dataset, table, partition)
 
-            # Partition files on bucket if extract size is larger than 1 GB
-            size = get_partition_size(bigquery_client, partition_name)
-            part = "-*" if size >= 1024 * 1024 * 1024 else ""
-            partition_path = '{}{}/extract{}.avro'.format(prefix, partition_date, part)
+            blobs = list_blobs(storage_client, args.bucket, partition_path)
 
-            backup_partition(partition_name, args.bucket, partition_path)
+            if not any('schema.json' in blob for blob in blobs):
+
+                logging.info('Starting backup for schema {}'.format(partition))
+                schema = get_schema(partition_name)
+                schema_file = '{}schema.json'.format(partition_path, partition_date)
+                backup_schema(storage_client, args.bucket, schema_file, schema)
+
+            if not any('.avro' in blob for blob in blobs):
+
+                logging.info('Starting backup for extract {}'.format(partition))
+                # Partition files on bucket if extract size is larger than 1 GB
+                size = get_partition_size(bigquery_client, partition_name)
+                part = "-*" if size >= 1024 * 1024 * 1024 else ""
+                partition_file = '{}extract{}.avro'.format(partition_path, part)
+                backup_partition(partition_name, args.bucket, partition_file)
 
 
-def list_backups(client, bucket_name, prefix):
+def list_blobs(client, bucket_name, path):
 
     bucket = client.get_bucket(bucket_name)
-    iterator = bucket.list_blobs(prefix=prefix, delimiter='/')
+    files = []
+    for blob in bucket.list_blobs(prefix=path):
+        files.append(blob.name)
 
-    prefixes = set()
-    for page in iterator.pages:
-        prefixes.update(page.prefixes)
-
-    partitions = [item.split('/')[-2].split('=')[-1] for item in prefixes]
-    return partitions
+    return files
 
 
 def get_schema(partition_name):
@@ -82,7 +83,7 @@ def backup_schema(client, bucket_name, file_name, schema):
     logging.info('Backup schema file {}'.format(file_name))
 
 
-def backup_partition(partition_name, bucket_name, partition_path):
+def backup_partition(partition_name, bucket_name, file_name):
 
     _ = exec_shell_command([
         'bq', 'extract',
@@ -90,7 +91,7 @@ def backup_partition(partition_name, bucket_name, partition_path):
         '--use_avro_logical_types',
         '--compression=SNAPPY',
         partition_name,
-        'gs://{}/{}'.format(bucket_name, partition_path)
+        'gs://{}/{}'.format(bucket_name, file_name)
     ])
 
     logging.info('Backup partition {}'.format(partition_name))
