@@ -112,7 +112,7 @@
             "entrypoint": "bash",
             "args": [
                 "-c",
-                "pip install virtualenv==16.7.9 && virtualenv -p python3 venv && source venv/bin/activate && pip install -r requirements.txt"  
+                "pip install virtualenv==16.7.9 && virtualenv -p python3 venv && source venv/bin/activate && pip install -r requirements.txt"
             ]
         },
         {
@@ -122,7 +122,7 @@
             "entrypoint": "bash",
             "args": [
                 "-c",
-                "./run_restore.sh data_catalog.json $(cat id.cfg)-tmp-backup-stg $(cat id.cfg)"
+                "source venv/bin/activate && ./run_restore.sh data_catalog.json $(cat id.cfg)-tmp-backup-stg $(cat id.cfg)"
             ]
         },
         {

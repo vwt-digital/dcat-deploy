@@ -31,7 +31,7 @@
             "entrypoint": "bash",
             "args": [
                 "-c",
-                "dcat-deploy/backup/run_backup.sh data_catalog.json ${PROJECT_ID} ${_DEST_BUCKET} ${_KEYRING_REGION} ${_KEYRING} ${_KEY} ${_ENCRYPTED_GITHUB_TOKEN}"
+                "source dcat-deploy/backup/venv/bin/activate && dcat-deploy/backup/run_backup.sh data_catalog.json ${PROJECT_ID} ${_DEST_BUCKET} ${_KEYRING_REGION} ${_KEYRING} ${_KEY} ${_ENCRYPTED_GITHUB_TOKEN}"
             ]
         }
     ],
