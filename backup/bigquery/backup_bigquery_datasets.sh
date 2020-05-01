@@ -2,8 +2,8 @@
 # shellcheck disable=SC2181
 
 DATA_CATALOG_FILE=${1}
-PROJECT_ID=${1}
-DEST_BUCKET=${2}
+PROJECT_ID=${2}
+DEST_BUCKET=${3}
 
 
 if [ -z "${DATA_CATALOG_FILE}" ] || [ -z "${PROJECT_ID}" ] || [ -z "${DEST_BUCKET}" ]
