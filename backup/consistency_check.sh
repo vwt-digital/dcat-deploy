@@ -13,16 +13,6 @@ fi
 basedir=$(dirname "$0")
 result=0
 
-pip install virtualenv==16.7.9
-virtualenv -p python3 consistency_venv
-source consistency_venv/bin/activate
-pip install google-cloud-storage==1.26.0 \
-  google-cloud-monitoring==0.34.0 \
-  google-cloud-firestore==1.6.2 \
-  google-cloud-datastore==1.8.0 \
-  google-api-core==1.16.0 \
-  grpcio==1.27.2
-
 #########################################################################
 # Consistency check blob-storage
 #########################################################################
@@ -90,7 +80,5 @@ then
     echo "ERROR datastore kinds not consistent"
     result=1
 fi
-
-deactivate
 
 exit $result
