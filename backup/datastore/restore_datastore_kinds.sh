@@ -13,7 +13,7 @@ fi
 result=0
 
 # Suppress error message when no backup is found
-metadata_files=$(gsutil ls -r "gs://${BACKUP_BUCKET}/backup/datastore" 2> /dev/null | grep overall_export_metadata || true )
+metadata_files=$(gsutil ls -r "gs://${BACKUP_BUCKET}/backup/datastore" 2> /dev/null | grep overall_export_metadata || true)
 
 if [[ -n "${metadata_files}" ]]
 then

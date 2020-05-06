@@ -69,6 +69,23 @@ then
 fi
 
 #########################################################################
+# Restore bigquery
+#########################################################################
+
+echo "Restoring bigquery..."
+
+for dataset in $(python3 "${basedir}"/bigquery/list_bigquery_datasets.py "${DATA_CATALOG}")
+do
+    "${basedir}"/bigquery/restore_bigquery_datasets.sh "${PROJECT_ID}" "${dest_bucket}" "${dataset}"
+done
+
+if [ $? -ne 0 ]
+then
+    echo "ERROR restoring bigquery"
+    result=1
+fi
+
+#########################################################################
 # Restore datastore
 #########################################################################
 

@@ -37,7 +37,7 @@ def main(args):
 
                 logging.info('Starting backup for schema {}'.format(partition))
                 schema = get_schema(partition_name)
-                schema_file = '{}schema.json'.format(partition_path, partition_date)
+                schema_file = '{}/schema.json'.format(partition_path, partition_date)
                 backup_schema(storage_client, args.bucket, schema_file, schema)
 
             if not any('.avro' in blob for blob in blobs):
@@ -46,7 +46,7 @@ def main(args):
                 # Partition files on bucket if extract size is larger than 1 GB
                 size = get_partition_size(bigquery_client, partition_name)
                 part = "-*" if size >= 1024 * 1024 * 1024 else ""
-                partition_file = '{}extract{}.avro'.format(partition_path, part)
+                partition_file = '{}/extract{}.avro'.format(partition_path, part)
                 backup_partition(partition_name, args.bucket, partition_file)
 
 
