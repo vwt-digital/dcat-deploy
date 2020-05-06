@@ -82,9 +82,8 @@ for outer, dataset in enumerate(catalog.get('dataset')):
         title = distribution.get('title')
         distribution = dict_replace_value(distribution, old_project_id, new_project_id)
         distribution['backupSource'] = title
-        dataset['distribution'][inner] = distribution
-        if 'firestore-ephemeral-backup-stg' in distribution.get('title'):
-            dataset['distribution'].pop(inner)
+        if 'firestore-ephemeral-backup-stg' not in distribution.get('title'):
+            dataset['distribution'][inner] = distribution
         if distribution.get('format') == 'cloudsql-instance':
             permissions.append({
                 "target": "{}-tmp-backup-stg".format(new_project_id),
@@ -98,8 +97,8 @@ catalog.get('dataset', []).append({
   "accessLevel": "restricted",
   "rights": "The dataset could contain PII, therefore access level is restricted",
   "contactPoint": {
-    "fn": "Bernie van Veen",
-    "hasEmail": "mailto:b.vanveen@vwt.digital"
+    "fn": "John Doe",
+    "hasEmail": "mailto:j.doe@vwt.digital"
   },
   "publisher": {
     "name": "Digital Ambition Team",
