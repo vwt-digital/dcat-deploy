@@ -77,9 +77,9 @@ permissions = [
 for outer, dataset in enumerate(catalog.get('dataset')):
     dataset.pop('odrlPolicy', None)
     if dataset.get('identifier') == old_project_id + '-dcat-deployed':
-        catalog['dataset'].pop(outer, None)
+        del catalog['dataset'][outer]
     if dataset.get('identifier') == old_project_id + '-firestore-ephemeral-backup':
-        catalog['dataset'].pop(outer, None)
+        del catalog['dataset'][outer]
     for inner, distribution in enumerate(dataset.get('distribution')):
         title = distribution.get('title')
         distribution = dict_replace_value(distribution, old_project_id, new_project_id)
