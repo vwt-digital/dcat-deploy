@@ -83,7 +83,7 @@ for outer, dataset in enumerate(catalog.get('dataset')):
         distribution = dict_replace_value(distribution, old_project_id, new_project_id)
         distribution['backupSource'] = title
         dataset['distribution'][inner] = distribution
-        if distribution.get('title') == '{}-firestore-ephemeral-backup-stg'.format(new_project_id):
+        if 'firestore-ephemeral-backup-stg' in distribution.get('title'):
             dataset['distribution'].pop(inner)
         if distribution.get('format') == 'cloudsql-instance':
             permissions.append({
