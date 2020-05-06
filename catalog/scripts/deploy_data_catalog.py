@@ -218,7 +218,7 @@ def append_gcp_policy(resource, resource_title, resource_format, access_level, p
 
 def gather_bigquery_retention(temporal):
     duration = parse_duration(temporal)
-    return duration.seconds * 1000
+    return str(duration.seconds * 1000)
 
 
 def gather_bucket_lifecycle(temporal):
