@@ -76,7 +76,7 @@ echo "Restoring bigquery..."
 
 for dataset in $(python3 "${basedir}"/bigquery/list_bigquery_datasets.py "${DATA_CATALOG}")
 do
-    "${basedir}"/bigquery/restore_bigquery_datasets.sh "${PROJECT_ID}" "${dest_bucket}" "${dataset}"
+    "${basedir}"/bigquery/restore_bigquery_datasets.sh "${BACKUP_BUCKET}" "${PROJECT_ID}" "${dataset}"
 done
 
 if [ $? -ne 0 ]
