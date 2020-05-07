@@ -18,6 +18,8 @@ if [ -z "$tables" ]
 then
     echo "ERROR ${DATASET} contains no tables"
     result=1
+else
+    echo " + Dataset ${DATASET} contains $(echo "${tables}" | wc -l) tables!"
 fi
 
 exit $result
