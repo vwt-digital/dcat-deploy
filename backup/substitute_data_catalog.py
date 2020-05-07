@@ -91,6 +91,9 @@ for outer, dataset in enumerate(catalog.get('dataset', [])):
 exclude = [old_project_id + '-firestore-ephemeral-backup', old_project_id + '-dcat-deployed']
 catalog['dataset'] = [ds for ds in catalog.get('dataset', []) if not ds['identifier'] in exclude]
 
+catalog['sourceProject'] = old_project_id
+catalog['projectId'] = new_project_id
+
 catalog.get('dataset', []).append({
   "identifier": "{}-tmp-backup".format(new_project_id),
   "title": "Storage containing temporary backup deployed to {}".format(new_project_id),
