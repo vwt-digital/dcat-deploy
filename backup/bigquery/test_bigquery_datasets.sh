@@ -4,7 +4,6 @@
 DATASET=${1}
 PROJECT_ID=${2}
 
-
 if [ -z "${DATASET}" ] || [ -z "${PROJECT_ID}" ]
 then
     echo "Usage: $0 <dataset> <project_id>"

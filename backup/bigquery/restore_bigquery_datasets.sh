@@ -25,7 +25,7 @@ do
        echo -e " + Restoring bigquery backup from ${latest}"
        bq load \
         --source_format=AVRO \
-        "${PROJECT}:${DATASET}.${table}" \
+        "${DATASET}.${table}" \
         "$latest"
     fi
 
