@@ -17,7 +17,7 @@ steps:
         pip install virtualenv==16.7.9
         virtualenv -p python3 /workspace/venv
         source /workspace/venv/bin/activate
-        pip install -r ./scripts/requirements.txt
+        pip install -r dcat-deploy/backup/scripts/requirements.txt
 
   # Deploy data catalog
   - name: 'gcr.io/cloud-builders/gcloud'
