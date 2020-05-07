@@ -1,10 +1,29 @@
+---
 timeout: 1200s
 steps:
-# Deploy data catalog
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  args:
-  - '-c'
-  - |
-    git clone --branch=${_BRANCH_NAME} https://github.com/vwt-digital/dcat-deploy.git
-    dcat-deploy/backup/consistency_check.sh data_catalog.json "${PROJECT_ID}"
+  # Clone dcat-deploy repo
+  - name: 'gcr.io/cloud-builders/git'
+    args:
+      - 'clone'
+      - '--branch=${_BRANCH_NAME}'
+      - 'https://github.com/vwt-digital/dcat-deploy.git'
+
+  # Create python3 virtualenv
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        pip install virtualenv==16.7.9
+        virtualenv -p python3 /workspace/venv
+        source /workspace/venv/bin/activate
+        pip install -r ./scripts/requirements.txt
+
+  # Deploy data catalog
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        source /workspace/venv/bin/activate
+        dcat-deploy/backup/consistency_check.sh data_catalog.json "${PROJECT_ID}"
