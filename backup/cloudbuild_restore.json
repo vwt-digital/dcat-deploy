@@ -23,7 +23,7 @@
             "entrypoint": "bash",
             "args": [
                 "-c",
-                "echo ${_RESTORE_PROJECT_PREFIX}$(openssl rand -hex 4,,) > id.cfg && cp id.cfg dcat-deploy/backup/ && cp id.cfg cloud-deployment/config/"
+                "echo vwt-d-gew1-restore-b80c80c2 > id.cfg && cp id.cfg dcat-deploy/backup/ && cp id.cfg cloud-deployment/config/"
             ]
         },
         {
