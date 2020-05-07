@@ -13,11 +13,11 @@ fi
 
 result=0
 
-for table in $(gsutil ls "gs://${BACKUP_BUCKET}/backup/bigquery/${DATASET}/")
+for backup in $(gsutil ls "gs://${BACKUP_BUCKET}/backup/bigquery/${DATASET}/")
 do
-    backups=$(gsutil ls -r "${table}" 2> /dev/null | grep extract.avro || true)
 
     # Only restore the latest partition from backup
+    backups=$(gsutil ls -r "${backup}" 2> /dev/null | grep extract.avro  | cut -d '/' -f 7 || true)
     latest=$(echo "$backups" | tac | head -1)
 
     if [ -n "${latest}" ]
@@ -25,7 +25,7 @@ do
        echo -e " + Restoring bigquery backup from ${latest}"
        bq load \
         --source_format=AVRO \
-        "${DATASET}.${table}" \
+        "${PROJECT_ID}:${DATASET}.${latest}" \
         "$latest"
     fi
 
