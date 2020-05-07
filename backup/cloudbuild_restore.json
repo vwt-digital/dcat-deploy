@@ -63,7 +63,7 @@
             "entrypoint": "bash",
             "args": [
                 "-c",
-                "echo 'gs://vwt-d-gew4-dat-backup-vwt-d-gew1-dat-logging-backup-stg/' > backup_bucket.cfg"
+                "gsutil ls -l -p ${_BACKUP_PROJECT} | grep -v dcat-deployed-stg | sed -n $(date +%U)p > backup_bucket.cfg && echo 'gs://vwt-d-gew4-dat-backup-vwt-d-gew1-dat-logging-backup-stg/' > backup_bucket.cfg"
             ]
         },
         {
