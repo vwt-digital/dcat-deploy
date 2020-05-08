@@ -14,7 +14,8 @@ basedir=$(dirname "$0")
 result=0
 
 echo "Installing rclone..."
-apt-get install unzip
+apt-get update -y
+apt-get install unzip -y
 curl https://rclone.org/install.sh | bash
 
 echo "Creating gcp credentials file..."
