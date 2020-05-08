@@ -81,4 +81,21 @@ then
     result=1
 fi
 
+#########################################################################
+# Consistency check bigquery
+#########################################################################
+
+echo "Performing consistency check on bigquery datasets..."
+
+for dataset in $(python3 "${basedir}"/bigquery/list_bigquery_datasets.py "${DATA_CATALOG}")
+do
+    "${basedir}"/bigquery/test_bigquery_datasets.sh "${dataset}" "${PROJECT_ID}"
+done
+
+if [ $? -ne 0 ]
+then
+    echo "ERROR bigquery datasets not consistent"
+    result=1
+fi
+
 exit $result
