@@ -1,0 +1,25 @@
+{
+    "timeout": "21600s",
+    "steps": [
+        {
+            "name": "gcr.io/cloud-builders/git",
+            "args": [
+                "clone",
+                "--branch=${_BRANCH_NAME}",
+                "https://github.com/vwt-digital/dcat-deploy.git"
+            ]
+        },
+        {
+            "name": "gcr.io/cloud-builders/gcloud",
+            "dir": "dcat-deploy/sync",
+            "entrypoint": "bash",
+            "args": [
+                "-c",
+                "./gcp_to_azure.sh ${PROJECT_ID} $(gcloud secrets versions access latest --secret=sas-url)"
+            ]
+        }
+    ],
+    "substitutions": {
+        "_BRANCH_NAME": "__BRANCH_NAME__"
+    }
+}
