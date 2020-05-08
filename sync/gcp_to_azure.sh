@@ -32,7 +32,6 @@ sas_url = ${SAS_URL}
 
 [gcp]
 type = google cloud storage
-service_account_file = ${credentials_file}
 EOF
 
 for bucket in $(gsutil ls -p "${PROJECT_ID}")
