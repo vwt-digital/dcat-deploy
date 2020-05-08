@@ -14,7 +14,7 @@ basedir=$(dirname "$0")
 result=0
 
 echo "Generating cloudbuild.json..."
-sed "${basedir}"/cloudbuild.json -e "s|__BRANCH_NAME|${BRANCH_NAME}|" > cloudbuild_gen.json
+sed "${basedir}"/cloudbuild.json -e "s|__BRANCH_NAME__|${BRANCH_NAME}|" > cloudbuild_gen.json
 
 job="${PROJECT_ID}-sync-backup"
 echo " + Check if job ${job} exists..."
