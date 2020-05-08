@@ -23,7 +23,7 @@
             "entrypoint": "bash",
             "args": [
                 "-c",
-                "echo vwt-d-gew1-restore-b80c80c2 > id.cfg && echo ${_RESTORE_PROJECT_PREFIX} && cp id.cfg dcat-deploy/backup/ && cp id.cfg cloud-deployment/config/"
+                "echo ${_RESTORE_PROJECT_PREFIX}$(openssl rand -hex 4,,) > id.cfg && cp id.cfg dcat-deploy/backup/ && cp id.cfg cloud-deployment/config/"
             ]
         },
         {
@@ -63,7 +63,7 @@
             "entrypoint": "bash",
             "args": [
                 "-c",
-                "gsutil ls -l -p ${_BACKUP_PROJECT} | grep -v dcat-deployed-stg | sed -n $(date +%U)p > backup_bucket.cfg && echo 'gs://vwt-d-gew4-dat-backup-vwt-d-gew1-dat-logging-backup-stg/' > backup_bucket.cfg"
+                "gsutil ls -l -p ${_BACKUP_PROJECT} | grep -v dcat-deployed-stg | sed -n $(date +%U)p > backup_bucket.cfg"
             ]
         },
         {
