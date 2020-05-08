@@ -19,7 +19,7 @@ sed "${basedir}"/cloudbuild.json -e "s|__BRANCH_NAME|${BRANCH_NAME}|" > cloudbui
 job="${PROJECT_ID}-sync-backup"
 echo " + Check if job ${job} exists..."
 
-job_exists=$(gcloud scheduler jobs list --project="${PROJECT_ID}" | grep "${job}")
+job_exists=$(gcloud scheduler jobs list --project="${PROJECT_ID}" --quiet | grep "${job}")
 if [[ -n "${job_exists}" ]]
 then
     echo " + Deleting existing job ${job}..."
@@ -32,7 +32,8 @@ gcloud scheduler jobs create http "${job}" \
     --uri="https://cloudbuild.googleapis.com/v1/projects/${PROJECT_ID}/builds" \
     --message-body-from-file=cloudbuild_gen.json \
     --oauth-service-account-email="${PROJECT_ID}@appspot.gserviceaccount.com" \
-    --oauth-token-scope=https://www.googleapis.com/auth/cloud-platform
+    --oauth-token-scope=https://www.googleapis.com/auth/cloud-platform \
+    --quiet
 
 if [ $? -ne 0 ]
 then
