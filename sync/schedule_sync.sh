@@ -10,7 +10,7 @@ ENDS_WITH=${6}
 
 if [ -z "${BRANCH_NAME}" ] || [ -z "${PROJECT_ID}" ] || [ -z "${SERVICE_ACCOUNT}" ] || [ -z "${SCHEDULE}" ] || [ -z "${SECRET_NAME}" ]
 then
-    echo "Usage: $0 <branch_name> <project_id> <service_account> <schedule> [ends_with]"
+    echo "Usage: $0 <branch_name> <project_id> <service_account> <schedule> <secret_name> [ends_with]"
     exit 1
 fi
 
