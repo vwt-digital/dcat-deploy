@@ -8,7 +8,7 @@ ENDS_WITH=${4}
 
 if [ -z "${SAS_URL}" ] || [ -z "${PROJECT_ID}" ] || [ -z "${SERVICE_ACCOUNT}" ]
 then
-    echo "Usage: $0 <sas_url> <project_id> <service_account>"
+    echo "Usage: $0 <sas_url> <project_id> <service_account> [ends_with]"
     exit 1
 fi
 
@@ -37,7 +37,7 @@ type = google cloud storage
 service_account_file = ${credentials_file}
 EOF
 
-for bucket in $(gsutil ls -p "${PROJECT_ID}" | "${ENDS_WITH}")
+for bucket in $(gsutil ls -p "${PROJECT_ID}" | grep "${ENDS_WITH}")
 do
     echo " + Syncing ${bucket} to Azure"
     bucket_name=$(echo "${bucket}" | cut -d '/' -f 3)
