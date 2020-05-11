@@ -3,10 +3,11 @@
 
 PROJECT_ID=${1}
 SAS_URL=${2}
+SERVICE_ACCOUNT=${3}
 
-if [ -z "${SAS_URL}" ] || [ -z "${PROJECT_ID}" ]
+if [ -z "${SAS_URL}" ] || [ -z "${PROJECT_ID}" ] || [ -z "${SERVICE_ACCOUNT}" ]
 then
-    echo "Usage: $0 <sas_url> <project_id>"
+    echo "Usage: $0 <sas_url> <project_id> <service_account>"
     exit 1
 fi
 
@@ -20,9 +21,8 @@ curl https://rclone.org/install.sh | bash
 
 echo "Creating gcp credentials file..."
 credentials_file="${basedir}/credentials.json"
-iam_account=$(gcloud config list account --format "value(core.account)")
 gcloud iam service-accounts keys create "${credentials_file}" \
-  --iam-account "${iam_account}"
+  --iam-account "${SERVICE_ACCOUNT}"
 
 echo "Creating rclone config..."
 config_file="${basedir}/rclone.conf"
@@ -33,6 +33,7 @@ sas_url = ${SAS_URL}
 
 [gcp]
 type = google cloud storage
+service_account_file = ${credentials_file}
 EOF
 
 for bucket in $(gsutil ls -p "${PROJECT_ID}")
