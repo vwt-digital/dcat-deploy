@@ -5,9 +5,10 @@ BRANCH_NAME=${1}
 PROJECT_ID=${2}
 SERVICE_ACCOUNT=${3}
 SCHEDULE=${4}
-ENDS_WITH=${5}
+SECRET_NAME=${5}
+ENDS_WITH=${6}
 
-if [ -z "${BRANCH_NAME}" ] || [ -z "${PROJECT_ID}" ] || [ -z "${SERVICE_ACCOUNT}" ] || [ -z "${SCHEDULE}" ]
+if [ -z "${BRANCH_NAME}" ] || [ -z "${PROJECT_ID}" ] || [ -z "${SERVICE_ACCOUNT}" ] || [ -z "${SCHEDULE}" ] || [ -z "${SECRET_NAME}" ]
 then
     echo "Usage: $0 <branch_name> <project_id> <service_account> <schedule> [ends_with]"
     exit 1
@@ -19,6 +20,7 @@ result=0
 echo "Generating cloudbuild.json..."
 sed "${basedir}"/cloudbuild.json \
   -e "s|__SERVICE_ACCOUNT__|${SERVICE_ACCOUNT}|" \
+  -e "s|__SECRET_NAME__|${SECRET_NAME}|" \
   -e "s|__ENDS_WITH__|${ENDS_WITH}|" \
   -e "s|__BRANCH_NAME__|${BRANCH_NAME}|" > cloudbuild_gen.json
 
