@@ -15,11 +15,12 @@
             "entrypoint": "bash",
             "args": [
                 "-c",
-                "./gcp_to_azure.sh ${PROJECT_ID} $(gcloud secrets versions access latest --secret=sas-url)"
+                "./gcp_to_azure.sh ${PROJECT_ID} $(gcloud secrets versions access latest --secret=sas-url) ${_SERVICE_ACCOUNT}"
             ]
         }
     ],
     "substitutions": {
-        "_BRANCH_NAME": "__BRANCH_NAME__"
+        "_BRANCH_NAME": "__BRANCH_NAME__",
+        "_SERVICE_ACCOUNT": "__SERVICE_ACCOUNT__"
     }
 }

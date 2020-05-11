@@ -3,10 +3,11 @@
 
 BRANCH_NAME=${1}
 PROJECT_ID=${2}
+SERVICE_ACCOUNT=${3}
 
-if [ -z "${BRANCH_NAME}" ] || [ -z "${PROJECT_ID}" ]
+if [ -z "${BRANCH_NAME}" ] || [ -z "${PROJECT_ID}" ] || [ -z "${SERVICE_ACCOUNT}" ]
 then
-    echo "Usage: $0 <branch_name> <project_id>"
+    echo "Usage: $0 <branch_name> <project_id> <service_account>"
     exit 1
 fi
 
@@ -14,7 +15,9 @@ basedir=$(dirname "$0")
 result=0
 
 echo "Generating cloudbuild.json..."
-sed "${basedir}"/cloudbuild.json -e "s|__BRANCH_NAME__|${BRANCH_NAME}|" > cloudbuild_gen.json
+sed "${basedir}"/cloudbuild.json \
+  -e "s|__SERVICE_ACCOUNT__|${SERVICE_ACCOUNT}|" \
+  -e "s|__BRANCH_NAME__|${BRANCH_NAME}|" > cloudbuild_gen.json
 
 job="${PROJECT_ID}-sync-backup"
 echo " + Check if job ${job} exists..."
