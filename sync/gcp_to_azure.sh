@@ -19,7 +19,7 @@ apt-get update -y
 apt-get install unzip -y
 curl https://rclone.org/install.sh | bash
 
-echo "Creating gcp credentials file..."
+echo "Creating credentials for ${SERVICE_ACCOUNT}..."
 credentials_file="${basedir}/credentials.json"
 gcloud iam service-accounts keys create "${credentials_file}" \
   --iam-account "${SERVICE_ACCOUNT}"
