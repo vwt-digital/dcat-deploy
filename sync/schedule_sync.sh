@@ -5,10 +5,11 @@ BRANCH_NAME=${1}
 PROJECT_ID=${2}
 SERVICE_ACCOUNT=${3}
 SCHEDULE=${4}
+ENDS_WITH=${5}
 
 if [ -z "${BRANCH_NAME}" ] || [ -z "${PROJECT_ID}" ] || [ -z "${SERVICE_ACCOUNT}" ] || [ -z "${SCHEDULE}" ]
 then
-    echo "Usage: $0 <branch_name> <project_id> <service_account> <schedule>"
+    echo "Usage: $0 <branch_name> <project_id> <service_account> <schedule> [ends_with]"
     exit 1
 fi
 
