@@ -18,6 +18,7 @@ result=0
 echo "Generating cloudbuild.json..."
 sed "${basedir}"/cloudbuild.json \
   -e "s|__SERVICE_ACCOUNT__|${SERVICE_ACCOUNT}|" \
+  -e "s|__ENDS_WITH__|${ENDS_WITH}|" \
   -e "s|__BRANCH_NAME__|${BRANCH_NAME}|" > cloudbuild_gen.json
 
 job="${PROJECT_ID}-sync-backup"
