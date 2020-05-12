@@ -15,14 +15,15 @@
             "entrypoint": "bash",
             "args": [
                 "-c",
-                "./run_sync.sh ${PROJECT_ID} $(gcloud secrets versions access latest --secret=${_SECRET_NAME}) ${_SERVICE_ACCOUNT} ${_ENDS_WITH}"
+                "./run_sync.sh -z ${_ZONE} -p ${PROJECT_ID} -b ${_BRANCH_NAME} -i ${_IAM_ACCOUNT} -s ${_SECRET_NAME} -e ${_ENDS_WITH}"
             ]
         }
     ],
     "substitutions": {
         "_BRANCH_NAME": "__BRANCH_NAME__",
+        "_ZONE": "__ZONE__",
         "_SECRET_NAME": "__SECRET_NAME__",
-        "_SERVICE_ACCOUNT": "__SERVICE_ACCOUNT__",
+        "_IAM_ACCOUNT": "__IAM_ACCOUNT__",
         "_ENDS_WITH": "__ENDS_WITH__"
     }
 }
