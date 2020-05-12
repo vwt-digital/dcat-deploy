@@ -1,28 +1,43 @@
 #!/bin/bash
 # shellcheck disable=SC2181
 
-BRANCH_NAME=${1}
-PROJECT_ID=${2}
-SERVICE_ACCOUNT=${3}
-SCHEDULE=${4}
-SECRET_NAME=${5}
-ENDS_WITH=${6}
+function error_exit() {
+  # ${BASH_SOURCE[1]} is the file name of the caller.
+  echo "${BASH_SOURCE[1]}: line ${BASH_LINENO[0]}: ${1:-Unknown Error.} (exit ${2:-1})" 1>&2
+  exit "${2:-1}"
+}
 
-if [ -z "${BRANCH_NAME}" ] || [ -z "${PROJECT_ID}" ] || [ -z "${SERVICE_ACCOUNT}" ] || [ -z "${SCHEDULE}" ] || [ -z "${SECRET_NAME}" ]
-then
-    echo "Usage: $0 <branch_name> <project_id> <service_account> <schedule> <secret_name> [ends_with]"
-    exit 1
-fi
+while getopts :z:p:b:i:s:e:c: arg; do
+  case ${arg} in
+    z) ZONE="${OPTARG}";;
+    p) PROJECT_ID="${OPTARG}";;
+    b) BRANCH_NAME="${OPTARG}";;
+    i) IAM_ACCOUNT="${OPTARG}";;
+    s) SECRET_NAME="${OPTARG}";;
+    e) ENDS_WITH="${OPTARG}";;
+    c) SCHEDULE="${OPTARG}";;
+    \?) error_exit "Unrecognized argument -${OPTARG}";;
+  esac
+done
+
+[[ -n "${ZONE}" ]] || error_exit "Missing required ZONE"
+[[ -n "${PROJECT_ID}" ]] || error_exit "Missing required PROJECT_ID"
+[[ -n "${BRANCH_NAME}" ]] || error_exit "Missing required BRANCH_NAME"
+[[ -n "${IAM_ACCOUNT}" ]] || error_exit "Missing required IAM_ACCOUNT"
+[[ -n "${SECRET_NAME}" ]] || error_exit "Missing required SECRET_NAME"
+[[ -n "${ENDS_WITH}" ]] || error_exit "Missing required ENDS_WITH"
+[[ -n "${SCHEDULE}" ]] || error_exit "Missing required SCHEDULE"
 
 basedir=$(dirname "$0")
 result=0
 
 echo "Generating cloudbuild.json..."
 sed "${basedir}"/cloudbuild.json \
-  -e "s|__SERVICE_ACCOUNT__|${SERVICE_ACCOUNT}|" \
+  -e "s|__BRANCH_NAME__|${BRANCH_NAME}|" \
+  -e "s|__ZONE__|${ZONE}|" \
   -e "s|__SECRET_NAME__|${SECRET_NAME}|" \
-  -e "s|__ENDS_WITH__|${ENDS_WITH}|" \
-  -e "s|__BRANCH_NAME__|${BRANCH_NAME}|" > cloudbuild_gen.json
+  -e "s|__IAM_ACCOUNT__|${IAM_ACCOUNT}|" \
+  -e "s|__ENDS_WITH__|${ENDS_WITH}|" > cloudbuild_gen.json
 
 job="${PROJECT_ID}-sync-backup"
 echo " + Check if job ${job} exists..."
