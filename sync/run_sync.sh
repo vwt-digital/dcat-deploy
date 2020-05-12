@@ -67,7 +67,13 @@ gcloud compute instances create "${instance_name}" \
   --machine-type "f1-micro" \
   --preemptible
 
-echo " + Connecting to serial port ${IAM_ACCOUNT}@${instance_name}"
-gcloud compute connect-to-serial-port "${IAM_ACCOUNT}@${instance_name}" \
-  --zone "${ZONE}" \
-  --project "${PROJECT_ID}"
+while [[ -n $(gcloud compute instances list --project "${PROJECT_ID}" --format "value(status)" --filter "name:${instance_name}") ]]
+do
+    echo " + Connecting to serial port ${IAM_ACCOUNT}@${instance_name}"
+    gcloud compute connect-to-serial-port "${IAM_ACCOUNT}@${instance_name}" \
+      --zone "${ZONE}" \
+      --project "${PROJECT_ID}"
+
+    echo " + Sleeping for 60 seconds"
+    sleep 60
+done
