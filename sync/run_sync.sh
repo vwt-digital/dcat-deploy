@@ -43,6 +43,18 @@ fi
 
 instance_name="${PROJECT_ID}-sync-vm"
 
+instance_exists=$(gcloud compute instances list \
+  --project "${PROJECT_ID}" \
+  --filter "name:${instance_name}" \
+  --format "value(name)")
+
+if [[ -n "${instance_exists}" ]]
+then
+    echo " + Deleting instance ${instance_name}"
+    gcloud compute instances delete "${instance_name}" \
+      --zone="${ZONE}" --project "${PROJECT_ID}" --quiet
+fi
+
 echo " + Creating instance ${instance_name}"
 gcloud compute instances create "${instance_name}" \
   --zone "${ZONE}" \
