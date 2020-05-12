@@ -15,7 +15,7 @@
             "entrypoint": "bash",
             "args": [
                 "-c",
-                "./gcp_to_azure.sh ${PROJECT_ID} $(gcloud secrets versions access latest --secret=${_SECRET_NAME}) ${_SERVICE_ACCOUNT} ${_ENDS_WITH}"
+                "./run_sync.sh ${PROJECT_ID} $(gcloud secrets versions access latest --secret=${_SECRET_NAME}) ${_SERVICE_ACCOUNT} ${_ENDS_WITH}"
             ]
         }
     ],

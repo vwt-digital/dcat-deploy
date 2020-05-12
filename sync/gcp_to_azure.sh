@@ -1,16 +1,26 @@
 #!/bin/bash
 # shellcheck disable=SC2181
 
-PROJECT_ID=${1}
-SAS_URL=${2}
-SERVICE_ACCOUNT=${3}
-ENDS_WITH=${4}
+function error_exit() {
+  # ${BASH_SOURCE[1]} is the file name of the caller.
+  echo "${BASH_SOURCE[1]}: line ${BASH_LINENO[0]}: ${1:-Unknown Error.} (exit ${2:-1})" 1>&2
+  exit "${2:-1}"
+}
 
-if [ -z "${SAS_URL}" ] || [ -z "${PROJECT_ID}" ] || [ -z "${SERVICE_ACCOUNT}" ]
-then
-    echo "Usage: $0 <sas_url> <project_id> <service_account> [ends_with]"
-    exit 1
-fi
+while getopts :p:i:u:e: arg; do
+  case ${arg} in
+    p) PROJECT_ID="${OPTARG}";;
+    i) IAM_ACCOUNT="${OPTARG}";;
+    u) SAS_URL="${OPTARG}";;
+    e) ENDS_WITH="${OPTARG}";;
+    \?) error_exit "Unrecognized argument -${OPTARG}";;
+  esac
+done
+
+[[ -n "${PROJECT_ID}" ]] || error_exit "Missing required PROJECT_ID"
+[[ -n "${IAM_ACCOUNT}" ]] || error_exit "Missing required IAM_ACCOUNT"
+[[ -n "${SAS_URL}" ]] || error_exit "Missing required SAS_URL"
+[[ -n "${ENDS_WITH}" ]] || error_exit "Missing required ENDS_WITH"
 
 basedir=$(dirname "$0")
 result=0
@@ -23,7 +33,7 @@ curl https://rclone.org/install.sh | bash
 echo "Creating credentials for ${SERVICE_ACCOUNT}..."
 credentials_file="${basedir}/credentials.json"
 gcloud iam service-accounts keys create "${credentials_file}" \
-  --iam-account "${SERVICE_ACCOUNT}"
+  --iam-account "${IAM_ACCOUNT}@${PROJECT_ID}.iam.gserviceaccount.com}"
 
 echo "Creating rclone config..."
 config_file="${basedir}/rclone.conf"
