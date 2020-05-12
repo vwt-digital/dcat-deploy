@@ -7,10 +7,9 @@ function error_exit() {
   exit "${2:-1}"
 }
 
-while getopts :p:i:u:e: arg; do
+while getopts :p:u:e: arg; do
   case ${arg} in
     p) PROJECT_ID="${OPTARG}";;
-    i) IAM_ACCOUNT="${OPTARG}";;
     u) SAS_URL="${OPTARG}";;
     e) ENDS_WITH="${OPTARG}";;
     \?) error_exit "Unrecognized argument -${OPTARG}";;
@@ -18,7 +17,6 @@ while getopts :p:i:u:e: arg; do
 done
 
 [[ -n "${PROJECT_ID}" ]] || error_exit "Missing required PROJECT_ID"
-[[ -n "${IAM_ACCOUNT}" ]] || error_exit "Missing required IAM_ACCOUNT"
 [[ -n "${SAS_URL}" ]] || error_exit "Missing required SAS_URL"
 [[ -n "${ENDS_WITH}" ]] || error_exit "Missing required ENDS_WITH"
 
@@ -30,11 +28,6 @@ apt-get update -y
 apt-get install unzip -y
 curl https://rclone.org/install.sh | bash
 
-echo "Creating credentials for ${SERVICE_ACCOUNT}..."
-credentials_file="${basedir}/credentials.json"
-gcloud iam service-accounts keys create "${credentials_file}" \
-  --iam-account "${IAM_ACCOUNT}@${PROJECT_ID}.iam.gserviceaccount.com}"
-
 echo "Creating rclone config..."
 config_file="${basedir}/rclone.conf"
 cat << EOF > "${config_file}"
@@ -44,7 +37,7 @@ sas_url = ${SAS_URL}
 
 [gcp]
 type = google cloud storage
-service_account_file = ${credentials_file}
+# credential file of default sa is used
 EOF
 
 for bucket in $(gsutil ls -p "${PROJECT_ID}" | grep "${ENDS_WITH}")
