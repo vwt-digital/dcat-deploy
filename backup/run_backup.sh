@@ -61,10 +61,25 @@ then
 fi
 
 #########################################################################
+# Backup bigquery datasets
+#########################################################################
+
+echo "Backup bigquery datasets..."
+
+"${basedir}"/bigquery/backup_bigquery_datasets.sh "${data_catalog_file}" "${PROJECT_ID}" "${dest_bucket}"
+
+if [ $? -ne 0 ]
+then
+    echo "ERROR backing up bigquery datasets"
+    result=1
+fi
+
+#########################################################################
 # Backup firestore collections
 #########################################################################
 
 firestores=$(python3 "${basedir}/firestore/list_firestores.py" "${data_catalog_file}")
+
 if [ -n "${firestores}" ]
 then
     echo "Backup firestore collections..."
@@ -83,6 +98,7 @@ fi
 #########################################################################
 
 datastores=$(python3 "${basedir}/datastore/list_datastores.py" "${data_catalog_file}")
+
 if [ -n "${datastores}" ]
 then
 
@@ -105,14 +121,10 @@ if [ -n "${datastores}" ]
 then
     echo "Auto delete datastore entities..."
 
-    pip install virtualenv==16.7.9
-    virtualenv -p python3 datastore_venv
-    source datastore_venv/bin/activate
-    pip install google-cloud-datastore==1.8.0 google-api-core==1.16.0 grpcio==1.27.2
     python3 "${basedir}"/datastore/datastore_auto_delete.py "${data_catalog_file}"
-    deactivate
 
     if [ $? -ne 0 ]
+
     then
         echo "ERROR auto deletion datastore entities"
         result=1

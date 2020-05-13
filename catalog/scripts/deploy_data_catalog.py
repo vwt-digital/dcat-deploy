@@ -216,6 +216,11 @@ def append_gcp_policy(resource, resource_title, resource_format, access_level, p
         }
 
 
+def gather_bigquery_retention(temporal):
+    duration = parse_duration(temporal)
+    return str(int(duration.total_seconds() * 1000))
+
+
 def gather_bucket_lifecycle(temporal):
     print('temporal {}'.format(temporal))
     if temporal and temporal.startswith('P'):
@@ -324,9 +329,11 @@ def generate_config(context):
                                 'datasetId': distribution['title'],
                                 'projectId': catalog['projectId']  # noqa: F821
                             },
-                        'location': distribution['deploymentZone']
+                        'location': distribution['deploymentZone'],
                     }
                 }
+                if dataset.get('temporal'):
+                    resource_to_append['properties']['defaultPartitionExpirationMs'] = gather_bigquery_retention(dataset.get('temporal'))
                 if dataset.get('odrlPolicy'):
                     for permission in dataset['odrlPolicy']['permission']:
                         if permission['target'] == distribution['title']:

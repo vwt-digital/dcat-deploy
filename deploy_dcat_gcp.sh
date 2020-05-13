@@ -97,9 +97,9 @@ then
     echo " + Creating job ${PROJECT_ID}-run-backup..."
     gcloud scheduler jobs create http ${PROJECT_ID}-run-backup \
         --schedule='0 5 * * *' \
-        --uri=https://cloudbuild.googleapis.com/v1/projects/${PROJECT_ID}/builds \
+        --uri="https://cloudbuild.googleapis.com/v1/projects/${PROJECT_ID}/builds" \
         --message-body-from-file=cloudbuild_backup_gen.json \
-        --oauth-service-account-email=${PROJECT_ID}@appspot.gserviceaccount.com \
+        --oauth-service-account-email="${PROJECT_ID}@appspot.gserviceaccount.com" \
         --oauth-token-scope=https://www.googleapis.com/auth/cloud-platform
 fi
 
@@ -113,7 +113,7 @@ fi
 # Schedule topic history jobs
 ############################################################
 
-topics_and_periods=$(python3 "${dcat_deploy_dir}"/catalog/scripts/generate_topic_list.py ${data_catalog_path})
+topics_and_periods=$(python3 "${dcat_deploy_dir}"/catalog/scripts/generate_topic_list.py "${data_catalog_path}")
 
 if [ -n "${topics_and_periods}" ]
 then
@@ -125,7 +125,7 @@ then
     fi
 
     "${dcat_deploy_dir}"/history/create_history_function.sh "${PROJECT_ID}" "${BRANCH_NAME}" "${SERVICE_ACCOUNT}"
-    "${dcat_deploy_dir}"/history/create_history_scheduler.sh "${topics_and_periods}"
+    "${dcat_deploy_dir}"/history/create_history_scheduler.sh "${PROJECT_ID}" "${topics_and_periods}"
 fi
 
 if [ $? -ne 0 ]

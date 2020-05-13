@@ -1,0 +1,29 @@
+{
+    "timeout": "21600s",
+    "steps": [
+        {
+            "name": "gcr.io/cloud-builders/git",
+            "args": [
+                "clone",
+                "--branch=${_BRANCH_NAME}",
+                "https://github.com/vwt-digital/dcat-deploy.git"
+            ]
+        },
+        {
+            "name": "gcr.io/cloud-builders/gcloud",
+            "dir": "dcat-deploy/sync",
+            "entrypoint": "bash",
+            "args": [
+                "-c",
+                "./run_sync.sh -z ${_ZONE} -p ${PROJECT_ID} -b ${_BRANCH_NAME} -i ${_IAM_ACCOUNT} -s ${_SECRET_NAME} -e ${_ENDS_WITH}"
+            ]
+        }
+    ],
+    "substitutions": {
+        "_BRANCH_NAME": "__BRANCH_NAME__",
+        "_ZONE": "__ZONE__",
+        "_SECRET_NAME": "__SECRET_NAME__",
+        "_IAM_ACCOUNT": "__IAM_ACCOUNT__",
+        "_ENDS_WITH": "__ENDS_WITH__"
+    }
+}

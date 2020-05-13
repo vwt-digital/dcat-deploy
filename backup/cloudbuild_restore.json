@@ -83,7 +83,7 @@
             "entrypoint": "bash",
             "args": [
                 "-c",
-                "_project_id=$(python3 -c 'import json; print(json.load(open(\"tmp_data_catalog.json\")).get(\"projectId\"))') && python3 substitute_data_catalog.py tmp_data_catalog.json $${_project_id} $(cat id.cfg) ${_RESTORE_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com > data_catalog.json"
+                "_project_id=$(python3 -c 'import json; print(json.load(open(\"tmp_data_catalog.json\")).get(\"projectId\"))') && python3 substitute_data_catalog.py tmp_data_catalog.json $${_project_id} $(cat id.cfg) ${_RESTORE_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com > data_catalog.json && cat data_catalog.json"
             ]
         },
         {
@@ -107,13 +107,22 @@
             ]
         },
         {
+            "name": "gcr.io/cloud-builders/gcloud",
+            "dir": "dcat-deploy/backup",
+            "entrypoint": "bash",
+            "args": [
+                "-c",
+                "pip install virtualenv==16.7.9 && virtualenv -p python3 venv && source venv/bin/activate && pip install -r requirements.txt"
+            ]
+        },
+        {
             "id": "Run restore script",
             "name": "gcr.io/cloud-builders/gcloud",
             "dir": "dcat-deploy/backup",
             "entrypoint": "bash",
             "args": [
                 "-c",
-                "./run_restore.sh data_catalog.json $(cat id.cfg)-tmp-backup-stg $(cat id.cfg)"
+                "source venv/bin/activate && ./run_restore.sh data_catalog.json $(cat id.cfg)-tmp-backup-stg $(cat id.cfg)"
             ]
         },
         {

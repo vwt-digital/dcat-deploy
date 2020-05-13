@@ -74,17 +74,13 @@ permissions = [
     }
 ]
 
-for outer, dataset in enumerate(catalog.get('dataset')):
+for outer, dataset in enumerate(catalog.get('dataset', [])):
     dataset.pop('odrlPolicy', None)
-    if dataset.get('identifier') == old_project_id + '-dcat-deployed':
-        catalog['dataset'].pop(outer)
     for inner, distribution in enumerate(dataset.get('distribution')):
         title = distribution.get('title')
         distribution = dict_replace_value(distribution, old_project_id, new_project_id)
         distribution['backupSource'] = title
         dataset['distribution'][inner] = distribution
-        if distribution.get('title') == '{}-firestore-ephemeral-backup-stg'.format(new_project_id):
-            dataset['distribution'].pop(inner)
         if distribution.get('format') == 'cloudsql-instance':
             permissions.append({
                 "target": "{}-tmp-backup-stg".format(new_project_id),
@@ -92,14 +88,20 @@ for outer, dataset in enumerate(catalog.get('dataset')):
                 "assignee": "serviceAccount:$(ref.{}.serviceAccountEmailAddress)".format(distribution.get('title'))
             })
 
+exclude = [old_project_id + '-firestore-ephemeral-backup', old_project_id + '-dcat-deployed']
+catalog['dataset'] = [ds for ds in catalog.get('dataset', []) if not ds['identifier'] in exclude]
+
+catalog['sourceProject'] = old_project_id
+catalog['projectId'] = new_project_id
+
 catalog.get('dataset', []).append({
   "identifier": "{}-tmp-backup".format(new_project_id),
   "title": "Storage containing temporary backup deployed to {}".format(new_project_id),
   "accessLevel": "restricted",
   "rights": "The dataset could contain PII, therefore access level is restricted",
   "contactPoint": {
-    "fn": "Bernie van Veen",
-    "hasEmail": "mailto:b.vanveen@vwt.digital"
+    "fn": "John Doe",
+    "hasEmail": "mailto:j.doe@vwt.digital"
   },
   "publisher": {
     "name": "Digital Ambition Team",

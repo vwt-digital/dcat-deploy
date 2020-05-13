@@ -95,7 +95,7 @@ for i, dataset in enumerate(catalog.get('dataset', [])):
     for distribution in dataset.get('distribution', []):
         if distribution.get('format') == 'firestore':
             catalog.get('dataset', []).append({
-              "identifier": "{}-firestore-ephemeral-backup".format(project),
+              "identifier": "{}-ephemeral-backup".format(distribution.get('title')),
               "title": "Storage containing firestore ephemeral backup deployed to {}".format(project),
               "accessLevel": "restricted",
               "rights": "The dataset could contain PII, therefore access level is restricted",
@@ -119,7 +119,7 @@ for i, dataset in enumerate(catalog.get('dataset', [])):
                   "mediaType": "application/json",
                   "deploymentZone": get_deployment_zone(project),
                   "format": "blob-storage",
-                  "title": "{}-firestore-ephemeral-backup-stg".format(project),
+                  "title": "{}-ephemeral-backup-stg".format(distribution.get('title')),
                   "description": "{} ephemeral backup storage".format(distribution.get('description'))
                 }
               ]
