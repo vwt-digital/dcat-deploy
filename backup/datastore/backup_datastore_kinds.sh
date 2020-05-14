@@ -21,7 +21,7 @@ echo " + Syncing project local datastore backup"
 gsutil -m rsync -d -r "gs://${LOCAL_BUCKET}/backup/datastore" "gs://${DEST_BUCKET}/backup/datastore"
 
 echo " + Cleaning project local datastore backup"
-ggsutil rm "gs://${LOCAL_BUCKET}/**"
+gsutil rm "gs://${LOCAL_BUCKET}/**"
 
 if [ ${result} -ne 0 ]
 then
