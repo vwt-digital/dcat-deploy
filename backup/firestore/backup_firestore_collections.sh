@@ -18,7 +18,7 @@ local_path="gs://${LOCAL_BUCKET}/backup/firestore/$(date '+%Y/%m/%d/%H')"
 gcloud firestore export "${local_path}" --project="${PROJECT_ID}"
 
 echo " + Syncing project local firestore backup"
-gsutil -m rsync -d -r "gs://${LOCAL_BUCKET}" "gs://${DEST_BUCKET}"
+gsutil -m rsync -d -r "gs://${LOCAL_BUCKET}/backup/firestore" "gs://${DEST_BUCKET}/backup/firestore"
 
 if [ ${result} -ne 0 ]
 then

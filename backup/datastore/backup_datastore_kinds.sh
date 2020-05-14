@@ -18,7 +18,7 @@ local_path="gs://${LOCAL_BUCKET}/backup/datastore/$(date '+%Y/%m/%d/%H')"
 gcloud datastore export "${local_path}" --project="${PROJECT_ID}"
 
 echo " + Syncing project local datastore backup"
-gsutil -m rsync -d -r "gs://${LOCAL_BUCKET}" "gs://${DEST_BUCKET}"
+gsutil -m rsync -d -r "gs://${LOCAL_BUCKET}/backup/datastore" "gs://${DEST_BUCKET}/backup/datastore"
 
 if [ ${result} -ne 0 ]
 then
