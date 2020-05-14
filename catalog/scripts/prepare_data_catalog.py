@@ -112,10 +112,51 @@ for i, dataset in enumerate(catalog.get('dataset', [])):
               "keyword": ["firestore", "backup"],
               "modified": datetime.now().strftime("%Y-%m-%d"),
               "spatial": "Netherlands",
+              "temporal": "P7D",
               "issued": "2020-03",
               "distribution": [
                 {
                   "accessURL": "https://console.cloud.google.com/storage/browser/{}-firestore-ephemeral-backup-stg".format(project),
+                  "mediaType": "application/json",
+                  "deploymentZone": get_deployment_zone(project),
+                  "format": "blob-storage",
+                  "title": "{}-ephemeral-backup-stg".format(distribution.get('title')),
+                  "description": "{} ephemeral backup storage".format(distribution.get('description'))
+                }
+              ]
+            })
+            break
+    else:
+        continue
+    break
+
+# Add ephemeral backup storage for datastore
+for i, dataset in enumerate(catalog.get('dataset', [])):
+    for distribution in dataset.get('distribution', []):
+        if distribution.get('format') == 'datastore':
+            catalog.get('dataset', []).append({
+              "identifier": "{}-ephemeral-backup".format(distribution.get('title')),
+              "title": "Storage containing datastore ephemeral backup deployed to {}".format(project),
+              "accessLevel": "restricted",
+              "rights": "The dataset could contain PII, therefore access level is restricted",
+              "contactPoint": {
+                "fn": "Bernie van Veen",
+                "hasEmail": "mailto:b.vanveen@vwt.digital"
+              },
+              "publisher": {
+                "name": "Digital Ambition Team",
+                "subOrganizationOf": {
+                  "name": "VolkerWessels Telecom"
+                }
+              },
+              "keyword": ["datastore", "backup"],
+              "modified": datetime.now().strftime("%Y-%m-%d"),
+              "spatial": "Netherlands",
+              "temporal": "P7D",
+              "issued": "2020-05",
+              "distribution": [
+                {
+                  "accessURL": "https://console.cloud.google.com/storage/browser/{}-datastore-ephemeral-backup-stg".format(project),
                   "mediaType": "application/json",
                   "deploymentZone": get_deployment_zone(project),
                   "format": "blob-storage",

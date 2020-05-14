@@ -82,9 +82,12 @@ firestores=$(python3 "${basedir}/firestore/list_firestores.py" "${data_catalog_f
 
 if [ -n "${firestores}" ]
 then
+
     echo "Backup firestore collections..."
 
-    "${basedir}"/firestore/backup_firestore_collections.sh "${PROJECT_ID}" "${dest_bucket}"
+    local_bucket=$(python3 "${basedir}/storage/list_storage_buckets.py" "${data_catalog_file}" | grep "firestore-ephemeral-backup-stg")
+
+    "${basedir}"/firestore/backup_firestore_collections.sh "${PROJECT_ID}" "${dest_bucket}" "${local_bucket}"
 
     if [ $? -ne 0 ]
     then
@@ -104,7 +107,9 @@ then
 
     echo "Backup datastore kinds..."
 
-    "${basedir}"/datastore/backup_datastore_kinds.sh "${PROJECT_ID}" "${dest_bucket}"
+    local_bucket=$(python3 "${basedir}/storage/list_storage_buckets.py" "${data_catalog_file}" | grep "datastore-ephemeral-backup-stg")
+
+    "${basedir}"/datastore/backup_datastore_kinds.sh "${PROJECT_ID}" "${dest_bucket}" "${local_bucket}"
 
     if [ $? -ne 0 ]
     then
