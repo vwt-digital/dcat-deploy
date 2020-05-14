@@ -112,7 +112,6 @@ for i, dataset in enumerate(catalog.get('dataset', [])):
               "keyword": ["firestore", "backup"],
               "modified": datetime.now().strftime("%Y-%m-%d"),
               "spatial": "Netherlands",
-              "temporal": "P7D",
               "issued": "2020-03",
               "distribution": [
                 {
@@ -152,7 +151,6 @@ for i, dataset in enumerate(catalog.get('dataset', [])):
               "keyword": ["datastore", "backup"],
               "modified": datetime.now().strftime("%Y-%m-%d"),
               "spatial": "Netherlands",
-              "temporal": "P7D",
               "issued": "2020-05",
               "distribution": [
                 {

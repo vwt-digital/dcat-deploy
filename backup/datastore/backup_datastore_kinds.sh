@@ -20,6 +20,9 @@ gcloud datastore export "${local_path}" --project="${PROJECT_ID}"
 echo " + Syncing project local datastore backup"
 gsutil -m rsync -d -r "gs://${LOCAL_BUCKET}/backup/datastore" "gs://${DEST_BUCKET}/backup/datastore"
 
+echo " + Cleaning project local datastore backup"
+ggsutil rm "gs://${LOCAL_BUCKET}/**"
+
 if [ ${result} -ne 0 ]
 then
     echo "ERROR creating backup of datastore to gs://${DEST_BUCKET}"

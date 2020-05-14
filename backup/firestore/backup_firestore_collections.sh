@@ -20,6 +20,9 @@ gcloud firestore export "${local_path}" --project="${PROJECT_ID}"
 echo " + Syncing project local firestore backup"
 gsutil -m rsync -d -r "gs://${LOCAL_BUCKET}/backup/firestore" "gs://${DEST_BUCKET}/backup/firestore"
 
+echo " + Cleaning project local firestore backup"
+ggsutil rm "gs://${LOCAL_BUCKET}/**"
+
 if [ ${result} -ne 0 ]
 then
     echo "ERROR creating backup of firestore to gs://${DEST_BUCKET}"
