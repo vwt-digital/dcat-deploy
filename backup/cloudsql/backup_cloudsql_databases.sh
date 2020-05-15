@@ -34,7 +34,7 @@ echo " + Syncing project local cloudsql backup"
 gsutil -m rsync -d -r "gs://${LOCAL_BUCKET}/backup/cloudsql" "gs://${DEST_BUCKET}/backup/cloudsql"
 
 echo " + Cleaning project local cloudsql backup"
-gsutil rm "gs://${LOCAL_BUCKET}/backup/cloudsql/**"
+gsutil -m rm "gs://${LOCAL_BUCKET}/backup/cloudsql/**"
 
 if [ $? -ne 0 ]
 then

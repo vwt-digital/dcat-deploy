@@ -22,7 +22,7 @@ echo " + Syncing project local bigquery backup"
 gsutil -m rsync -d -r "gs://${LOCAL_BUCKET}/backup/bigquery" "gs://${DEST_BUCKET}/backup/bigquery"
 
 echo " + Cleaning project local bigquery backup"
-gsutil rm "gs://${LOCAL_BUCKET}/backup/bigquery/**"
+gsutil -m rm "gs://${LOCAL_BUCKET}/backup/bigquery/**"
 
 if [ $? -ne 0 ]
 then
