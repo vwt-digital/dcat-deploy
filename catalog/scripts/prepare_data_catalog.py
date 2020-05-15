@@ -72,7 +72,7 @@ if catalog.get('backupDestination'):
             if distribution.get('format') == 'cloudsql-instance':
                 backup_permissions.append({
                     "target": "{}-backup-stg".format(project),
-                    "action": "read",
+                    "action": "write",
                     "assignee": "serviceAccount:$(ref.{}.serviceAccountEmailAddress)".format(distribution.get('title'))
                 })
 
