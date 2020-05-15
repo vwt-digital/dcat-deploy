@@ -67,13 +67,14 @@ catalog.get('dataset', []).append({
 # Add project local backup bucket
 if catalog.get('backupDestination'):
     backup_permissions = []
-    for distribution in catalog.get('distribution', []):
-        if distribution.get('format') == 'cloudsql-instance':
-            backup_permissions.append({
-                "target": "{}-backup-stg".format(project),
-                "action": "read",
-                "assignee": "serviceAccount:$(ref.{}.serviceAccountEmailAddress)".format(distribution.get('title'))
-            })
+    for dataset in catalog.get('dataset', []):
+        for distribution in dataset.get('distribution', []):
+            if distribution.get('format') == 'cloudsql-instance':
+                backup_permissions.append({
+                    "target": "{}-backup-stg".format(project),
+                    "action": "read",
+                    "assignee": "serviceAccount:$(ref.{}.serviceAccountEmailAddress)".format(distribution.get('title'))
+                })
 
     catalog.get('dataset', []).append({
       "identifier": "{}-dcat-deployed".format(project),
