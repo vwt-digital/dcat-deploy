@@ -47,14 +47,14 @@ then
     result=1
 fi
 
-local_bucket=$(python3 "${basedir}/storage/list_storage_buckets.py" "${data_catalog_file}" | grep "${PROJECT_ID}-backup-stg")
+local_bucket=$(python3 "${basedir}"/storage/list_storage_buckets.py "${data_catalog_file}" | grep "${PROJECT_ID}-backup-stg")
 
 
 #########################################################################
 # Backup cloudsql databases
 #########################################################################
 
-databases=$(python3 "${basedir}"/list_cloudsql_databases.py "${data_catalog_file}")
+databases=$(python3 "${basedir}"/cloudsql/list_cloudsql_databases.py "${data_catalog_file}")
 
 if [ -n "${databases}" ]
 then
