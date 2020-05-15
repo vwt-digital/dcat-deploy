@@ -32,6 +32,7 @@ then
     result=1
 fi
 
+
 #########################################################################
 # Backup storage buckets
 #########################################################################
@@ -46,33 +47,60 @@ then
     result=1
 fi
 
+local_bucket=$(python3 "${basedir}/storage/list_storage_buckets.py" "${data_catalog_file}" | grep "${PROJECT_ID}-backup-stg")
+
+
 #########################################################################
 # Backup cloudsql databases
 #########################################################################
 
-echo "Backup cloudsql databases..."
+databases=$(python3 "${basedir}"/list_cloudsql_databases.py "${data_catalog_file}")
 
-"${basedir}"/cloudsql/backup_cloudsql_databases.sh "${data_catalog_file}" "${PROJECT_ID}" "${dest_bucket}"
-
-if [ $? -ne 0 ]
+if [ -n "${databases}" ]
 then
-    echo "ERROR backing up cloudsql databases"
-    result=1
+
+    echo "Backup cloudsql databases..."
+
+    for database in ${databases}
+    do
+        "${basedir}"/cloudsql/backup_cloudsql_databases.sh "${PROJECT_ID}" "${dest_bucket}" "${local_bucket}" "${database}"
+
+        if [ $? -ne 0 ]
+        then
+            echo "ERROR backing up cloudsql database ${database}"
+            result=1
+        fi
+
+    done
+
 fi
 
 #########################################################################
 # Backup bigquery datasets
 #########################################################################
 
-echo "Backup bigquery datasets..."
+datasets=$(python3 "${basedir}"/bigquery/list_bigquery_datasets.py "${data_catalog_file}")
 
-"${basedir}"/bigquery/backup_bigquery_datasets.sh "${data_catalog_file}" "${PROJECT_ID}" "${dest_bucket}"
-
-if [ $? -ne 0 ]
+if [ -n "${datasets}" ]
 then
-    echo "ERROR backing up bigquery datasets"
-    result=1
+
+    echo "Backup bigquery datasets..."
+
+    for dataset in ${datasets}
+    do
+
+        python3 "${basedir}"/bigquery/backup_bigquery_datasets.py -p "${PROJECT_ID}" -d "${dataset}" -b "${local_bucket}"
+
+        if [ $? -ne 0 ]
+        then
+            echo "ERROR creating backup of bigquery dataset ${dataset}"
+            result=1
+        fi
+
+    done
+
 fi
+
 
 #########################################################################
 # Backup firestore collections
@@ -85,8 +113,6 @@ then
 
     echo "Backup firestore collections..."
 
-    local_bucket=$(python3 "${basedir}/storage/list_storage_buckets.py" "${data_catalog_file}" | grep "firestore-ephemeral-backup-stg")
-
     "${basedir}"/firestore/backup_firestore_collections.sh "${PROJECT_ID}" "${dest_bucket}" "${local_bucket}"
 
     if [ $? -ne 0 ]
@@ -94,7 +120,9 @@ then
         echo "ERROR backing up firestore collections"
         result=1
     fi
+
 fi
+
 
 #########################################################################
 # Backup datastore kinds
@@ -107,8 +135,6 @@ then
 
     echo "Backup datastore kinds..."
 
-    local_bucket=$(python3 "${basedir}/storage/list_storage_buckets.py" "${data_catalog_file}" | grep "datastore-ephemeral-backup-stg")
-
     "${basedir}"/datastore/backup_datastore_kinds.sh "${PROJECT_ID}" "${dest_bucket}" "${local_bucket}"
 
     if [ $? -ne 0 ]
@@ -116,7 +142,9 @@ then
         echo "ERROR backing up datastore kinds"
         result=1
     fi
+
 fi
+
 
 #########################################################################
 # Auto delete datastore entities
@@ -124,16 +152,17 @@ fi
 
 if [ -n "${datastores}" ]
 then
+
     echo "Auto delete datastore entities..."
 
     python3 "${basedir}"/datastore/datastore_auto_delete.py "${data_catalog_file}"
 
     if [ $? -ne 0 ]
-
     then
         echo "ERROR auto deletion datastore entities"
         result=1
     fi
+
 fi
 
 if [ ${result} -ne 0 ]

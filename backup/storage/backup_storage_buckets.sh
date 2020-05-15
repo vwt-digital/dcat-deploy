@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2181
 
 data_catalog_file=${1}
 PROJECT_ID=${2}
@@ -10,19 +11,26 @@ then
     exit 1
 fi
 
-basedir=$(dirname $0)
+basedir=$(dirname "$0")
 result=0
 
-for bucket in $(python3 ${basedir}/list_storage_buckets.py ${data_catalog_file})
+for bucket in $(python3 "${basedir}"/list_storage_buckets.py "${data_catalog_file}")
 do
-   echo "Create backup of ${bucket} from ${PROJECT_ID}"
-   gsutil -m rsync -d -r gs://${bucket} gs://${dest_bucket}/backup/storage/${bucket}
 
-   if [ $? -ne 0 ]
-   then
-       echo "ERROR creating backup of ${bucket} from ${PROJECT_ID}"
-       result=1
-   fi
+    if [[ ! "${bucket}" == "*-backup-stg" ]]
+    then
+
+        echo "Create backup of ${bucket} from ${PROJECT_ID}"
+        gsutil -m rsync -d -r "gs://${bucket}" "gs://${dest_bucket}/backup/storage/${bucket}"
+
+        if [ $? -ne 0 ]
+        then
+           echo "ERROR creating backup of ${bucket} from ${PROJECT_ID}"
+           result=1
+        fi
+
+    fi
+
 done
 
 if [ ${result} -ne 0 ]

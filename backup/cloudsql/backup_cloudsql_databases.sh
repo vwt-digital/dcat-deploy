@@ -1,62 +1,44 @@
 #!/bin/bash
 # shellcheck disable=SC2181
 
-data_catalog_file=${1}
-PROJECT_ID=${2}
-dest_bucket=${3}
+PROJECT_ID=${1}
+DEST_BUCKET=${2}
+LOCAL_BUCKET=${3}
+DATABASE=${4}
 
-if [ -z "${dest_bucket}" ]
+if [ -z "${PROJECT_ID}" ] || [ -z "${DEST_BUCKET}" ] || [ -z "${LOCAL_BUCKET}" ] || [ -z "${DATABASE}" ]
 then
-    echo "Usage: $0 <data_catalog_file> <project_id> <dest_bucket>"
+    echo "Usage: $0 <project_id> <dest_bucket> <local_bucket> <database>"
     exit 1
 fi
 
-basedir=$(dirname "$0")
 result=0
 
-for pair in $(python3 "${basedir}"/list_cloudsql_databases.py "${data_catalog_file}")
+instance=$(echo "${DATABASE}" | cut -d'|' -f 1)
+db_name=$(echo "${DATABASE}" | cut -d'|' -f 2)
+
+echo "Creating backup of database ${db_name} in project ${PROJECT_ID}..."
+gcloud sql export sql "${instance}" "gs://${LOCAL_BUCKET}/backup/cloudsql/${instance}/${db_name}/sqldumpfile.gz" \
+  --database="${db_name}" \
+  --project="${PROJECT_ID}" \
+  --async
+
+while [[ -n $(gcloud sql operations list --instance="${instance}" --filter='status!=DONE' --format='value(name)' --limit=1 --project="${PROJECT_ID}") ]]
 do
-    instance=$(echo "${pair}" | cut -d'|' -f 1)
-    database=$(echo "${pair}" | cut -d'|' -f 2)
-
-    echo "Create backup of database ${database} in project ${PROJECT_ID}"
-    gcloud sql export sql "${instance}" "gs://${dest_bucket}/backup/cloudsql/${instance}/${database}/sqldumpfile.gz" \
-      --database="${database}" \
-      --project="${PROJECT_ID}"
-
-    if [ $? -ne 0 ]
-    then
-
-        echo "Checking for pending operations..."
-        PENDING_OPERATION=$(gcloud sql operations list \
-          --instance="${instance}" \
-          --filter='status!=DONE' \
-          --format='value(name)' \
-          --limit=1)
-
-        if [ -n "${PENDING_OPERATION}" ]
-        then
-
-            echo "Found pending operation ${PENDING_OPERATION}"
-            gcloud sql operations wait "${PENDING_OPERATION}" --timeout=1800
-
-            if [ $? -ne 0 ]
-            then
-                echo "ERROR waiting for pending backup operations"
-                result=1
-            fi
-        else
-            echo "ERROR creating backup of ${database} in project ${PROJECT_ID}"
-            result=1
-        fi
-
-    fi
-
+    echo " + Waiting for pending operation cloudsql backup ${instance}"
+    echo " + Sleeping for 60 seconds"
+    sleep 60
 done
 
-if [ ${result} -ne 0 ]
+echo " + Syncing project local cloudsql backup"
+gsutil -m rsync -d -r "gs://${LOCAL_BUCKET}/backup/cloudsql" "gs://${DEST_BUCKET}/backup/cloudsql"
+
+echo " + Cleaning project local cloudsql backup"
+gsutil rm "gs://${LOCAL_BUCKET}/backup/cloudsql/**"
+
+if [ $? -ne 0 ]
 then
-    echo "At least one error occurred during backup of ${PROJECT_ID}"
+    result=1
 fi
 
 exit $result
