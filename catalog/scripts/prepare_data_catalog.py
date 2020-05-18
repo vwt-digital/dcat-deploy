@@ -64,6 +64,53 @@ catalog.get('dataset', []).append({
   ]
 })
 
+# Add project local backup bucket
+if catalog.get('backupDestination'):
+    backup_permissions = []
+    for dataset in catalog.get('dataset', []):
+        for distribution in dataset.get('distribution', []):
+            if distribution.get('format') == 'cloudsql-instance':
+                backup_permissions.append({
+                    "target": "{}-backup-stg".format(project),
+                    "action": "write",
+                    "assignee": "serviceAccount:$(ref.{}.serviceAccountEmailAddress)".format(distribution.get('title'))
+                })
+
+    catalog.get('dataset', []).append({
+      "identifier": "{}-dcat-deployed".format(project),
+      "title": "Storage containing backup for {}".format(project),
+      "accessLevel": "restricted",
+      "rights": "The dataset could contain PII, therefore access level is restricted",
+      "contactPoint": {
+        "fn": "Bernie van Veen",
+        "hasEmail": "mailto:b.vanveen@vwt.digital"
+      },
+      "publisher": {
+        "name": "Digital Ambition Team",
+        "subOrganizationOf": {
+          "name": "VolkerWessels Telecom"
+        }
+      },
+      "keyword": [],
+      "modified": datetime.now().strftime("%Y-%m-%d"),
+      "spatial": "Netherlands",
+      "issued": "2020-05",
+      "distribution": [
+        {
+          "accessURL": "https://console.cloud.google.com/storage/browser/{}-backup-stg".format(project),
+          "mediaType": "application/json",
+          "deploymentZone": get_deployment_zone(project),
+          "format": "blob-storage",
+          "title": "{}-backup-stg".format(project),
+          "description": "VWT {} environment at Google {} backup storage".format(get_stage(project), get_deployment_zone(project))
+        }
+      ],
+      "odrlPolicy": {
+        "uid": "{}-policy".format(project),
+        "permission": backup_permissions
+      }
+    })
+
 # Add event history/offload subscription and storage to existing topics
 for i, dataset in enumerate(catalog.get('dataset', [])):
     for distribution in dataset.get('distribution', []):
@@ -89,83 +136,5 @@ for i, dataset in enumerate(catalog.get('dataset', [])):
               }
             ]
             catalog['dataset'][i]['distribution'].extend(resources_to_append)
-
-# Add ephemeral backup storage for firestore
-for i, dataset in enumerate(catalog.get('dataset', [])):
-    for distribution in dataset.get('distribution', []):
-        if distribution.get('format') == 'firestore':
-            catalog.get('dataset', []).append({
-              "identifier": "{}-ephemeral-backup".format(distribution.get('title')),
-              "title": "Storage containing firestore ephemeral backup deployed to {}".format(project),
-              "accessLevel": "restricted",
-              "rights": "The dataset could contain PII, therefore access level is restricted",
-              "contactPoint": {
-                "fn": "Bernie van Veen",
-                "hasEmail": "mailto:b.vanveen@vwt.digital"
-              },
-              "publisher": {
-                "name": "Digital Ambition Team",
-                "subOrganizationOf": {
-                  "name": "VolkerWessels Telecom"
-                }
-              },
-              "keyword": ["firestore", "backup"],
-              "modified": datetime.now().strftime("%Y-%m-%d"),
-              "spatial": "Netherlands",
-              "issued": "2020-03",
-              "distribution": [
-                {
-                  "accessURL": "https://console.cloud.google.com/storage/browser/{}-firestore-ephemeral-backup-stg".format(project),
-                  "mediaType": "application/json",
-                  "deploymentZone": get_deployment_zone(project),
-                  "format": "blob-storage",
-                  "title": "{}-ephemeral-backup-stg".format(distribution.get('title')),
-                  "description": "{} ephemeral backup storage".format(distribution.get('description'))
-                }
-              ]
-            })
-            break
-    else:
-        continue
-    break
-
-# Add ephemeral backup storage for datastore
-for i, dataset in enumerate(catalog.get('dataset', [])):
-    for distribution in dataset.get('distribution', []):
-        if distribution.get('format') == 'datastore':
-            catalog.get('dataset', []).append({
-              "identifier": "{}-ephemeral-backup".format(distribution.get('title')),
-              "title": "Storage containing datastore ephemeral backup deployed to {}".format(project),
-              "accessLevel": "restricted",
-              "rights": "The dataset could contain PII, therefore access level is restricted",
-              "contactPoint": {
-                "fn": "Bernie van Veen",
-                "hasEmail": "mailto:b.vanveen@vwt.digital"
-              },
-              "publisher": {
-                "name": "Digital Ambition Team",
-                "subOrganizationOf": {
-                  "name": "VolkerWessels Telecom"
-                }
-              },
-              "keyword": ["datastore", "backup"],
-              "modified": datetime.now().strftime("%Y-%m-%d"),
-              "spatial": "Netherlands",
-              "issued": "2020-05",
-              "distribution": [
-                {
-                  "accessURL": "https://console.cloud.google.com/storage/browser/{}-datastore-ephemeral-backup-stg".format(project),
-                  "mediaType": "application/json",
-                  "deploymentZone": get_deployment_zone(project),
-                  "format": "blob-storage",
-                  "title": "{}-ephemeral-backup-stg".format(distribution.get('title')),
-                  "description": "{} ephemeral backup storage".format(distribution.get('description'))
-                }
-              ]
-            })
-            break
-    else:
-        continue
-    break
 
 print(json.dumps(catalog, indent=4))

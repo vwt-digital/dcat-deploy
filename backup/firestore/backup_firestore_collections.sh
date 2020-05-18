@@ -21,7 +21,7 @@ echo " + Syncing project local firestore backup"
 gsutil -m rsync -d -r "gs://${LOCAL_BUCKET}/backup/firestore" "gs://${DEST_BUCKET}/backup/firestore"
 
 echo " + Cleaning project local firestore backup"
-gsutil rm "gs://${LOCAL_BUCKET}/**"
+gsutil -m rm "gs://${LOCAL_BUCKET}/backup/firestore/**"
 
 if [ ${result} -ne 0 ]
 then
