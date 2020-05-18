@@ -7,7 +7,7 @@ LOCAL_BUCKET=${3}
 
 if [ -z "${PROJECT_ID}" ] || [ -z "${DEST_BUCKET}" ] || [ -z "${LOCAL_BUCKET}" ]
 then
-    echo "Usage: $0 <project_id> <dest_bucket>"
+    echo "Usage: $0 <project_id> <dest_bucket> <local_bucket>"
     exit 1
 fi
 
