@@ -27,7 +27,7 @@ def main(args):
 
         for partition in filtered_partitions:
 
-            partition_date = parse(partition).strftime('%Y/%m/%d')
+            partition_date = get_date(partition)
             partition_path = "backup/bigquery/{}/{}/{}".format(args.dataset, table, partition_date)
             partition_name = '{}:{}.{}${}'.format(args.project, args.dataset, table, partition)
 
@@ -49,6 +49,14 @@ def main(args):
                 partition_file = '{}/extract{}.avro'.format(partition_path, part)
                 backup_partition(partition_name, args.bucket, partition_file)
 
+        table_path = "backup/bigquery/{}/{}".format(args.dataset, table)
+        backups = list_blobs(storage_client, args.bucket, table_path)
+        expired = [backup for backup in backups if not any(get_date(partition) in backup for partition in partitions)]
+
+        logging.info('Removing expired backups for {}'.format(table))
+        for backup in expired:
+            delete_blob(backup)
+
 
 def list_blobs(client, bucket_name, path):
 
@@ -58,6 +66,17 @@ def list_blobs(client, bucket_name, path):
         files.append(blob.name)
 
     return files
+
+
+def delete_blob(client, bucket_name, file_name):
+    bucket = client.get_bucket(bucket_name)
+    blob = bucket.blob(file_name)
+    blob.delete()
+    logging.info('Removed {} from {}'.format(file_name, bucket_name))
+
+
+def get_date(partition):
+    return parse(partition).strftime('%Y/%m/%d')
 
 
 def get_schema(partition_name):

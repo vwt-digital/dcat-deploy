@@ -89,7 +89,7 @@ then
     for dataset in ${datasets}
     do
 
-        python3 "${basedir}"/bigquery/backup_bigquery_datasets.py -p "${PROJECT_ID}" -d "${dataset}" -b "${local_bucket}"
+        python3 "${basedir}"/bigquery/backup_bigquery_datasets.py -p "${PROJECT_ID}" -d "${dataset}" -b "${dest_bucket}"
 
         if [ $? -ne 0 ]
         then
