@@ -40,7 +40,9 @@ EOF
 
 for bucket in $(gsutil ls -p "${PROJECT_ID}")
 do
-    mirror=$(gsutil label get "$bucket" | jq -er '.mirror' 2>&1)
+
+    echo "Checking gcp bucket ${bucket}..."
+    mirror=$(gsutil label get "${bucket}" | jq -er '.mirror')
 
     if [ $? -eq 0 ]
     then
