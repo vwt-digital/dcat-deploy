@@ -5,7 +5,6 @@ project_id=$(curl "http://metadata.google.internal/computeMetadata/v1/project/pr
 branch_name=$(curl "http://metadata.google.internal/computeMetadata/v1/instance/attributes/branch-name" -H "Metadata-Flavor: Google")
 hostname=$(curl "http://metadata.google.internal/computeMetadata/v1/instance/hostname" -H "Metadata-Flavor: Google")
 secret_name=$(curl "http://metadata.google.internal/computeMetadata/v1/instance/attributes/secret-name" -H "Metadata-Flavor: Google")
-ends_with=$(curl "http://metadata.google.internal/computeMetadata/v1/instance/attributes/ends-with" -H "Metadata-Flavor: Google")
 
 basedir=$(dirname "$0")
 
@@ -16,8 +15,7 @@ sas_url=$(gcloud secrets versions access latest --secret="${secret_name}")
 
 "${basedir}"/dcat-deploy/sync/gcp_to_azure.sh \
   -p "${project_id}" \
-  -u "${sas_url}" \
-  -e "${ends_with}"
+  -u "${sas_url}"
 
 instance_name=$(echo "${hostname}" | cut -d '.' -f 1)
 gcloud compute instances delete "${instance_name}" --zone="${zone}" --quiet

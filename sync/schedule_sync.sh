@@ -7,14 +7,13 @@ function error_exit() {
   exit "${2:-1}"
 }
 
-while getopts :z:p:b:i:s:e:c: arg; do
+while getopts :z:p:b:i:s:c: arg; do
   case ${arg} in
     z) ZONE="${OPTARG}";;
     p) PROJECT_ID="${OPTARG}";;
     b) BRANCH_NAME="${OPTARG}";;
     i) IAM_ACCOUNT="${OPTARG}";;
     s) SECRET_NAME="${OPTARG}";;
-    e) ENDS_WITH="${OPTARG}";;
     c) SCHEDULE="${OPTARG}";;
     \?) error_exit "Unrecognized argument -${OPTARG}";;
   esac
@@ -25,7 +24,6 @@ done
 [[ -n "${BRANCH_NAME}" ]] || error_exit "Missing required BRANCH_NAME"
 [[ -n "${IAM_ACCOUNT}" ]] || error_exit "Missing required IAM_ACCOUNT"
 [[ -n "${SECRET_NAME}" ]] || error_exit "Missing required SECRET_NAME"
-[[ -n "${ENDS_WITH}" ]] || error_exit "Missing required ENDS_WITH"
 [[ -n "${SCHEDULE}" ]] || error_exit "Missing required SCHEDULE"
 
 basedir=$(dirname "$0")
@@ -36,8 +34,7 @@ sed "${basedir}"/cloudbuild.json \
   -e "s|__BRANCH_NAME__|${BRANCH_NAME}|" \
   -e "s|__ZONE__|${ZONE}|" \
   -e "s|__SECRET_NAME__|${SECRET_NAME}|" \
-  -e "s|__IAM_ACCOUNT__|${IAM_ACCOUNT}|" \
-  -e "s|__ENDS_WITH__|${ENDS_WITH}|" > cloudbuild_gen.json
+  -e "s|__IAM_ACCOUNT__|${IAM_ACCOUNT}|" > cloudbuild_gen.json
 
 job="${PROJECT_ID}-sync-backup"
 echo " + Check if job ${job} exists..."

@@ -6,14 +6,13 @@ function error_exit() {
   exit "${2:-1}"
 }
 
-while getopts :z:p:b:i:s:e: arg; do
+while getopts :z:p:b:i:s: arg; do
   case ${arg} in
     z) ZONE="${OPTARG}";;
     p) PROJECT_ID="${OPTARG}";;
     b) BRANCH_NAME="${OPTARG}";;
     i) IAM_ACCOUNT="${OPTARG}";;
     s) SECRET_NAME="${OPTARG}";;
-    e) ENDS_WITH="${OPTARG}";;
     \?) error_exit "Unrecognized argument -${OPTARG}";;
   esac
 done
@@ -23,7 +22,6 @@ done
 [[ -n "${BRANCH_NAME}" ]] || error_exit "Missing required BRANCH_NAME"
 [[ -n "${IAM_ACCOUNT}" ]] || error_exit "Missing required IAM_ACCOUNT"
 [[ -n "${SECRET_NAME}" ]] || error_exit "Missing required SECRET_NAME"
-[[ -n "${ENDS_WITH}" ]] || error_exit "Missing required ENDS_WITH"
 
 basedir=$(dirname "$0")
 
@@ -62,7 +60,7 @@ gcloud compute instances create "${instance_name}" \
   --network "${network_name}" \
   --scopes cloud-platform \
   --service-account "${IAM_ACCOUNT}@${PROJECT_ID}.iam.gserviceaccount.com" \
-  --metadata "serial-port-enable=true,branch-name=${BRANCH_NAME},iam-account=${IAM_ACCOUNT},secret-name=${SECRET_NAME},ends-with=${ENDS_WITH}" \
+  --metadata "serial-port-enable=true,branch-name=${BRANCH_NAME},iam-account=${IAM_ACCOUNT},secret-name=${SECRET_NAME}" \
   --metadata-from-file startup-script="${basedir}"/startup_script.sh \
   --machine-type "f1-micro" \
   --preemptible
