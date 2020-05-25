@@ -26,7 +26,7 @@ do
     fi
 
     # Delete existing topic history job
-    job_exists=$(gcloud scheduler jobs list  --project=vwt-d-gew1-odh-hub --format="value(name)" | grep "${job}")
+    job_exists=$(gcloud scheduler jobs list  --project="${PROJECT_ID}" --format="value(name)" | grep "${job}")
     if [ -n "$job_exists" ]
     then
         echo " + Deleting existing job $job..."
@@ -40,7 +40,7 @@ do
       --uri="https://europe-west1-${PROJECT_ID}.cloudfunctions.net/${PROJECT_ID}-history-func/" \
       --http-method=POST \
       --oidc-service-account-email="${PROJECT_ID}@appspot.gserviceaccount.com" \
-      --oidc-token-audience=https://europe-west1-${PROJECT_ID}.cloudfunctions.net/${PROJECT_ID}-history-func \
+      --oidc-token-audience="https://europe-west1-${PROJECT_ID}.cloudfunctions.net/${PROJECT_ID}-history-func" \
       --message-body="${topic}-history-sub" \
       --max-retry-attempts 3 \
       --max-backoff 10s \
