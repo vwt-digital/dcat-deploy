@@ -57,6 +57,8 @@ do
             result=1
         fi
 
+    else
+        echo " + Skipping ${bucket}"
     fi
 
 done
