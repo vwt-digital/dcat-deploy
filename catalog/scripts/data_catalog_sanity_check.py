@@ -15,6 +15,7 @@ print("Check data_catalog sanity for {}".format(sys.argv[1]))
 
 if 'dataset' in catalog:
     for dataset in catalog['dataset']:
+        # Check if the permissions are not for users
         if ('odrlPolicy' in dataset and
                 'permission' in dataset['odrlPolicy']):
             for perm in dataset['odrlPolicy']['permission']:
@@ -22,6 +23,7 @@ if 'dataset' in catalog:
                     print("Error: odrlPolicy containst assignement for a user {}".format(perm))
                     sys.exit(1)
 
+        # Check if datastore/firestore distributions are within a dataset
         if has_datastore_service or has_firestore_service:
             for distribution in dataset.get('distribution', []):
                 if distribution['format'] == 'datastore':
@@ -29,6 +31,7 @@ if 'dataset' in catalog:
                 elif distribution['format'] == 'firestore':
                     has_firestore_dis = True
 
+    # Make sure a datastore/firestore distribution has been added to the data-catalog if the service is active
     if has_datastore_service and not has_datastore_dis:
         print("Error: dataset does not contain Datastore distribution, but project has Datastore API enabled. " +
               "Solve this by either adding a Datastore distribution to the dataset or disabling the Datastore API.")
