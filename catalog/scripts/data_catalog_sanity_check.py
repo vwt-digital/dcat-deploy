@@ -30,8 +30,10 @@ if 'dataset' in catalog:
                     has_firestore_dis = True
 
     if has_datastore_service and not has_datastore_dis:
-        print("Error: dataset does not contain datastore distribution")
+        print("Error: dataset does not contain Datastore distribution, but project has Datastore API enabled. " +
+              "Solve this by either adding a Datastore distribution to the dataset or disabling the Datastore API.")
         sys.exit(1)
     elif has_firestore_service and not has_firestore_dis:
-        print("Error: dataset does not contain firestore distribution")
+        print("Error: dataset does not contain Firestore distribution, but project has Firestore API enabled. " +
+              "Solve this by either adding a Firestore distribution to the dataset or disabling the Firestore API.")
         sys.exit(1)
