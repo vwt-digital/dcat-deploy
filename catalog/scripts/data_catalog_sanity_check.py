@@ -1,6 +1,5 @@
 import sys
 import json
-import re
 
 catalogfile = open(sys.argv[1], "r")
 catalog = json.load(catalogfile)
@@ -41,18 +40,3 @@ if 'dataset' in catalog:
         print("Error: dataset does not contain Firestore distribution, but project has Firestore API enabled. " +
               "Solve this by either adding a Firestore distribution to the dataset or disabling the Firestore API.")
         sys.exit(1)
-
-# Check if GitHub URL is existing and if it has the correct format.
-# Format: "https://github.com/<org>/<repo>/blob/<branch>/<path-to-file>".
-if 'githubUrl' in catalog and not re.search(
-        r"(?:https://github.com/)(vwt-digital|vwt-digital-config+)(?:/)([\w-]+)(?:/blob/)(master|develop+)(?:/)(.+)",
-        catalog['githubUrl']):
-    print("Error: catalog does contain GitHub URL, but not in correct HTML URL format: " +
-          "\"https://github.com/<org>/<repo>/blob/<branch>/<path-to-file>\". " +
-          "See https://vwtdigital.atlassian.net/l/c/HM6iPX0d for an explanation.")
-    sys.exit(1)
-elif 'githubUrl' not in catalog:
-    print("Error: catalog does not contain GitHub URL. Add the URL of the data-catalog to the top level dictionary " +
-          "as follow: \"githubUrl\": \"https://github.com/<org>/<repo>/blob/<branch>/<path-to-file>\". " +
-          "See https://vwtdigital.atlassian.net/l/c/HM6iPX0d for an explanation.")
-    sys.exit(1)
