@@ -48,9 +48,11 @@ if 'github_url' in catalog and not re.search(
         r"(?:https://github.com/)(vwt-digital|vwt-digital-config+)(?:/)([\w-]+)(?:/blob/)(master|develop+)(?:/)(.+)",
         catalog['github_url']):
     print("Error: catalog does contain GitHub URL, but not in correct HTML URL format: " +
-          "\"https://github.com/<org>/<repo>/blob/<branch>/<path-to-file>\"")
+          "\"https://github.com/<org>/<repo>/blob/<branch>/<path-to-file>\". " +
+          "See https://vwtdigital.atlassian.net/l/c/HM6iPX0d for an explanation.")
     sys.exit(1)
 elif 'github_url' not in catalog:
     print("Error: catalog does not contain GitHub URL. Add the URL of the data-catalog to the top level dictionary " +
-          "as follow: \"github_url\": \"https://github.com/<org>/<repo>/blob/<branch>/<path-to-file>\".")
+          "as follow: \"github_url\": \"https://github.com/<org>/<repo>/blob/<branch>/<path-to-file>\". " +
+          "See https://vwtdigital.atlassian.net/l/c/HM6iPX0d for an explanation.")
     sys.exit(1)
