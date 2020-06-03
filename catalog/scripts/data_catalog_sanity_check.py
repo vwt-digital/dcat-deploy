@@ -13,6 +13,10 @@ has_firestore_dis = False
 
 print("Check data_catalog sanity for {}".format(sys.argv[1]))
 
+if 'projectId' not in catalog:
+    print("Error: catalog does not contain the projectId. Solve this by adding the projectId to the catalog.")
+    sys.exit(1)
+
 if 'dataset' in catalog:
     for dataset in catalog['dataset']:
         # Check if the permissions are not for users
