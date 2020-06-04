@@ -77,7 +77,7 @@ if catalog.get('backupDestination'):
                 })
 
     catalog.get('dataset', []).append({
-      "identifier": "{}-dcat-deployed".format(project),
+      "identifier": "{}-backup".format(project),
       "title": "Storage containing backup for {}".format(project),
       "accessLevel": "restricted",
       "rights": "The dataset could contain PII, therefore access level is restricted",
