@@ -210,7 +210,7 @@ def gather_bigquery_permissions(access_level, resource_title, resource_format, p
         if permission.get('target') == resource_title:
 
             identity = 'groupByEmail' if permission['assignee'].startswith('group:') else 'userByEmail'
-            member = permission['assignee'].split(':')['-1']
+            member = permission['assignee'].split(':')[-1]
 
             permissions.append({
                 'role': resource_odrl_policy_bindings[resource_format][permission['action']],
