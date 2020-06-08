@@ -299,8 +299,6 @@ def generate_config(context):
                         'dependsOn': [find_topic(dataset)]
                     }
                 }
-                if distribution.get('deploymentProperties'):
-                    resource_to_append['properties'].update(distribution['deploymentProperties'])
 
             if distribution['format'] == 'cloudsql-instance':
                 resource_to_append = {
@@ -335,6 +333,10 @@ def generate_config(context):
                     resource_to_append['properties']['defaultPartitionExpirationMs'] = gather_bigquery_retention(dataset.get('temporal'))
 
             if resource_to_append:
+
+                if distribution.get('deploymentProperties'):
+                    resource_to_append['properties'].update(distribution['deploymentProperties'])
+
                 if 'accessLevel' in dataset:
                     append_gcp_policy(resource_to_append, distribution['title'], distribution['format'], dataset['accessLevel'],
                                       context.env['project'], dataset.get('odrlPolicy'))
