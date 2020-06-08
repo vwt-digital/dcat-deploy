@@ -1,5 +1,6 @@
-# To run this script, a variable catalog should be defined, containing the data catalog to be deployed by
-# this deployment template.
+# To run this script, a variable catalog should be defined
+# containing the data catalog to be deployed by this deployment template.
+
 import re
 from datetime import timedelta
 
@@ -9,24 +10,6 @@ def find_topic(dataset):
         if distribution['format'] == 'topic':
             return distribution['title']
     return None
-
-
-def update_bindings(bindings, role_to_add, member_to_add):
-    if not bindings:
-        bindings = []
-
-    binding = next((b for b in bindings if b['role'] == role_to_add), None)
-    if not binding:
-        binding = {
-            'role': role_to_add,
-            'members': []
-        }
-        bindings.append(binding)
-
-    if member_to_add not in binding['members']:
-        binding['members'].append(member_to_add)
-
-    return bindings
 
 
 resource_default_policy_bindings = {
@@ -117,16 +100,7 @@ resource_default_policy_bindings = {
                 ]
             }
         ],
-        'confidential': [
-        ]
-    },
-    'topic': {
-        'public': None,
-        'internal': None,
-        'restricted': None,
-        'confidential': None
-    },
-    'subscription': {
+        'confidential': []
     }
 }
 
@@ -160,9 +134,12 @@ resource_odrl_policy_bindings = {
     'subscription': {
         'read': [
             'roles/pubsub.subscriber'
-        ],
-        'write': [],
-        'modify': []
+        ]
+    },
+    'bigquery-dataset': {
+        'read': 'READER',
+        'write': 'WRITER',
+        'modify': 'OWNER'
     }
 }
 
@@ -207,13 +184,16 @@ def gather_permissions(access_level, resource_title, resource_format, project_id
 
 
 def append_gcp_policy(resource, resource_title, resource_format, access_level, project_id, odrlPolicy):
-    permissions = gather_permissions(access_level, resource_title, resource_format, project_id, odrlPolicy)
-    if permissions is not None:
-        resource['accessControl'] = {
-            'gcpIamPolicy': {
-                'bindings': permissions
+    if resource_format == 'bigquery-dataset':
+        resource['access'] = gather_bigquery_permissions(access_level, resource_title, resource_format, project_id, odrlPolicy)
+    else:
+        permissions = gather_permissions(access_level, resource_title, resource_format, project_id, odrlPolicy)
+        if permissions is not None:
+            resource['accessControl'] = {
+                'gcpIamPolicy': {
+                    'bindings': permissions
+                }
             }
-        }
 
 
 def gather_bigquery_retention(temporal):
@@ -221,8 +201,25 @@ def gather_bigquery_retention(temporal):
     return str(int(duration.total_seconds() * 1000))
 
 
+def gather_bigquery_permissions(access_level, resource_title, resource_format, project_id, odrlPolicy={}):
+
+    permissions = []
+
+    for permission in odrlPolicy.get('permission', []):
+        if permission.get('target') == resource_title:
+
+            member = permission['assignee']
+            identity = 'groupByEmail' if member.startswith('group:') else 'userByEmail'
+
+            permissions.append({
+                'role': resource_odrl_policy_bindings[resource_format][permission['action']],
+                identity: member
+            })
+
+    return permissions
+
+
 def gather_bucket_lifecycle(temporal):
-    print('temporal {}'.format(temporal))
     if temporal and temporal.startswith('P'):
         duration = parse_duration(temporal)
         return {
@@ -253,12 +250,13 @@ def gather_bucket_retentionPolicy(temporal):
 
 
 def generate_config(context):
+
     resources = []
-    project_level_bindings = []
 
     for dataset in catalog['dataset']:  # noqa: F821
         for distribution in dataset['distribution']:
             resource_to_append = None
+
             if distribution['format'] == 'blob-storage':
                 resource_to_append = {
                         'name': distribution['title'],
@@ -277,6 +275,7 @@ def generate_config(context):
                     })
                 resource_to_append['properties']['lifecycle'] = gather_bucket_lifecycle(dataset.get('temporal', ''))
                 resource_to_append['properties']['retentionPolicy'] = gather_bucket_retentionPolicy(dataset.get('temporal', ''))
+
             if distribution['format'] == 'topic':
                 resource_to_append = {
                     'name': distribution['title'],
@@ -286,11 +285,7 @@ def generate_config(context):
                             'topic': distribution['title']
                         }
                 }
-                if 'odrlPolicy' in dataset:
-                    for permission in dataset['odrlPolicy']['permission']:
-                        if permission['target'] == distribution['title'] and permission['action'] == 'modify':
-                            # topic modify requires pubsub.editor at project level
-                            project_level_bindings = update_bindings(project_level_bindings, 'roles/pubsub.editor', permission['assignee'])
+
             if distribution['format'] == 'subscription':
                 resource_to_append = {
                     'name': distribution['title'],
@@ -305,11 +300,13 @@ def generate_config(context):
                 }
                 if distribution.get('deploymentProperties'):
                     resource_to_append['properties'].update(distribution['deploymentProperties'])
+
             if distribution['format'] == 'cloudsql-instance':
                 resource_to_append = {
                     'name': distribution['title'],
                     'type': 'gcp-types/sqladmin-v1beta4:instances'
                 }
+
             if distribution['format'] == 'cloudsql-db':
                 resource_to_append = {
                     'name': distribution['title'],
@@ -319,6 +316,7 @@ def generate_config(context):
                         'dependsOn': [distribution['deploymentProperties']['instance']]
                     }
                 }
+
             if distribution['format'] == 'bigquery-dataset':
                 resource_to_append = {
                     'name': distribution['title'],
@@ -334,52 +332,13 @@ def generate_config(context):
                 }
                 if dataset.get('temporal'):
                     resource_to_append['properties']['defaultPartitionExpirationMs'] = gather_bigquery_retention(dataset.get('temporal'))
-                if dataset.get('odrlPolicy'):
-                    for permission in dataset['odrlPolicy']['permission']:
-                        if permission['target'] == distribution['title']:
-                            # Bigquery dataset read and modify require project level bindings
-                            if permission['action'] == 'read':
-                                project_level_bindings = update_bindings(project_level_bindings,
-                                                                         'roles/bigquery.dataViewer', permission['assignee'])
-                            if permission['action'] == 'modify':
-                                project_level_bindings = update_bindings(project_level_bindings,
-                                                                         'roles/bigquery.dataEditor', permission['assignee'])
 
             if resource_to_append:
-                # Add deployment properties, unless it's a subscription as pushConfig is not updatable through Deployment Manager (DAT-816)
-                if 'deploymentProperties' in distribution and distribution['format'] != 'subscription':
-                    if 'properties' not in resource_to_append:
-                        resource_to_append['properties'] = {}
-                    resource_to_append['properties'].update(distribution['deploymentProperties'])
-
                 if 'accessLevel' in dataset:
                     append_gcp_policy(resource_to_append, distribution['title'], distribution['format'], dataset['accessLevel'],
                                       context.env['project'], dataset.get('odrlPolicy'))
 
                 resources.append(resource_to_append)
-
-    if project_level_bindings:
-        resources.append({
-            'name': 'get-iam-policy-' + context.env['project'],
-            'action': 'gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.getIamPolicy',
-            'properties': {
-                'resource': context.env['project'],
-            },
-            'metadata': {
-                'runtimePolicy': ['UPDATE_ALWAYS']
-            }
-        })
-        resources.append({
-            'name': 'patch-iam-policy-' + context.env['project'],
-            'action': 'gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy',
-            'properties': {
-                'resource': context.env['project'],
-                'policy': '$(ref.get-iam-policy-' + context.env['project'] + ')',
-                'gcpIamPolicyPatch': {
-                    'add': project_level_bindings
-                }
-            }
-        })
 
     return {'resources': resources}
 

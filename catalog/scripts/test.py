@@ -10,6 +10,7 @@ class Context:
             'project_number': 1000
         }
 
+
 context = Context()
 
 print(json.dumps(generate_config(context), indent=4))
