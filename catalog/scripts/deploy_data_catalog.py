@@ -185,7 +185,8 @@ def gather_permissions(access_level, resource_title, resource_format, project_id
 
 def append_gcp_policy(resource, resource_title, resource_format, access_level, project_id, odrlPolicy):
     if resource_format == 'bigquery-dataset':
-        resource['access'] = gather_bigquery_permissions(access_level, resource_title, resource_format, project_id, odrlPolicy)
+        resource['properties']['access'] = gather_bigquery_permissions(
+            access_level, resource_title, resource_format, project_id, odrlPolicy)
     else:
         permissions = gather_permissions(access_level, resource_title, resource_format, project_id, odrlPolicy)
         if permissions is not None:
