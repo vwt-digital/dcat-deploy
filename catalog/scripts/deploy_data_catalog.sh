@@ -23,8 +23,9 @@ basedir=$(dirname "$0")
 gcp_template=$(mktemp "${deployment_name}"-XXXXX.py)
 gcp_catalog=$(mktemp "${deployment_name}"-catalog-XXXXX.json)
 gcp_datastore_indexes="$(mktemp -d)/index.yaml"
+project_services=$(gcloud services list --enabled --format="list(config.name.basename())" --quiet --project="${project_id}")
 
-if ! python3 "${basedir}"/data_catalog_sanity_check.py "${data_catalog}"
+if ! python3 "${basedir}"/data_catalog_sanity_check.py "${data_catalog}" "${project_services}"
 then
     echo "Sanity check failed"
     exit 1
