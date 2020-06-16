@@ -62,15 +62,13 @@ resource_default_policy_bindings = {
             {
                 'role': 'roles/storage.legacyObjectReader',
                 'members': [
-                    'projectViewer:{project_id}',
-                    'projectBrowser:{project_id}'
+                    'projectViewer:{project_id}'
                 ]
             },
             {
                 'role': 'roles/storage.legacyBucketReader',
                 'members': [
-                    'projectViewer:{project_id}',
-                    'projectBrowser:{project_id}'
+                    'projectViewer:{project_id}'
                 ]
             }
         ],
