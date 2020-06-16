@@ -294,9 +294,7 @@ def generate_config(context):
                     'properties': {
                         'topic': '$(ref.' + find_topic(dataset) + '.name)',
                         'subscription': distribution['title'],
-                        'expirationPolicy': {
-                            'ttl': ''
-                        }
+                        'expirationPolicy': {}
                     },
                     'metadata': {
                         'dependsOn': [find_topic(dataset)]
