@@ -293,7 +293,10 @@ def generate_config(context):
                     'type': 'pubsub.v1.subscription',
                     'properties': {
                         'topic': '$(ref.'+find_topic(dataset)+'.name)',
-                        'subscription': distribution['title']
+                        'subscription': distribution['title'],
+                        'expirationPolicy': {
+                            'ttl': '99Y'
+                        }
                     },
                     'metadata': {
                         'dependsOn': [find_topic(dataset)]
