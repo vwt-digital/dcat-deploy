@@ -93,10 +93,13 @@ then
         gcloud scheduler jobs delete ${PROJECT_ID}-run-backup --quiet
     fi
 
+    # Random minute for scheduler
+    minute=$(shuf -i 1-30 -n 1)
+
     # (Re)create job
     echo " + Creating job ${PROJECT_ID}-run-backup..."
     gcloud scheduler jobs create http ${PROJECT_ID}-run-backup \
-        --schedule='0 5 * * *' \
+        --schedule="${minute} 4 * * *" \
         --uri="https://cloudbuild.googleapis.com/v1/projects/${PROJECT_ID}/builds" \
         --message-body-from-file=cloudbuild_backup_gen.json \
         --oauth-service-account-email="${PROJECT_ID}@appspot.gserviceaccount.com" \

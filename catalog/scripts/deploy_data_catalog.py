@@ -292,8 +292,9 @@ def generate_config(context):
                     'name': distribution['title'],
                     'type': 'pubsub.v1.subscription',
                     'properties': {
-                        'topic': '$(ref.'+find_topic(dataset)+'.name)',
-                        'subscription': distribution['title']
+                        'topic': '$(ref.' + find_topic(dataset) + '.name)',
+                        'subscription': distribution['title'],
+                        'expirationPolicy': {}
                     },
                     'metadata': {
                         'dependsOn': [find_topic(dataset)]

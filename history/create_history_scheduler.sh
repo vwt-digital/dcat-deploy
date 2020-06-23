@@ -3,6 +3,13 @@
 PROJECT_ID=${1}
 TOPICS_AND_PERIODS=${2}
 
+# Delete existing topic history jobs
+for job in $(gcloud scheduler jobs list  --project="vwt-d-gew1-odh-hub" --format="value(name)" | grep "history-job$")
+do
+    echo " + Deleting existing job $job..."
+    gcloud scheduler jobs delete "$job" --project="${PROJECT_ID}" --quiet
+done
+
 i=0
 for pair in ${TOPICS_AND_PERIODS}
 do
@@ -23,14 +30,6 @@ do
         cron="$skew * * * *"
     else
         cron="$skew 00,06,12,18 * * *"
-    fi
-
-    # Delete existing topic history job
-    job_exists=$(gcloud scheduler jobs list  --project="${PROJECT_ID}" --format="value(name)" | grep "${job}")
-    if [ -n "$job_exists" ]
-    then
-        echo " + Deleting existing job $job..."
-        gcloud scheduler jobs delete "$job" --project="${PROJECT_ID}" --quiet
     fi
 
     # Create new topic hostory job
