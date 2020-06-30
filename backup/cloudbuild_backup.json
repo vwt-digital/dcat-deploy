@@ -1,5 +1,5 @@
 {
-    "timeout": "3600s",
+    "timeout": "5400s",
     "steps": [
         {
             "name": "gcr.io/cloud-builders/git",
