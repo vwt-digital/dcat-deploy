@@ -14,41 +14,47 @@ then
     exit 1
 fi
 
-basedir=$(dirname $0)
+basedir=$(dirname "$0")
 
 if [ -n "${b64_encrypted_github_token}" ]
 then
     echo "decrypting github access token using key ${key}@${keyring}"
-    github_token=$(echo ${b64_encrypted_github_token} | base64 -d - | gcloud kms decrypt \
-        --key=${key} \
-        --keyring=${keyring} \
-        --location=${keyring_region} \
+    if ! github_token=$(echo "${b64_encrypted_github_token}" | base64 -d - | gcloud kms decrypt \
+        --key="${key}" \
+        --keyring="${keyring}" \
+        --location="${keyring_region}" \
         --ciphertext-file=- \
         --plaintext-file=- \
-        --project=${PROJECT_ID})
-
-    if [ $? -ne 0 ]
+        --project="${PROJECT_ID}");
     then
         echo "Error decoding github access token"
         exit 1
     fi
 fi
 
-git clone --branch=0.24.0 https://github.com/josegonzalez/python-github-backup.git
+git clone --branch=0.33.1 https://github.com/josegonzalez/python-github-backup.git
 export PYTHONPATH=python-github-backup
 mkdir output
 
 result=0
 
-for repo in $(python3 ${basedir}/list_github_repos.py ${data_catalog_file})
+for repo in $(python3 "${basedir}"/list_github_repos.py "${data_catalog_file}")
 do
    echo "Create backup of ${repo} from ${PROJECT_ID}"
-   organization=$(echo $repo | cut -d/ -f1)
-   reponamegit=$(echo $repo | cut -d/ -f2)
+   organization=$(echo "${repo}" | cut -d/ -f1)
+   reponamegit=$(echo "${repo}" | cut -d/ -f2)
    reponame=${reponamegit%.*}
-   python-github-backup/bin/github-backup --token=${github_token} --all --private --fork --organization --repository=${reponame} --output-directory=output ${organization}
 
-   if [ $? -ne 0 ]
+   if ! python-github-backup/bin/github-backup \
+        --token="${github_token}" \
+        --all \
+        --private \
+        --fork \
+        --organization \
+        --throttle-limit=5000 \
+        --throttle-pause=0.6 \
+        --repository="${reponame}" \
+        --output-directory=output "${organization}";
    then
        echo "ERROR during backup of ${repo} from ${PROJECT_ID}"
        result=1
@@ -57,17 +63,19 @@ do
    destpath="gs://${dest_bucket}/backup/github/${reponame}.tgz"
    echo "Copy backup of ${repo} to ${destpath}"
    cd output/repositories && \
-   tar -zcvf ${reponame}.tgz ${reponame} && \
-   gsutil cp ${reponame}.tgz ${destpath}
+   tar -zcvf "${reponame}".tgz "${reponame}" && \
+   gsutil cp "${reponame}".tgz "${destpath}"
 
+
+   # shellcheck disable=SC2181
    if [ $? -ne 0 ]
    then
        echo "ERROR during copy backup of ${repo} to ${destpath}"
        result=1
    fi
 
-   rm -rf ${reponame} ${reponame}.tgz
-   cd ../..
+   rm -rf "${reponame}" "${reponame}".tgz
+   cd ../.. || exit 1
 done
 
 if [ ${result} -ne 0 ]
