@@ -1,5 +1,6 @@
 {
     "timeout": "5400s",
+    "logsBucket": "gs://${PROJECT_ID}_cloudbuild",
     "steps": [
         {
             "name": "gcr.io/cloud-builders/git",
