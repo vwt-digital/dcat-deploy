@@ -64,39 +64,6 @@ catalog.get('dataset', []).append({
   ]
 })
 
-# Add default cloudbuild bucket
-catalog.get('dataset', []).append({
-  "identifier": "{}-cloudbuild".format(project),
-  "title": "Storage containing cloudbuild output for {}".format(project),
-  "accessLevel": "internal",
-  "rights": "The dataset contains meta information about cloudbuilds, it does not contain PII, therefore access level is internal",
-  "contactPoint": {
-    "fn": "Bernie van Veen",
-    "hasEmail": "mailto:b.vanveen@vwt.digital"
-  },
-  "publisher": {
-    "name": "Digital Ambition Team",
-    "subOrganizationOf": {
-      "name": "VolkerWessels Telecom"
-    }
-  },
-  "keyword": [],
-  "modified": datetime.now().strftime("%Y-%m-%d"),
-  "spatial": "Netherlands",
-  "issued": "2020-06",
-  "distribution": [
-    {
-      "accessURL": "https://console.cloud.google.com/storage/browser/{}_cloudbuild".format(project),
-      "mediaType": "application/json",
-      "deploymentZone": get_deployment_zone(project),
-      "format": "blob-storage",
-      "title": "{}_cloudbuild".format(project),
-      "description": "VWT {} environment at Google europe-west1 containing data catalog blob storage".format(get_stage(project))
-    }
-  ]
-})
-
-
 # Add project local backup bucket
 if catalog.get('backupDestination'):
     backup_permissions = []
