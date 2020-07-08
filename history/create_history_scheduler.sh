@@ -4,7 +4,7 @@ PROJECT_ID=${1}
 TOPICS_AND_PERIODS=${2}
 
 # Delete existing topic history jobs
-for job in $(gcloud scheduler jobs list  --project="vwt-d-gew1-odh-hub" --format="value(name)" | grep "history-job$")
+for job in $(gcloud scheduler jobs list  --project="${PROJECT_ID}" --format="value(name)" | grep "history-job$")
 do
     echo " + Deleting existing job $job..."
     gcloud scheduler jobs delete "$job" --project="${PROJECT_ID}" --quiet
