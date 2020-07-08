@@ -60,7 +60,7 @@ then
         gcloud deployment-manager deployments create "${deployment_name}" --template="${gcp_template}" --project="${project_id}"
     else
         # Update if deployment exists already
-        gcloud deployment-manager deployments update "${deployment_name}" --template="${gcp_template}" --project="${project_id}" --delete-policy=ABANDON
+        gcloud deployment-manager deployments update "${deployment_name}" --template="${gcp_template}" --project="${project_id}"
     fi
 
     if [ $? -ne 0 ]
