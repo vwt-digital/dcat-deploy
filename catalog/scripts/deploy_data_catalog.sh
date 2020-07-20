@@ -92,6 +92,7 @@ then
     # Post the data catalog to the data catalogs topic
     . venv/bin/activate
     pip install google-cloud-pubsub==1.2.0
+    pip install gobits==0.0.7
     if ! python3 "${basedir}"/publish_dcat_to_topic.py -d "${gcp_catalog}" -p "${project_id}"
     then
         echo "Error publishing data_catalog."
