@@ -3,9 +3,9 @@ import argparse
 import logging
 from google.cloud import pubsub_v1
 import sys
+from gobits import Gobits
 
-
-def publish_to_topic(args):
+def publish_to_topic(args, gobits):
     try:
         with open(args.data_catalog, 'r') as f:
             catalog = json.load(f)
@@ -22,9 +22,7 @@ def publish_to_topic(args):
             topic_path = "projects/{}/topics/{}".format(
                 topic_project_id, topic_name)
             msg = {
-                "gobits": [
-                    {}
-                ],
+                "gobits": [gobits.to_json()],
                 "data_catalog": catalog
             }
             # print(json.dumps(msg, indent=4, sort_keys=True))
@@ -47,6 +45,7 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--data-catalog', required=True)
     parser.add_argument('-p', '--project-id', required=True)
     args = parser.parse_args()
-    return_bool = publish_to_topic(args)
+    gobits = Gobits()
+    return_bool = publish_to_topic(args, gobits)
     if not return_bool:
         sys.exit(1)
