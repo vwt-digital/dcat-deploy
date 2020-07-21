@@ -172,10 +172,14 @@ if __name__ == "__main__":
     # Topic the schema needs to be published to
     topic_name = "blabla"
     # Publish every schema message to the topic
-    for msg in messages:
-        print(json.dumps(msg, indent=4, sort_keys=False))
+    for m in messages:
         # The gobits of the message
         gobits = Gobits()
+        msg = {
+            "gobits": [gobits.to_json()],
+            "schema_message": m
+        }
+        print(json.dumps(msg, indent=4, sort_keys=False))
         return_bool = publish_to_topic(gobits, msg, topic_project_id, topic_name)
     if not return_bool:
         sys.exit(1)
