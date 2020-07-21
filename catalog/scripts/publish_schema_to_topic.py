@@ -9,7 +9,7 @@ from functools import reduce
 import operator
 import os
 
-def get_topic_with_schema(args):
+def get_schema_messages(args):
     try:
         with open(args.data_catalog, 'r') as f:
             catalog = json.load(f)
@@ -17,31 +17,30 @@ def get_topic_with_schema(args):
             schema = json.load(f)
         schema_folder_path = args.schema_folder
 
-        # Check if schema has any references and fill in the references
-        fill_refs(schema, schema_folder_path)
+        schema_messages = []
+        # Check if the schema has an id
+        if 'id' in schema:
+            # Check if schema has any references and fill in the references
+            fill_refs(schema, schema_folder_path)
 
-        schema_info = {}
-
-        for dataset in catalog['dataset']:
-            for dist in dataset.get('distribution', []):
-                if dist.get('format') == 'topic':
-                    # Get dataset topic only if it has a schema
-                    if dist.get('describedBy') and dist.get('describedByType'):
-                        # Topic of the schema
-                        topic_of_schema = dist.get('title')
-                        # Project id of the topic the schema needs to be published to
-                        topic_project_id = "blabla"
-                        # Topic the schema needs to be published to
-                        topic_name = "blabla"
-                        # Put it together in a json
-                        schema_info = {
-                            "topic_project_id": topic_project_id,
-                            "topic_name": topic_name,
-                            "topic_of_schema": topic_of_schema,
-                            "schema": schema
-                        }
-
-        return schema_info
+            for dataset in catalog['dataset']:
+                for dist in dataset.get('distribution', []):
+                    if dist.get('format') == 'topic':
+                        # Get dataset topic only if it has a schema
+                        if dist.get('describedBy') and dist.get('describedByType'):
+                            # Check if the dataset topic has the given schema
+                            if(dist.get('describedBy') == schema['id']):
+                                # Topic of the schema
+                                schema_of_topic = dist.get('title')
+                                # Put it together in a json
+                                schema_msg = {
+                                    "schema_of_topic": schema_of_topic,
+                                    "schema": schema
+                                }
+                                schema_messages.append(schema_msg)
+        else:
+            logging.error("The given schema has no ID")
+        return schema_messages
     except Exception as e:
         logging.exception('Unable to publish schema ' +
                           'because of {}'.format(e))
@@ -141,8 +140,23 @@ def get_attributes_array(json_object, arr, current_prop):
     # At the end of the recursion, return the array
     return arr
 
-def publish_to_topic(gobits):
-    return True
+def publish_to_topic(gobits, msg, topic_project_id, topic_name):
+    try:
+        # Publish to topic
+        publisher = pubsub_v1.PublisherClient()
+        topic_path = "projects/{}/topics/{}".format(
+            topic_project_id, topic_name)
+        future = publisher.publish(
+            topic_path, bytes(json.dumps(msg).encode('utf-8')))
+        future.add_done_callback(
+            lambda x: logging.debug('Published schema of topic {}'.format(
+                                        msg['schema_of_topic']))
+                )
+        return True
+    except Exception as e:
+        logging.exception('Unable to publish schema ' +
+                          'to topic because of {}'.format(e))
+    return False
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -150,10 +164,18 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--schema', required=True)
     parser.add_argument('-sf', '--schema-folder', required=True)
     args = parser.parse_args()
-    schema = get_topic_with_schema(args)
-    print(json.dumps(schema, indent=4, sort_keys=False))
-    
-    gobits = Gobits()
-    return_bool = publish_to_topic(gobits)
+    # A message should be send to the schemas topic
+    # for every topic that has this schema
+    messages = get_schema_messages(args)
+    # Project id of the topic the schema needs to be published to
+    topic_project_id = "blabla"
+    # Topic the schema needs to be published to
+    topic_name = "blabla"
+    # Publish every schema message to the topic
+    for msg in messages:
+        print(json.dumps(msg, indent=4, sort_keys=False))
+        # The gobits of the message
+        gobits = Gobits()
+        return_bool = publish_to_topic(gobits, msg, topic_project_id, topic_name)
     if not return_bool:
         sys.exit(1)
