@@ -18,10 +18,9 @@ def get_topic_with_schema(args):
         schema_folder_path = args.schema_folder
 
         # Check if schema has any references and fill in the references
-        #fill_refs(args)
         fill_refs(schema, schema_folder_path)
 
-        schemas = []
+        schema_info = {}
 
         for dataset in catalog['dataset']:
             for dist in dataset.get('distribution', []):
@@ -41,11 +40,10 @@ def get_topic_with_schema(args):
                             "topic_of_schema": topic_of_schema,
                             "schema": schema
                         }
-                        schemas.append(schema_info)
 
-        return schemas
+        return schema_info
     except Exception as e:
-        logging.exception('Unable to open data catalog ' +
+        logging.exception('Unable to publish schema ' +
                           'because of {}'.format(e))
     return []
 
@@ -62,11 +60,16 @@ def fill_refs(schema, schema_folder_path):
                 reference_schema = {}
                 # If the reference is an url
                 if (ref.startswith("http")):
-                    # Get the reference via the url
-                    reference_schema = requests.get(ref).json()
-                    attributes = att[0:len(att)-1]
-                    # Set the reference to the right schema
-                    setInDict(schema, attributes, reference_schema)
+                    # Check if the url still works
+                    if(requests.get(ref).status_code == 200):
+                        # Get the reference via the url
+                        reference_schema = requests.get(ref).json()
+                        attributes = att[0:len(att)-1]
+                        # Set the reference to the right schema
+                        setInDict(schema, attributes, reference_schema)
+                    else:
+                        logging.error(f"The URL to the reference of {ref}" +
+                        "does not exist anymore")
                 # If it is not it's in the schemas folder
                 else:
                     # Pull apart the URN
@@ -147,9 +150,8 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--schema', required=True)
     parser.add_argument('-sf', '--schema-folder', required=True)
     args = parser.parse_args()
-    schemas = get_topic_with_schema(args)
-    for s in schemas:
-        print(json.dumps(s, indent=4, sort_keys=False))
+    schema = get_topic_with_schema(args)
+    print(json.dumps(schema, indent=4, sort_keys=False))
     
     gobits = Gobits()
     return_bool = publish_to_topic(gobits)
