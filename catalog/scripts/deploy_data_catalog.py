@@ -263,7 +263,7 @@ def generate_config(context):
                         'name': distribution['title'],
                         'type': 'storage.v1.bucket'
                     }
-                resource_to_append['properties'] = {}
+                resource_to_append['properties'] = distribution.get('deploymentProperties', {})
                 if 'deploymentZone' in distribution:
                     resource_to_append['properties'].update({
                         'location': distribution['deploymentZone']
