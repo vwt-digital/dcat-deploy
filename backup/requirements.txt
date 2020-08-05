@@ -3,6 +3,6 @@ google-cloud-storage==1.30.0
 google-cloud-monitoring==0.34.0
 google-cloud-firestore==1.6.2
 google-cloud-bigquery==1.24.0
-google-api-core==1.16.0
+google-api-core==1.22.0
 python-dateutil==2.8.1
-grpcio==1.27.2
+grpcio==1.30.0
