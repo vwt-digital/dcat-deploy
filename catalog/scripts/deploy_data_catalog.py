@@ -277,7 +277,7 @@ def generate_config(context):
                         }
                     })
 
-                labels = {'accessLevel': dataset.get('accessLevel', '')}
+                labels = {'accesslevel': dataset.get('accessLevel', '')}
 
                 if 'labels' in resource_to_append['properties']:
                     resource_to_append['properties']['labels'].update(labels)
@@ -295,7 +295,7 @@ def generate_config(context):
                         {
                             'topic': distribution['title'],
                             'labels': {
-                                'accessLevel':  dataset.get('accessLevel', '')
+                                'accesslevel':  dataset.get('accessLevel', '')
                             }
                         }
                 }
