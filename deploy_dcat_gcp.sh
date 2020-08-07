@@ -55,10 +55,7 @@ then
     sed ${dcat_deploy_dir}/backup/cloudbuild_backup.json \
         -e "s|__DEST_BUCKET__|${backup_destination}|" \
         -e "s|__GITHUB_SECRET_ID__|${GITHUB_SECRET_ID}|" \
-        -e "s|__KMS_KEYRING_REGION__|${kms_keyring_region}|" \
-        -e "s|__KMS_KEYRING__|${kms_keyring}|" \
-        -e "s|__KMS_KEY__|${kms_key}|" \
-        -e "s|__DCAT_DEPLOY_BRANCH_NAME__|${BRANCH_NAME}|" > cloudbuild_backup_gen.json
+        -e "s|__BRANCH_NAME__|${BRANCH_NAME}|" > cloudbuild_backup_gen.json
 
     echo "Scheduling backup..."
 

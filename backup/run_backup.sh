@@ -4,14 +4,11 @@
 data_catalog_file=${1}
 PROJECT_ID=${2}
 dest_bucket=${3}
-keyring_region=${4}
-keyring=${5}
-key=${6}
-b64_encrypted_github_token=${7}
+GITHUB_SECRET_ID=${4}
 
 if [ -z "${dest_bucket}" ]
 then
-    echo "Usage: $0 <data_catalog_file> <project_id> <dest_bucket> [<keyring_region> <keyring> <key> <b64_encrypted_github_token>]"
+    echo "Usage: $0 <data_catalog_file> <project_id> <dest_bucket> [github_secret_id]"
     exit 1
 fi
 
