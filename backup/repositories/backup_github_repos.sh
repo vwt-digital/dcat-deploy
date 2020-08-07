@@ -3,33 +3,19 @@
 data_catalog_file=${1}
 PROJECT_ID=${2}
 dest_bucket=${3}
-keyring_region=${4}
-keyring=${5}
-key=${6}
-b64_encrypted_github_token=${7}
+github_secret_id=${4}
 
 if [ -z "${dest_bucket}" ]
 then
-    echo "Usage: $0 <data_catalog_file> <project_id> <dest_bucket> <keyring_region> <keyring> <key> <b64_encrypted_github_token>"
+    echo "Usage: $0 <data_catalog_file> <project_id> <dest_bucket> <github_secret_id>"
     exit 1
 fi
 
 basedir=$(dirname "$0")
 
-if [ -n "${b64_encrypted_github_token}" ]
+if [ -n "${github_secret_id}" ]
 then
-    echo "decrypting github access token using key ${key}@${keyring}"
-    if ! github_token=$(echo "${b64_encrypted_github_token}" | base64 -d - | gcloud kms decrypt \
-        --key="${key}" \
-        --keyring="${keyring}" \
-        --location="${keyring_region}" \
-        --ciphertext-file=- \
-        --plaintext-file=- \
-        --project="${PROJECT_ID}");
-    then
-        echo "Error decoding github access token"
-        exit 1
-    fi
+    github_token=$(gcloud secrets versions access latest --secret="${github_secret_id}")
 fi
 
 git clone --branch=0.33.1 https://github.com/josegonzalez/python-github-backup.git
