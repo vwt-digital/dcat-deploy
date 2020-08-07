@@ -6,9 +6,7 @@ import re
 if len(sys.argv) >= 2:
     projectsfile = open(sys.argv[1])
     projects = json.load(projectsfile)
-
-    token_file = open(sys.argv[2], "r")
-    github_access_token = token_file.read().replace('\n', '')
+    github_access_token = sys.argv[2]
 
     for ds in projects['dataset']:
         if ds['distribution'][0]['format'] == "gitrepo":
@@ -40,7 +38,7 @@ if len(sys.argv) >= 2:
 
                             headers = {'Authorization': '',
                                        'Accept': 'application/vnd.github.hellcat-preview+json'}
-                            headers['Authorization'] = 'token '+github_access_token
+                            headers['Authorization'] = 'token ' + github_access_token
 
                             payload = {'permission': ''}
                             payload['permission'] = github_perm
