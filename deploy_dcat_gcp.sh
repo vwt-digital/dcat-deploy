@@ -5,50 +5,30 @@
 data_catalog_path=${1}
 PROJECT_ID=${2}
 BRANCH_NAME=${3}
-encrypted_github_token=${4}
+GITHUB_SECRET_ID=${4}
 SERVICE_ACCOUNT=${5}
 
 dcat_deploy_dir=$(dirname $0)
 
 if [ -z "${PROJECT_ID}" ]
 then
-    echo "Usage: $0 <data_catalog_path> <PROJECT_ID> <BRANCH_NAME> [encrypted_github_token]"
+    echo "Usage: $0 <data_catalog_path> <PROJECT_ID> <BRANCH_NAME> [GITHUB_SECRET_ID]"
     exit 1
 fi
 
 ############################################################
-# Create and configure github repos (only when a github token is provided)
+# Create and configure github repos
 ############################################################
 
-if echo "${PROJECT_ID}" | grep -q "repo"
+if [ -n "${GITHUB_SECRET_ID}" ]
 then
-    kms_keyring_region="europe"
-    kms_keyring="${PROJECT_ID}-github"
-    kms_key="github-access-token"
-else
-    kms_keyring_region="europe-west1"
-    kms_keyring="github"
-    kms_key="github-access-token"
-fi
-
-if [ -n "${encrypted_github_token}" ]
-then
-    echo ${encrypted_github_token} | base64 -d - | \
-    gcloud kms decrypt \
-      --ciphertext-file=- \
-      --plaintext-file="${dcat_deploy_dir}/catalog/repos/github_access_token.key" \
-      --location="${kms_keyring_region}" \
-      --keyring="${kms_keyring}" \
-      --key="${kms_key}"
-
-    ${dcat_deploy_dir}/catalog/repos/create_github_repos.sh ${data_catalog_path} ${dcat_deploy_dir}/catalog/repos/github_access_token.key
+    ${dcat_deploy_dir}/catalog/repos/create_github_repos.sh ${data_catalog_path} ${GITHUB_SECRET_ID}
 fi
 
 ############################################################
-# Deploy datasets
+# Deploy datasets using deployment manager
 ############################################################
 
-# Deploy resources using deployment manager
 ${dcat_deploy_dir}/catalog/scripts/deploy_data_catalog.sh ${PROJECT_ID}-dcat-deploy ${data_catalog_path} ${PROJECT_ID}
 
 if [ $? -ne 0 ]
@@ -74,7 +54,7 @@ then
     # Prepare backup job payload
     sed ${dcat_deploy_dir}/backup/cloudbuild_backup.json \
         -e "s|__DEST_BUCKET__|${backup_destination}|" \
-        -e "s|__ENCRYPTED_GITHUB_TOKEN__|${encrypted_github_token}|" \
+        -e "s|__GITHUB_SECRET_ID__|${GITHUB_SECRET_ID}|" \
         -e "s|__KMS_KEYRING_REGION__|${kms_keyring_region}|" \
         -e "s|__KMS_KEYRING__|${kms_keyring}|" \
         -e "s|__KMS_KEY__|${kms_key}|" \

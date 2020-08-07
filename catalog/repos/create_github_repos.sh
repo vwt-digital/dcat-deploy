@@ -1,12 +1,14 @@
 #!/bin/bash
 
-DATA_CATALOG="${1}"
-GITHUB_ACCESS_TOKEN="${2}"
+DATA_CATALOG=${1}
+GITHUB_SECRET_ID=${2}
 
 basedir="$(dirname $0)"
 
 OLDIFS="$IFS"
 IFS=$'\n'
+
+GITHUB_ACCESS_TOKEN=$(gcloud secrets versions access latest --secret="${GITHUB_SECRET_ID}")
 
 for pr in $(python3 ${basedir}/listrepos.py ${DATA_CATALOG})
 do
