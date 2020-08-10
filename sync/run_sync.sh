@@ -63,8 +63,7 @@ gcloud compute instances create "${instance_name}" \
   --metadata "serial-port-enable=true,branch-name=${BRANCH_NAME},iam-account=${IAM_ACCOUNT},secret-name=${SECRET_NAME}" \
   --metadata-from-file startup-script="${basedir}"/startup_script.sh \
   --machine-type "f1-micro" \
-  --preemptible \
-  --no-address
+  --preemptible
 
 while [[ -n $(gcloud compute instances list --project "${PROJECT_ID}" --format "value(status)" --filter "name:${instance_name}") ]]
 do
