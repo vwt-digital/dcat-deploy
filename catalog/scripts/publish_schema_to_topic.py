@@ -66,7 +66,7 @@ def fill_refs(schema, schema_folder_path):
                         # Set the reference to the right schema
                         setInDict(schema, attributes, reference_schema)
                     else:
-                        logging.error(f"The URL to the reference of {ref} does not exist anymore")
+                        logging.error('The URL to the reference of {} does not exist anymore'.format(ref))
                 # If it is not it's in the schemas folder
                 else:
                     # Pull apart the URN
@@ -84,12 +84,15 @@ def fill_refs(schema, schema_folder_path):
                                 # Set the reference to the right schema
                                 setInDict(schema, attributes, reference_schema)
                             else:
-                                logging.error(f"ID of reference is {ref} while \
-                                that of the schema is {reference_schema['$id']}")
+                                logging.error('ID of reference is {} while \
+                                that of the schema is {}'.format(
+                                    ref, reference_schema['$id']
+                                ))
                         else:
-                            logging.error(f"Reference schema of reference {ref} has no ID")
+                            logging.error('Reference schema of reference {} has no ID'.format(ref))
                     else:
-                        logging.error(f"The path {ref_schema_path} to the schema reference {ref} does not exist")
+                        logging.error('The path {} to the schema reference {} does not exist'.format(
+                            ref_schema_path, ref))
 
 # This function traverses the dictionary and gets the value of a key from a list of attributes
 def getFromDict(dataDict, mapList):
