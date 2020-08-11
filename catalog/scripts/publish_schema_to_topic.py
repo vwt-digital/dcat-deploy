@@ -66,8 +66,7 @@ def fill_refs(schema, schema_folder_path):
                         # Set the reference to the right schema
                         setInDict(schema, attributes, reference_schema)
                     else:
-                        logging.error(f"The URL to the reference of {ref}" +
-                        "does not exist anymore")
+                        logging.error(f"The URL to the reference of {ref} does not exist anymore")
                 # If it is not it's in the schemas folder
                 else:
                     # Pull apart the URN
