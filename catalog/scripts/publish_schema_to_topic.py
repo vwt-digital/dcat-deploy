@@ -19,7 +19,7 @@ def get_schema_messages(args):
 
         schema_messages = []
         # Check if the schema has an id
-        if 'id' in schema:
+        if '$id' in schema:
             # Check if schema has any references and fill in the references
             fill_refs(schema, schema_folder_path)
 
@@ -29,15 +29,14 @@ def get_schema_messages(args):
                         # Get dataset topic only if it has a schema
                         if dist.get('describedBy') and dist.get('describedByType'):
                             # Check if the dataset topic has the given schema
-                            if(dist.get('describedBy') == schema['id']):
-                                # Topic of the schema
-                                schema_of_topic = dist.get('title')
-                                # Put it together in a json
-                                schema_msg = {
-                                    "schema_of_topic": schema_of_topic,
+                            if(dist.get('describedBy') == schema['$id']):
+                                # Return schema
+                                topic_that_uses_schema = dist.get('title')
+                                schema_and_topic = {
+                                    "topic_that_uses_schema": topic_that_uses_schema,
                                     "schema": schema
                                 }
-                                schema_messages.append(schema_msg)
+                                schema_messages.append(schema_and_topic)
         else:
             logging.error("The given schema has no ID")
         return schema_messages
@@ -54,7 +53,7 @@ def fill_refs(schema, schema_folder_path):
     for att in attributes_arr:
         if att:
             if(att[-2] == "$ref"):
-                # Get the get the URN of the reference
+                # Get the URN of the reference
                 ref = att[-1]
                 reference_schema = {}
                 # If the reference is an url
@@ -80,18 +79,18 @@ def fill_refs(schema, schema_folder_path):
                             reference_schema = json.load(f)
                         # Double check if the urn of the schema is the same as the
                         # one of the reference
-                        if 'id' in reference_schema:
-                            if reference_schema['id'] == ref:
+                        if '$id' in reference_schema:
+                            if reference_schema['$id'] == ref:
                                 attributes = att[0:len(att)-1]
                                 # Set the reference to the right schema
                                 setInDict(schema, attributes, reference_schema)
                             else:
                                 logging.error(f"ID of reference is {ref} while \
-                                that of the schema is {reference_schema['id']}")
+                                that of the schema is {reference_schema['$id']}")
                         else:
-                            logging.error("Reference schema has no ID")
+                            logging.error(f"Reference schema of reference {ref} has no ID")
                     else:
-                        logging.error("The path to the schema reference does not exist")
+                        logging.error(f"The path {ref_schema_path} to the schema reference {ref} does not exist")
 
 # This function traverses the dictionary and gets the value of a key from a list of attributes
 def getFromDict(dataDict, mapList):
@@ -104,7 +103,7 @@ def setInDict(dataDict, mapList, value):
 # This function returns an array of arrays
 # The arrays give paths towards an end value, 
 # e.g. a value that does not contain sub objects
-# If the last object contains a references, this is denoted as "$ref" in the array,
+# If the last object contains a reference, this is denoted as "$ref" in the array,
 # the reference URN is the last value in the array in that case
 # Otherwise the last item in the array will just be "end"
 def get_attributes_array(json_object, arr, current_prop):
@@ -121,7 +120,7 @@ def get_attributes_array(json_object, arr, current_prop):
             # with the current property object
             get_attributes_array(json_object['properties'][prop], arr, prop)
     if 'items' in json_object and 'properties' in json_object['items']:
-        # Only if the items has a property object, add the attributes
+        # Only if the item has a property object, add the attributes
         for prop in json_object['items']['properties']:
             props = ['properties', current_prop, 'items', 'properties', prop]
             arr.append(props)
@@ -140,7 +139,7 @@ def get_attributes_array(json_object, arr, current_prop):
     # At the end of the recursion, return the array
     return arr
 
-def publish_to_topic(gobits, msg, topic_project_id, topic_name):
+def publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name):
     try:
         # Publish to topic
         publisher = pubsub_v1.PublisherClient()
@@ -149,8 +148,8 @@ def publish_to_topic(gobits, msg, topic_project_id, topic_name):
         future = publisher.publish(
             topic_path, bytes(json.dumps(msg).encode('utf-8')))
         future.add_done_callback(
-            lambda x: logging.debug('Published schema of topic {}'.format(
-                                        msg['schema_of_topic']))
+            lambda x: logging.debug('Published schema with URN {} for topic {}'.format(
+                                        msg['schema']['$id'], topic_that_uses_schema))
                 )
         return True
     except Exception as e:
@@ -163,23 +162,26 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--data-catalog', required=True)
     parser.add_argument('-s', '--schema', required=True)
     parser.add_argument('-sf', '--schema-folder', required=True)
+    parser.add_argument('-tpi', '--topic-project-id', required=True)
+    parser.add_argument('-tn', '--topic-name', required=True)
     args = parser.parse_args()
     # A message should be send to the schemas topic
     # for every topic that has this schema
     messages = get_schema_messages(args)
     # Project id of the topic the schema needs to be published to
-    topic_project_id = "blabla"
+    topic_project_id = args.topic_project_id
     # Topic the schema needs to be published to
-    topic_name = "blabla"
+    topic_name = args.topic_name
     # Publish every schema message to the topic
     for m in messages:
         # The gobits of the message
         gobits = Gobits()
         msg = {
             "gobits": [gobits.to_json()],
-            "schema_message": m
+            "schema": m['schema']
         }
-        print(json.dumps(msg, indent=4, sort_keys=False))
-        return_bool = publish_to_topic(gobits, msg, topic_project_id, topic_name)
-    if not return_bool:
-        sys.exit(1)
+        topic_that_uses_schema = m['topic_that_uses_schema']
+        #print(json.dumps(msg, indent=4, sort_keys=False))
+        return_bool = publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name)
+        if not return_bool:
+            sys.exit(1)
