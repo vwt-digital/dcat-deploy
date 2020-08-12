@@ -264,16 +264,26 @@ def generate_config(context):
                         'type': 'storage.v1.bucket'
                     }
                 resource_to_append['properties'] = distribution.get('deploymentProperties', {})
+
                 if 'deploymentZone' in distribution:
                     resource_to_append['properties'].update({
                         'location': distribution['deploymentZone']
                     })
+
                 if 'accessLevel' in dataset:
                     resource_to_append['properties'].update({
                         'iamConfiguration': {
                             'bucketPolicyOnly': {'enabled': True}
                         }
                     })
+
+                labels = {'accesslevel': dataset.get('accessLevel', '')}
+
+                if 'labels' in resource_to_append['properties']:
+                    resource_to_append['properties']['labels'].update(labels)
+                else:
+                    resource_to_append['properties']['labels'] = labels
+
                 resource_to_append['properties']['lifecycle'] = gather_bucket_lifecycle(dataset.get('temporal', ''))
                 resource_to_append['properties']['retentionPolicy'] = gather_bucket_retentionPolicy(dataset.get('temporal', ''))
 
@@ -283,7 +293,10 @@ def generate_config(context):
                     'type': 'pubsub.v1.topic',
                     'properties':
                         {
-                            'topic': distribution['title']
+                            'topic': distribution['title'],
+                            'labels': {
+                                'accesslevel':  dataset.get('accessLevel', '')
+                            }
                         }
                 }
 

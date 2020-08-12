@@ -1,12 +1,14 @@
 #!/bin/bash
 
-DATA_CATALOG="${1}"
-GITHUB_ACCESS_TOKEN="${2}"
+DATA_CATALOG=${1}
+GITHUB_SECRET_ID=${2}
 
 basedir="$(dirname $0)"
 
 OLDIFS="$IFS"
 IFS=$'\n'
+
+GITHUB_ACCESS_TOKEN=$(gcloud secrets versions access latest --secret="${GITHUB_SECRET_ID}")
 
 for pr in $(python3 ${basedir}/listrepos.py ${DATA_CATALOG})
 do
@@ -38,21 +40,21 @@ do
     sed -i "s/REPO_INTERNAL/true/g" "${basedir}/newRepo.json"
   fi
 
-  curl -d @${basedir}/newRepo.json -X POST -H "Authorization:token $(cat ${GITHUB_ACCESS_TOKEN})" "https://api.github.com/orgs/$(echo ${ORGANISATION})/repos"
+  curl -d @${basedir}/newRepo.json -X POST -H "Authorization:token ${GITHUB_ACCESS_TOKEN}" "https://api.github.com/orgs/$(echo ${ORGANISATION})/repos"
 
   # Add "develop" branch
-  export SHA=$(curl -X GET -H "Authorization:token $(cat ${GITHUB_ACCESS_TOKEN})" "https://api.github.com/repos/$(echo ${ORGANISATION})/$(echo ${REPO_NAME})/git/refs/heads" | \
+  export SHA=$(curl -X GET -H "Authorization:token ${GITHUB_ACCESS_TOKEN}" "https://api.github.com/repos/$(echo ${ORGANISATION})/$(echo ${REPO_NAME})/git/refs/heads" | \
 	  python3 -c "import sys, json; print(json.load(sys.stdin)[0]['object']['sha'])")
 
   sed "s/SHA/${SHA}/g" ${basedir}/template_addBranch.json > ${basedir}/addBranch.json
 
-  curl -d @${basedir}/addBranch.json -X POST -H "Authorization:token $(cat ${GITHUB_ACCESS_TOKEN})" "https://api.github.com/repos/$(echo ${ORGANISATION})/$(echo ${REPO_NAME})/git/refs"
+  curl -d @${basedir}/addBranch.json -X POST -H "Authorization:token ${GITHUB_ACCESS_TOKEN}" "https://api.github.com/repos/$(echo ${ORGANISATION})/$(echo ${REPO_NAME})/git/refs"
 
   # Set default branch to "develop"
-  curl -d @${basedir}/patchRepo.json -X PATCH -H "Authorization:token $(cat ${GITHUB_ACCESS_TOKEN})" "https://api.github.com/repos/$(echo ${ORGANISATION})/$(echo ${REPO_NAME})"
+  curl -d @${basedir}/patchRepo.json -X PATCH -H "Authorization:token ${GITHUB_ACCESS_TOKEN}" "https://api.github.com/repos/$(echo ${ORGANISATION})/$(echo ${REPO_NAME})"
 
   # Set repo restrictions
-  curl -d @${basedir}/set_github_restrictions.json -X PUT -L -H "Authorization:token $(cat ${GITHUB_ACCESS_TOKEN})"  -H "Accept: application/vnd.github.luke-cage-preview+json" "https://api.github.com/repos/$(echo ${ORGANISATION})/$(echo ${REPO_NAME})/branches/master/protection"
+  curl -d @${basedir}/set_github_restrictions.json -X PUT -L -H "Authorization:token ${GITHUB_ACCESS_TOKEN}"  -H "Accept: application/vnd.github.luke-cage-preview+json" "https://api.github.com/repos/$(echo ${ORGANISATION})/$(echo ${REPO_NAME})/branches/master/protection"
 done
 
 IFS="$OLDIFS"
