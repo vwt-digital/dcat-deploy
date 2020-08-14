@@ -29,7 +29,7 @@ fi
 # Deploy datasets using deployment manager
 ############################################################
 
-${dcat_deploy_dir}/catalog/scripts/deploy_data_catalog.sh ${PROJECT_ID}-dcat-deploy ${data_catalog_path} ${PROJECT_ID}
+${dcat_deploy_dir}/catalog/scripts/deploy_data_catalog.sh ${PROJECT_ID}-dcat-deploy ${data_catalog_path} ${PROJECT_ID} ${BRANCH_NAME}
 
 if [ $? -ne 0 ]
 then
