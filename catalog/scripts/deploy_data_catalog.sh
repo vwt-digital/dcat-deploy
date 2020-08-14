@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # shellcheck disable=SC1091,SC2181
 
 DEPLOYMENT_NAME=${1}
