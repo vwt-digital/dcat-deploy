@@ -7,6 +7,7 @@ PROJECT_ID=${3}
 BRANCH_NAME=${4}
 RUN_MODE=${5:-"deploy"}
 
+
 function error_exit() {
   # ${BASH_SOURCE[1]} is the file name of the caller.
   echo "${BASH_SOURCE[1]}: line ${BASH_LINENO[0]}: ${1:-Unknown Error.} (exit ${2:-1})" 1>&2
@@ -25,7 +26,7 @@ gcp_catalog=$(mktemp "${DEPLOYMENT_NAME}"-catalog-XXXXX.json)
 gcp_datastore_indexes="$(mktemp -d)/index.yaml"
 
 services=$(gcloud services list --enabled --format="value(config.name)" --quiet --project="${PROJECT_ID}")
-roles=$(gcloud projects get-iam-policy "${PROJECT_ID}"
+roles=$(gcloud projects get-iam-policy "${PROJECT_ID}" \
           --format="value(bindings.role)" \
           --flatten="bindings[].members" \
           --filter="bindings.members:group*")
@@ -70,7 +71,7 @@ deactivate
 # Deploy data catalog
 ############################################################
 
-if [ "${runmode}" = "deploy" ]
+if [ "${RUN_MODE}" = "deploy" ]
 then
     # Check if deployment exists
     gcloud deployment-manager deployments describe "${DEPLOYMENT_NAME}" --project="${PROJECT_ID}" >/dev/null 2>&1
@@ -134,8 +135,8 @@ then
         for f in $(find ${FILES} -name '*.json')
         do
             # Run the script that publishes the schema
-            topic_project_id=$(sed -n "s/\s*topic_project_id.*:\s*\(.*\)$/\1/p" ./config/"${project_id}"/config.schemastopic.yaml | head -n1)
-            topic_name=$(sed -n "s/\s*topic_name.*:\s*\(.*\)$/\1/p" ./config/"${project_id}"/config.schemastopic.yaml | head -n1)
+            topic_project_id=$(sed -n "s/\s*topic_project_id.*:\s*\(.*\)$/\1/p" ./config/"${PROJECT_ID}"/config.schemastopic.yaml | head -n1)
+            topic_name=$(sed -n "s/\s*topic_name.*:\s*\(.*\)$/\1/p" ./config/"${PROJECT_ID}"/config.schemastopic.yaml | head -n1)
             if ! python3 "${basedir}"/publish_schema_to_topic.py -d "${gcp_catalog}" -s $f -sf ./schemas -tpi ${topic_project_id} -tn ${topic_name}
             then
                 echo "ERROR publishing schema."
