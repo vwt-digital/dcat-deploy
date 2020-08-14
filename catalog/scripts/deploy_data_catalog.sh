@@ -36,13 +36,16 @@ roles=$(gcloud projects get-iam-policy "${PROJECT_ID}" \
 # Perform sanity check
 ############################################################
 
-if ! python3 "${basedir}"/data_catalog_sanity_check.py "${DATA_CATALOG}" "${BRANCH_NAME}" "${roles}" "${services}"
-then
+python3 "${basedir}"/data_catalog_sanity_check.py "${DATA_CATALOG}" "${BRANCH_NAME}" "${roles}" "${services}"
+result=$?
+
+if [ "${result}" -ne 0 ]; then
     echo "ERROR: Sanity check failed!"
     exit 1
+else
+    echo "Sanity check passed!"
 fi
 
-echo "Sanity check passed!"
 
 ############################################################
 # Prepare data catalog
@@ -71,8 +74,8 @@ deactivate
 # Deploy data catalog
 ############################################################
 
-if [ "${RUN_MODE}" = "deploy" ]
-then
+if [ "${RUN_MODE}" = "deploy" ]; then
+
     # Check if deployment exists
     gcloud deployment-manager deployments describe "${DEPLOYMENT_NAME}" --project="${PROJECT_ID}" >/dev/null 2>&1
     result=$?

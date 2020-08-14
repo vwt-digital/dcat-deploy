@@ -37,6 +37,12 @@ for dataset in catalog.get('dataset', []):
             elif distribution['format'] == 'firestore':
                 has_firestore_dis = True
 
+    # Check if viewer role is not applied on projects holding confidential data
+    if dataset.get('accessLevel') == 'confidential' and branch_name == 'production':
+        if "roles/viewer" in roles:
+            logging.exception("ERROR: dataset is confidential and group viewer role is applied." +
+                              "Solve this by adding the group to a more limited role than roles/viewer.")
+
 # Make sure a datastore/firestore distribution has been added to the data-catalog if the service is active
 if has_datastore_service and not has_datastore_dis:
     logging.exception("ERROR: dataset does not contain Datastore distribution, but project has Datastore API enabled. " +
@@ -45,9 +51,3 @@ if has_datastore_service and not has_datastore_dis:
 elif has_firestore_service and not has_firestore_dis:
     logging.exception("ERROR: dataset does not contain Firestore distribution, but project has Firestore API enabled. " +
                       "Solve this by either adding a Firestore distribution to the dataset or disabling the Firestore API.")
-
-# Check if viewer role is not applied on projects holding confidential data
-if catalog.get('accessLevel') == 'confidential' and branch_name == 'production':
-    if "roles/viewer" in roles:
-        logging.exception("ERROR: dataset is confidential and group viewer role is applied." +
-                          "Solve this by adding the group to a more limited role than roles/viewer.")
