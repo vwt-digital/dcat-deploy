@@ -1,6 +1,5 @@
 import sys
 import json
-import logging
 
 catalogfile = open(sys.argv[1], "r")
 catalog = json.load(catalogfile)
@@ -15,11 +14,11 @@ has_firestore_service = True if 'firestore.googleapis.com' in services else Fals
 has_datastore_dis = False
 has_firestore_dis = False
 
-logging.info("Check data_catalog sanity for {}".format(sys.argv[1]))
+print("Check data_catalog sanity for {}".format(sys.argv[1]))
 
 if 'projectId' not in catalog:
-    logging.exception("ERROR: catalog does not contain the projectId." +
-                      "Solve this by adding the projectId to the catalog.")
+    sys.exit("ERROR: catalog does not contain the projectId." +
+             "Solve this by adding the projectId to the catalog.")
 
 for dataset in catalog.get('dataset', []):
     # Check if the permissions are not for users
@@ -27,7 +26,7 @@ for dataset in catalog.get('dataset', []):
             'permission' in dataset['odrlPolicy']):
         for perm in dataset['odrlPolicy']['permission']:
             if perm['assignee'].startswith("user:"):
-                logging.exception("Error: odrlPolicy contains assignment for a user {}".format(perm))
+                sys.exit("Error: odrlPolicy contains assignment for a user {}".format(perm))
 
     # Check if datastore/firestore distributions are within a dataset
     if has_datastore_service or has_firestore_service:
@@ -40,14 +39,14 @@ for dataset in catalog.get('dataset', []):
     # Check if viewer role is not applied on projects holding confidential data
     if dataset.get('accessLevel') == 'confidential' and branch_name == 'production':
         if "roles/viewer" in roles:
-            logging.exception("ERROR: dataset is confidential and group viewer role is applied." +
-                              "Solve this by adding the group to a more limited role than roles/viewer.")
+            sys.exit("ERROR: dataset is confidential and group viewer role is applied." +
+                     "Solve this by adding the group to a more limited role than roles/viewer.")
 
 # Make sure a datastore/firestore distribution has been added to the data-catalog if the service is active
 if has_datastore_service and not has_datastore_dis:
-    logging.exception("ERROR: dataset does not contain Datastore distribution, but project has Datastore API enabled. " +
-                      "Solve this by either adding a Datastore distribution to the dataset or disabling the Datastore API.")
+    sys.exit("ERROR: dataset does not contain Datastore distribution, but project has Datastore API enabled. " +
+             "Solve this by either adding a Datastore distribution to the dataset or disabling the Datastore API.")
 
 elif has_firestore_service and not has_firestore_dis:
-    logging.exception("ERROR: dataset does not contain Firestore distribution, but project has Firestore API enabled. " +
-                      "Solve this by either adding a Firestore distribution to the dataset or disabling the Firestore API.")
+    sys.exit("ERROR: dataset does not contain Firestore distribution, but project has Firestore API enabled. " +
+             "Solve this by either adding a Firestore distribution to the dataset or disabling the Firestore API.")
