@@ -37,7 +37,7 @@ for dataset in catalog.get('dataset', []):
                 has_firestore_dis = True
 
     # Check if viewer role is not applied on projects holding confidential data
-    if dataset.get('accessLevel') == 'confidential' and branch_name == 'production':
+    if dataset.get('accessLevel') == 'confidential' and branch_name == 'master':
         if "roles/viewer" in roles:
             sys.exit("ERROR: dataset is confidential and group viewer role is applied." +
                      "Solve this by adding the group to a more limited role than roles/viewer.")
