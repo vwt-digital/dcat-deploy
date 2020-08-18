@@ -19,16 +19,20 @@ result=0
 # Backup repositories
 #########################################################################
 
+if [ -n "${GITHUB_SECRET_ID}" ]
+then
+
 echo "Backup source code repositories..."
 
-"${basedir}"/repositories/backup_github_repos.sh "${data_catalog_file}" "${PROJECT_ID}" "${dest_bucket}" "${PROJECT_ID}-github-access-token"
+"${basedir}"/repositories/backup_github_repos.sh "${data_catalog_file}" "${PROJECT_ID}" "${dest_bucket}" "${GITHUB_SECRET_ID}"
 
-if [ $? -ne 0 ]
-then
-    echo "ERROR backing up source code repositories"
-    result=1
+    if [ $? -ne 0 ]
+    then
+        echo "ERROR backing up source code repositories"
+        result=1
+    fi
+
 fi
-
 
 #########################################################################
 # Backup storage buckets
