@@ -29,8 +29,7 @@ def get_schema_messages(args):
                     if dist.get('format') == 'topic':
                         # Get dataset topic only if it has a schema
                         if 'describedBy' in dist and 'describedByType' in dist:
-                            describedby_str = str(dist.get('describedBy'))
-                            describedby_list = ast.literal_eval(describedby_str)
+                            describedby_list = ast.literal_eval(dist.get('describedBy'))
                             # For every urn in describedBy
                             for db in describedby_list:
                                 print(db)
