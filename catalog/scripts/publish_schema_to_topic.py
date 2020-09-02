@@ -8,6 +8,7 @@ import requests
 from functools import reduce
 import operator
 import os
+import ast
 
 
 def get_schema_messages(args):
@@ -19,31 +20,27 @@ def get_schema_messages(args):
         schema_folder_path = args.schema_folder
 
         schema_messages = []
-        print("Schema is:")
-        print(schema)
         # Check if the schema has an id
         if '$id' in schema:
-            print('id in schema')
             # Check if schema has any references and fill in the references
             fill_refs(schema, schema_folder_path)
-            print('references filled')
             for dataset in catalog['dataset']:
                 for dist in dataset.get('distribution', []):
                     if dist.get('format') == 'topic':
                         # Get dataset topic only if it has a schema
-                        if dist.get('describedBy') and dist.get('describedByType'):
-                            print('distribution has describedBy')
-                            # Check if the dataset topic has the given schema
-                            print('describedBy: {}'.format(dist.get('describedBy')))
-                            print('Schema id: {}'.format(schema['$id']))
-                            if(dist.get('describedBy') == schema['$id']):
-                                # Return schema
-                                topic_that_uses_schema = dist.get('title')
-                                schema_and_topic = {
-                                    "topic_that_uses_schema": topic_that_uses_schema,
-                                    "schema": schema
-                                }
-                                schema_messages.append(schema_and_topic)
+                        if 'describedBy' in dist and 'describedByType' in dist:
+                            # For every urn in describedBy
+                            describedBy_list = ast.literal_eval(dist.get('describedBy'))
+                            for db in describedBy_list:
+                                # Check if the dataset topic has the given schema
+                                if(db == schema['$id']):
+                                    # Return schema
+                                    topic_that_uses_schema = dist.get('title')
+                                    schema_and_topic = {
+                                        "topic_that_uses_schema": topic_that_uses_schema,
+                                        "schema": schema
+                                    }
+                                    schema_messages.append(schema_and_topic)
         else:
             logging.error("The given schema has no ID")
         return schema_messages
