@@ -133,6 +133,7 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     pip install gobits==0.0.7
     # Check if there is a folder called "schemas"
     if [ -d "schemas" ]; then
+        echo "Schemas folder found"
         # For every schema in the schemas folder
         FILES=./schemas/*
         for f in $(find ${FILES} -name '*.json')
