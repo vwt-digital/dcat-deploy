@@ -175,6 +175,7 @@ if __name__ == "__main__":
     # Topic the schema needs to be published to
     topic_name = args.topic_name
     # Publish every schema message to the topic
+    logging.info(f'Found {len(messages)} schema messages')
     for m in messages:
         # The gobits of the message
         gobits = Gobits()
