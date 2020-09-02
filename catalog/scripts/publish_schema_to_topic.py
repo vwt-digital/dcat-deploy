@@ -8,7 +8,6 @@ import requests
 from functools import reduce
 import operator
 import os
-import ast
 
 
 def get_schema_messages(args):
@@ -30,8 +29,8 @@ def get_schema_messages(args):
                         # Get dataset topic only if it has a schema
                         if 'describedBy' in dist and 'describedByType' in dist:
                             # For every urn in describedBy
-                            describedBy_list = ast.literal_eval(dist.get('describedBy'))
-                            for db in describedBy_list:
+                            for db in dist.get('describedBy'):
+                                print(db)
                                 # Check if the dataset topic has the given schema
                                 if(db == schema['$id']):
                                     # Return schema
