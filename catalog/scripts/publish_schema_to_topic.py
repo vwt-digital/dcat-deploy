@@ -8,7 +8,6 @@ import requests
 from functools import reduce
 import operator
 import os
-import ast
 
 
 def get_schema_messages(args):
@@ -29,19 +28,15 @@ def get_schema_messages(args):
                     if dist.get('format') == 'topic':
                         # Get dataset topic only if it has a schema
                         if 'describedBy' in dist and 'describedByType' in dist:
-                            describedby_list = ast.literal_eval(dist.get('describedBy'))
-                            # For every urn in describedBy
-                            for db in describedby_list:
-                                print(db)
-                                # Check if the dataset topic has the given schema
-                                if(db == schema['$id']):
-                                    # Return schema
-                                    topic_that_uses_schema = dist.get('title')
-                                    schema_and_topic = {
-                                        "topic_that_uses_schema": topic_that_uses_schema,
-                                        "schema": schema
-                                    }
-                                    schema_messages.append(schema_and_topic)
+                            # Check if the dataset topic has the given schema
+                            if(dist.get('describedBy') == schema['$id']):
+                                # Return schema
+                                topic_that_uses_schema = dist.get('title')
+                                schema_and_topic = {
+                                    "topic_that_uses_schema": topic_that_uses_schema,
+                                    "schema": schema
+                                }
+                                schema_messages.append(schema_and_topic)
         else:
             logging.error("The given schema has no ID")
         return schema_messages
