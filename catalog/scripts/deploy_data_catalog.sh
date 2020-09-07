@@ -116,15 +116,15 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     gsutil cp "${gcp_catalog}" gs://"${PROJECT_ID}"-dcat-deployed-stg/data_catalog.json
 
     # Post the data catalog to the data catalogs topic
-    . venv/bin/activate
+    . venv/bin/activate &&
     pip install google-cloud-pubsub==1.2.0
     pip install gobits==0.0.7
     if ! python3 "${basedir}"/publish_dcat_to_topic.py -d "${gcp_catalog}" -p "${PROJECT_ID}"
     then
         echo "ERROR publishing data_catalog."
         exit 1
-    fi
-    deactivate
+    fi &&
+    deactivate &&
 
     # Post the schema to the schemas topic
     # Only if the data catalog has schemas
@@ -133,6 +133,7 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     pip install gobits==0.0.7
     # Check if there is a folder called "schemas"
     if [ -d "schemas" ]; then
+        echo "Schemas folder found"
         # For every schema in the schemas folder
         FILES=./schemas/*
         for f in $(find ${FILES} -name '*.json')
@@ -140,7 +141,7 @@ if [ "${RUN_MODE}" = "deploy" ]; then
             # Run the script that publishes the schema
             topic_project_id=$(sed -n "s/\s*topic_project_id.*:\s*\(.*\)$/\1/p" ./config/"${PROJECT_ID}"/config.schemastopic.yaml | head -n1)
             topic_name=$(sed -n "s/\s*topic_name.*:\s*\(.*\)$/\1/p" ./config/"${PROJECT_ID}"/config.schemastopic.yaml | head -n1)
-            if ! python3 "${basedir}"/publish_schema_to_topic.py -d "${gcp_catalog}" -s $f -sf ./schemas -tpi ${topic_project_id} -tn ${topic_name}
+            if ! python3 "${basedir}"/publish_schema_to_topic.py -d "${gcp_catalog}" -s "$f" -sf ./schemas -tpi "${topic_project_id}" -tn "${topic_name}"
             then
                 echo "ERROR publishing schema."
                 exit 1

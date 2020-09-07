@@ -9,6 +9,7 @@ from functools import reduce
 import operator
 import os
 
+
 def get_schema_messages(args):
     try:
         with open(args.data_catalog, 'r') as f:
@@ -22,12 +23,11 @@ def get_schema_messages(args):
         if '$id' in schema:
             # Check if schema has any references and fill in the references
             fill_refs(schema, schema_folder_path)
-
             for dataset in catalog['dataset']:
                 for dist in dataset.get('distribution', []):
                     if dist.get('format') == 'topic':
                         # Get dataset topic only if it has a schema
-                        if dist.get('describedBy') and dist.get('describedByType'):
+                        if 'describedBy' in dist and 'describedByType' in dist:
                             # Check if the dataset topic has the given schema
                             if(dist.get('describedBy') == schema['$id']):
                                 # Return schema
@@ -44,6 +44,7 @@ def get_schema_messages(args):
         logging.exception('Unable to publish schema ' +
                           'because of {}'.format(e))
     return []
+
 
 # This function replaces the reference URNs with the actual schema
 def fill_refs(schema, schema_folder_path):
@@ -94,16 +95,19 @@ def fill_refs(schema, schema_folder_path):
                         logging.error('The path {} to the schema reference {} does not exist'.format(
                             ref_schema_path, ref))
 
+
 # This function traverses the dictionary and gets the value of a key from a list of attributes
 def getFromDict(dataDict, mapList):
     return reduce(operator.getitem, mapList, dataDict)
+
 
 # This function sets the value of a key from a list of attributes
 def setInDict(dataDict, mapList, value):
     getFromDict(dataDict, mapList[:-1])[mapList[-1]] = value
 
+
 # This function returns an array of arrays
-# The arrays give paths towards an end value, 
+# The arrays give paths towards an end value,
 # e.g. a value that does not contain sub objects
 # If the last object contains a reference, this is denoted as "$ref" in the array,
 # the reference URN is the last value in the array in that case
@@ -136,10 +140,11 @@ def get_attributes_array(json_object, arr, current_prop):
     # If there is no properties, items or ref attribute in the json object
     # the function does not have to recurse anymore, the end is found
     else:
-        if( arr[-1][-1] != "end" and arr[-1][-2] != "$ref"):
+        if(arr[-1][-1] != "end" and arr[-1][-2] != "$ref"):
             arr[-1].append("end")
     # At the end of the recursion, return the array
     return arr
+
 
 def publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name):
     try:
@@ -159,6 +164,7 @@ def publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name):
                           'to topic because of {}'.format(e))
     return False
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--data-catalog', required=True)
@@ -175,6 +181,8 @@ if __name__ == "__main__":
     # Topic the schema needs to be published to
     topic_name = args.topic_name
     # Publish every schema message to the topic
+    messages_length = len(messages)
+    print('Found {} schema messages'.format(messages_length))
     for m in messages:
         # The gobits of the message
         gobits = Gobits()
@@ -183,7 +191,7 @@ if __name__ == "__main__":
             "schema": m['schema']
         }
         topic_that_uses_schema = m['topic_that_uses_schema']
-        #print(json.dumps(msg, indent=4, sort_keys=False))
+        # print(json.dumps(msg, indent=4, sort_keys=False))
         return_bool = publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name)
         if not return_bool:
             sys.exit(1)
