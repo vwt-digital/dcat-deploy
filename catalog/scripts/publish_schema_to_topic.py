@@ -1,7 +1,7 @@
 import json
 import argparse
 import logging
-from google.cloud import pubsub_v1
+from google.cloud import pubsub_v1, storage
 import sys
 from gobits import Gobits
 import requests
@@ -165,6 +165,41 @@ def publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name):
     return False
 
 
+def upload_to_storage(schema, bucket_name):
+    try:
+        storage_client = storage.Client()
+        bucket = storage_client.get_bucket(bucket_name)
+        # Find out if schema is already in bucket
+        blobs = storage_client.list_blobs(bucket_name)
+        blobs_to_delete = []
+        for blob in blobs:
+            # If blob is already in bucket
+            if blob.name == schema_name_from_urn(schema['$id']):
+                # Remove it because it could be an older version of the schema
+                blobs_to_delete.append(blob.name)
+        for blob_name in blobs_to_delete:
+            logging.info('Schema {} is already in storage, deleting'.format(blob_name))
+            blob = bucket.blob(blob_name)
+            blob.delete()
+        # Now add the schema to the storage
+        blob = bucket.blob(schema_name_from_urn(schema['$id']))
+        blob.upload_from_string(
+            data=json.dumps(schema),
+            content_type='application/json'
+        )
+        logging.info('Uploaded schema {} to bucket {}'.format(schema['$id'], bucket_name))
+        return True
+    except Exception as e:
+        logging.exception('Unable to upload schema ' +
+                          'to storage because of {}'.format(e))
+    return False
+
+
+def schema_name_from_urn(schema_name):
+    schema_name = schema_name.replace('/', '-')
+    return schema_name
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--data-catalog', required=True)
@@ -172,6 +207,7 @@ if __name__ == "__main__":
     parser.add_argument('-sf', '--schema-folder', required=True)
     parser.add_argument('-tpi', '--topic-project-id', required=True)
     parser.add_argument('-tn', '--topic-name', required=True)
+    parser.add_argument('-b', '--bucket-name', required=True)
     args = parser.parse_args()
     # A message should be send to the schemas topic
     # for every topic that has this schema
@@ -180,6 +216,8 @@ if __name__ == "__main__":
     topic_project_id = args.topic_project_id
     # Topic the schema needs to be published to
     topic_name = args.topic_name
+    # Bucket the schema needs to be uploaded to
+    bucket_name = args.bucket_name
     # Publish every schema message to the topic
     messages_length = len(messages)
     print('Found {} schema messages'.format(messages_length))
@@ -192,6 +230,9 @@ if __name__ == "__main__":
         }
         topic_that_uses_schema = m['topic_that_uses_schema']
         # print(json.dumps(msg, indent=4, sort_keys=False))
-        return_bool = publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name)
-        if not return_bool:
+        return_bool_publish_topic = publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name)
+        if not return_bool_publish_topic:
+            sys.exit(1)
+        return_bool_upload_blob = upload_to_storage(m['schema'], bucket_name)
+        if not return_bool_upload_blob:
             sys.exit(1)
