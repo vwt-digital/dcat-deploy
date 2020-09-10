@@ -257,12 +257,12 @@ if __name__ == "__main__":
                 "schema": m['schema']
             }
             topic_that_uses_schema = m['topic_that_uses_schema']
-            # print(json.dumps(msg, indent=4, sort_keys=False))
-            # return_bool_publish_topic = publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name)
-            # if not return_bool_publish_topic:
-            #     sys.exit(1)
-            # return_bool_upload_blob = upload_to_storage(m['schema'], bucket_name)
-            # if not return_bool_upload_blob:
-            #     sys.exit(1)
+            print(json.dumps(msg, indent=4, sort_keys=False))
+            return_bool_publish_topic = publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name)
+            if not return_bool_publish_topic:
+                sys.exit(1)
+            return_bool_upload_blob = upload_to_storage(m['schema'], bucket_name)
+            if not return_bool_upload_blob:
+                sys.exit(1)
         else:
             sys.exit(1)
