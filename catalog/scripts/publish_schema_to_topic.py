@@ -7,6 +7,7 @@ from gobits import Gobits
 import requests
 import os
 from io import StringIO
+import jsonschema
 
 
 def get_schema_messages(args):
@@ -23,7 +24,6 @@ def get_schema_messages(args):
             # Check if schema has any references and fill in the references
             schema = fill_refs_new(schema, schema_folder_path)
             contents = schema.getvalue()
-            print(contents)
             schema = json.loads(contents)
             # print(schema)
             for dataset in catalog['dataset']:
@@ -72,7 +72,9 @@ def fill_refs_new(schema, schema_folder_path):
                     reference_schema_txt = json.dumps(reference_schema, indent=2)
                     reference_schema_list = reference_schema_txt.split('\n')
                     for i in range(len(reference_schema_list)):
+                        # Do not add the beginning '{' and '}'
                         if i != 0 and i != (len(reference_schema_list)-1):
+                            # Write the reference schema to the stringio file
                             new_schema.write(reference_schema_list[i])
                 else:
                     logging.error('The URL to the reference of {} does not exist anymore'.format(ref))
@@ -99,10 +101,10 @@ def fill_refs_new(schema, schema_folder_path):
                             reference_schema_txt = json.dumps(reference_schema, indent=2)
                             reference_schema_list = reference_schema_txt.split('\n')
                             for i in range(len(reference_schema_list)):
+                                # Do not add the beginning '{' and '}'
                                 if i != 0 and i != (len(reference_schema_list)-1):
+                                    # Write the reference schema to the stringio file
                                     new_schema.write(reference_schema_list[i])
-                            # for ref_line in reference_schema_list:
-                            #     new_schema.write(ref_line)
                         else:
                             logging.error('ID of reference is {} while \
                             that of the schema is {}'.format(
@@ -114,8 +116,50 @@ def fill_refs_new(schema, schema_folder_path):
                     logging.error('The path {} to the schema reference {} does not exist'.format(
                         ref_schema_path, ref))
         else:
+            # If the line does not contain any references
+            # Just write it to the stringio file
             new_schema.write(line)
     return new_schema
+
+
+def validate_schema(schema, schema_folder_path):
+    if '$schema' in schema:
+        meta_data_schema_urn = schema['$schema']
+        if 'http' in meta_data_schema_urn:
+            # Check if the url still works
+            if(requests.get(meta_data_schema_urn).status_code == 200):
+                # Get the schema via the url
+                meta_data_schema = requests.get(meta_data_schema_urn).json()
+            else:
+                logging.error('The URL to the meta_schema of {} does not exist anymore'.format(schema['$schema']))
+        elif 'urn' in meta_data_schema_urn:
+            # Pull apart the URN
+            meta_data_urn_list = meta_data_schema_urn.split("/")
+            meta_data_schema_path = schema_folder_path + "/" + meta_data_urn_list[-1]
+            # Check if the path to the schema exists in the schemas folder
+            if os.path.exists(meta_data_schema_path):
+                with open(meta_data_schema_path, 'r') as f:
+                    meta_data_schema = json.load(f)
+            else:
+                logging.error('The path {} to the meta data schema {} does not exist'.format(
+                    meta_data_schema_path, meta_data_schema_urn))
+        else:
+            logging.error('Cannot validate schema because no meta_data schema is found')
+    else:
+        if '$id' in schema:
+            logging.error('The schema {} does not have a $schema key'.format(
+                            schema["$id"]))
+        else:
+            logging.error('The schema does not have an $id key')
+    # Validate the schema agains the meta data schema
+    try:
+        jsonschema.validate(schema, meta_data_schema)
+    except Exception as e:
+        logging.exception('Schema is not conform meta data schema' +
+                          ' because of {}'.format(e))
+        return False
+    logging.info('Schema is conform meta data schema')
+    return True
 
 
 def publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name):
@@ -190,21 +234,26 @@ if __name__ == "__main__":
     topic_name = args.topic_name
     # Bucket the schema needs to be uploaded to
     bucket_name = args.bucket_name
+    # Path where the schemas are
+    schema_folder_path = args.schema_folder
     # Publish every schema message to the topic
     messages_length = len(messages)
     print('Found {} schema messages'.format(messages_length))
     for m in messages:
-        # The gobits of the message
-        gobits = Gobits()
-        msg = {
-            "gobits": [gobits.to_json()],
-            "schema": m['schema']
-        }
-        topic_that_uses_schema = m['topic_that_uses_schema']
-        # print(json.dumps(msg, indent=4, sort_keys=False))
-        return_bool_publish_topic = publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name)
-        if not return_bool_publish_topic:
-            sys.exit(1)
-        return_bool_upload_blob = upload_to_storage(m['schema'], bucket_name)
-        if not return_bool_upload_blob:
+        if validate_schema(m['schema'], schema_folder_path):
+            # The gobits of the message
+            gobits = Gobits()
+            msg = {
+                "gobits": [gobits.to_json()],
+                "schema": m['schema']
+            }
+            topic_that_uses_schema = m['topic_that_uses_schema']
+            # print(json.dumps(msg, indent=4, sort_keys=False))
+            return_bool_publish_topic = publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name)
+            if not return_bool_publish_topic:
+                sys.exit(1)
+            return_bool_upload_blob = upload_to_storage(m['schema'], bucket_name)
+            if not return_bool_upload_blob:
+                sys.exit(1)
+        else:
             sys.exit(1)

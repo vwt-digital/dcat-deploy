@@ -133,6 +133,7 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     pip install google-cloud-pubsub==1.2.0
     pip install gobits==0.0.7
     pip install google-cloud-storage==1.31.0
+    pip install jsonschema==3.2.0
     # Check if there is a folder called "schemas"
     if [ -d "schemas" ]; then
         echo "Schemas folder found"
