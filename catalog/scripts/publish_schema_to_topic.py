@@ -125,6 +125,7 @@ def fill_refs_new(schema, schema_folder_path):
 def validate_schema(schema, schema_folder_path):
     if '$schema' in schema:
         meta_data_schema_urn = schema['$schema']
+        print('Meta data urn: {}'.format(meta_data_schema_urn))
         if 'http' in meta_data_schema_urn:
             # Check if the url still works
             meta_data_schema_status = requests.get(meta_data_schema_urn).status_code
