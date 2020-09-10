@@ -261,8 +261,8 @@ if __name__ == "__main__":
             return_bool_publish_topic = publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name)
             if not return_bool_publish_topic:
                 sys.exit(1)
-            return_bool_upload_blob = upload_to_storage(m['schema'], bucket_name)
-            if not return_bool_upload_blob:
-                sys.exit(1)
+            # return_bool_upload_blob = upload_to_storage(m['schema'], bucket_name)
+            # if not return_bool_upload_blob:
+            #     sys.exit(1)
         else:
             sys.exit(1)
