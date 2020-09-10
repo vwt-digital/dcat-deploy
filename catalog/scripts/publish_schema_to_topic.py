@@ -65,7 +65,9 @@ def fill_refs_new(schema, schema_folder_path):
                     line_array = ''
                 ref = line_array[1].replace('\"', '')
                 # Check if the url still works
-                if(requests.get(ref).status_code == 200):
+                ref_status = requests.get(ref).status_code
+                print('meta data schema status code: {}'.format(ref_status))
+                if(ref_status == 200):
                     # Get the reference via the url
                     reference_schema = requests.get(ref).json()
                     # Add the schema to the new schema
@@ -89,8 +91,10 @@ def fill_refs_new(schema, schema_folder_path):
                 # Pull apart the URN
                 ref_array = ref.split("/")
                 ref_schema_path = schema_folder_path + "/" + ref_array[-1]
+                ref_schema_path_exists = os.path.exists(ref_schema_path)
+                print("reference schema path exits: {}".format(ref_schema_path_exists))
                 # Check if the path to the schema exists in the schemas folder
-                if os.path.exists(ref_schema_path):
+                if ref_schema_path_exists:
                     with open(ref_schema_path, 'r') as f:
                         reference_schema = json.load(f)
                     # Double check if the urn of the schema is the same as the
@@ -125,10 +129,10 @@ def fill_refs_new(schema, schema_folder_path):
 def validate_schema(schema, schema_folder_path):
     if '$schema' in schema:
         meta_data_schema_urn = schema['$schema']
-        print('Meta data urn: {}'.format(meta_data_schema_urn))
         if 'http' in meta_data_schema_urn:
             # Check if the url still works
             meta_data_schema_status = requests.get(meta_data_schema_urn).status_code
+            print('Meta data schema status code: {}'.format(meta_data_schema_status))
             if(meta_data_schema_status == 200):
                 # Get the schema via the url
                 meta_data_schema = requests.get(meta_data_schema_urn).json()
@@ -139,7 +143,9 @@ def validate_schema(schema, schema_folder_path):
             meta_data_urn_list = meta_data_schema_urn.split("/")
             meta_data_schema_path = schema_folder_path + "/" + meta_data_urn_list[-1]
             # Check if the path to the schema exists in the schemas folder
-            if os.path.exists(meta_data_schema_path):
+            meta_data_schema_path_exists = os.path.exists(meta_data_schema_path)
+            print('Meta data schema path exists: {}'.format(meta_data_schema_path_exists))
+            if meta_data_schema_path_exists:
                 with open(meta_data_schema_path, 'r') as f:
                     meta_data_schema = json.load(f)
             else:
@@ -161,6 +167,7 @@ def validate_schema(schema, schema_folder_path):
                           ' because of {}'.format(e))
         return False
     logging.info('Schema is conform meta data schema')
+    print('Schema is conform meta data schema')
     return True
 
 
@@ -251,11 +258,11 @@ if __name__ == "__main__":
             }
             topic_that_uses_schema = m['topic_that_uses_schema']
             # print(json.dumps(msg, indent=4, sort_keys=False))
-            return_bool_publish_topic = publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name)
-            if not return_bool_publish_topic:
-                sys.exit(1)
-            return_bool_upload_blob = upload_to_storage(m['schema'], bucket_name)
-            if not return_bool_upload_blob:
-                sys.exit(1)
+            # return_bool_publish_topic = publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name)
+            # if not return_bool_publish_topic:
+            #     sys.exit(1)
+            # return_bool_upload_blob = upload_to_storage(m['schema'], bucket_name)
+            # if not return_bool_upload_blob:
+            #     sys.exit(1)
         else:
             sys.exit(1)
