@@ -152,7 +152,7 @@ for i, dataset in enumerate(catalog.get('dataset', [])):
                         delegated_sa_permission = {
                           "target": "{}-history-stg".format(distribution.get('title')),
                           "assignee": "serviceAccount:{}".format(delegated_sa),
-                          "action": "read"
+                          "action": "view"
                         }
                         dataset['odrlPolicy']['permission'].append(delegated_sa_permission)
 
