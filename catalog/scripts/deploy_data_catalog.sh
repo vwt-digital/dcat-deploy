@@ -51,7 +51,13 @@ fi
 # Prepare data catalog
 ############################################################
 
-python3 "${basedir}"/prepare_data_catalog.py "${DATA_CATALOG}" "${PROJECT_ID}" > "${gcp_catalog}"
+DELEGATED_SA_CONFIG_FILE=./config/${PROJECT_ID}/config.delegated_sa.yaml
+if [ -f "$DELEGATED_SA_CONFIG_FILE" ]; then
+    delegated_sa=$(sed -n "s/\s*delegated_sa.*:\s*\(.*\)$/\1/p" ./config/"${PROJECT_ID}"/config.delegated_sa.yaml | head -n1)
+    python3 "${basedir}"/prepare_data_catalog.py -c "${DATA_CATALOG}" -p "${PROJECT_ID}" -dsa "${delegated_sa}" > "${gcp_catalog}"
+else
+    python3 "${basedir}"/prepare_data_catalog.py -c "${DATA_CATALOG}" -p "${PROJECT_ID}" > "${gcp_catalog}"
+fi
 
 {
     echo "catalog = \\"
@@ -138,7 +144,7 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     if [ -d "schemas" ]; then
         echo "Schemas folder found"
         # For every schema in the schemas folder
-        FILES=./schemas/*
+        FILES="./schemas/*"
         for f in $(find ${FILES} -name '*.json')
         do
             # Run the script that publishes the schema
