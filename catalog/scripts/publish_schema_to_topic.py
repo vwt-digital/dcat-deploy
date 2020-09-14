@@ -80,6 +80,7 @@ def fill_refs_new(schema, schema_folder_path):
                             new_schema.write(reference_schema_list[i])
                 else:
                     logging.error('The URL to the reference of {} does not exist anymore'.format(ref))
+                    sys.exit(1)
             elif 'urn' in line:
                 if '"$ref": "' in line:
                     line_array = line.split('"$ref": "')
@@ -119,6 +120,7 @@ def fill_refs_new(schema, schema_folder_path):
                 else:
                     logging.error('The path {} to the schema reference {} does not exist'.format(
                         ref_schema_path, ref))
+                    sys.exit(1)
         else:
             # If the line does not contain any references
             # Just write it to the stringio file
