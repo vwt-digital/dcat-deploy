@@ -8,6 +8,7 @@ import requests
 import os
 from io import StringIO
 import jsonschema
+import time
 
 
 def get_schema_messages(args):
@@ -66,6 +67,7 @@ def fill_refs_new(schema, schema_folder_path):
                 ref = line_array[1].replace('\"', '')
                 # Check if the url still works
                 ref_status = requests.get(ref).status_code
+                time.sleep(2)
                 print('meta data schema status code: {}'.format(ref_status))
                 if(ref_status == 200):
                     # Get the reference via the url
@@ -93,6 +95,7 @@ def fill_refs_new(schema, schema_folder_path):
                 ref_array = ref.split("/")
                 ref_schema_path = schema_folder_path + "/" + ref_array[-1]
                 ref_schema_path_exists = os.path.exists(ref_schema_path)
+                time.sleep(2)
                 print("reference schema path exits: {}".format(ref_schema_path_exists))
                 # Check if the path to the schema exists in the schemas folder
                 if ref_schema_path_exists:
