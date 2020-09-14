@@ -1,9 +1,19 @@
-import sys
 import json
 from datetime import datetime
+import argparse
 
-catalogfile = open(sys.argv[1], "r")
-project = sys.argv[2]
+parser = argparse.ArgumentParser()
+parser.add_argument('-c', '--data-catalog', required=True)
+parser.add_argument('-p', '--project', required=True)
+parser.add_argument('-dsa', '--delegated-sa', required=False)
+args = parser.parse_args()
+data_catalog = args.data_catalog
+project = args.project
+delegated_sa = None
+if args.delegated_sa is not None:
+    delegated_sa = args.delegated_sa
+
+catalogfile = open(data_catalog, "r")
 
 deployment_zones = {
     "gew1": "europe-west1",
@@ -136,5 +146,15 @@ for i, dataset in enumerate(catalog.get('dataset', [])):
               }
             ]
             catalog['dataset'][i]['distribution'].extend(resources_to_append)
+            if delegated_sa is not None:
+                if "odrlPolicy" in dataset:
+                    if "permission" in dataset['odrlPolicy']:
+                        delegated_sa_permission = {
+                          "target": "{}-history-stg".format(distribution.get('title')),
+                          "assignee": "serviceAccount:{}".format(delegated_sa),
+                          "action": "read"
+                        }
+                        dataset['odrlPolicy']['permission'].append(delegated_sa_permission)
+
 
 print(json.dumps(catalog, indent=4))
