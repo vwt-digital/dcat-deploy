@@ -215,6 +215,7 @@ if __name__ == "__main__":
     # Complete path
     working_dir = os.getcwd()
     schema_folder_path = "{}{}".format(working_dir, schema_folder_path)
+    print("Schema folder path is: {}".format(schema_folder_path))
     # Publish every schema message to the topic
     messages_length = len(messages)
     print('Found {} schema messages'.format(messages_length))
