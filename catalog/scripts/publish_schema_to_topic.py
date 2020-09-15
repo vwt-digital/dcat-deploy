@@ -206,10 +206,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Path where the schemas are
     schema_folder_path = args.schema_folder
-    # Complete path
-    working_dir = os.getcwd()
-    schema_folder_path = "{}{}".format(working_dir, schema_folder_path)
-    print("Schema folder path is: {}".format(schema_folder_path))
+    # # Complete path
+    # working_dir = os.getcwd()
+    # schema_folder_path = "{}{}".format(working_dir, schema_folder_path)
+    # print("Schema folder path is: {}".format(schema_folder_path))
     # A message should be send to the schemas topic
     # for every topic that has this schema
     messages = get_schema_messages(args, schema_folder_path)
