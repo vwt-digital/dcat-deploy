@@ -94,6 +94,7 @@ def fill_refs_new(schema, schema_folder_path):
                 # Pull apart the URN
                 ref_array = ref.split("/")
                 ref_schema_path = schema_folder_path + "/" + ref_array[-1]
+                print("Current working directory is: {}".format(os.getcwd()))
                 # Check if the path to the schema exists in the schemas folder
                 try:
                     with open(ref_schema_path, 'r') as f:
