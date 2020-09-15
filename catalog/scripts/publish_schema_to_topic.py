@@ -11,13 +11,12 @@ import jsonschema
 import time
 
 
-def get_schema_messages(args):
+def get_schema_messages(args, schema_folder_path):
     try:
         with open(args.data_catalog, 'r') as f:
             catalog = json.load(f)
         with open(args.schema, 'r') as f:
             schema = json.load(f)
-        schema_folder_path = args.schema_folder
 
         schema_messages = []
         # Check if the schema has an id
@@ -129,6 +128,7 @@ def fill_refs_new(schema, schema_folder_path):
 
 
 def validate_schema(schema, schema_folder_path):
+    print("Schema folder path in validate_schema is: {}".format(schema_folder_path))
     if '$schema' in schema:
         meta_data_schema_urn = schema['$schema']
         if 'http' in meta_data_schema_urn:
@@ -201,21 +201,21 @@ if __name__ == "__main__":
     parser.add_argument('-tn', '--topic-name', required=True)
     parser.add_argument('-b', '--bucket-name', required=True)
     args = parser.parse_args()
-    # A message should be send to the schemas topic
-    # for every topic that has this schema
-    messages = get_schema_messages(args)
-    # Project id of the topic the schema needs to be published to
-    topic_project_id = args.topic_project_id
-    # Topic the schema needs to be published to
-    topic_name = args.topic_name
-    # Bucket the schema needs to be uploaded to
-    bucket_name = args.bucket_name
     # Path where the schemas are
     schema_folder_path = args.schema_folder
     # Complete path
     working_dir = os.getcwd()
     schema_folder_path = "{}{}".format(working_dir, schema_folder_path)
     print("Schema folder path is: {}".format(schema_folder_path))
+    # A message should be send to the schemas topic
+    # for every topic that has this schema
+    messages = get_schema_messages(args, schema_folder_path)
+    # Project id of the topic the schema needs to be published to
+    topic_project_id = args.topic_project_id
+    # Topic the schema needs to be published to
+    topic_name = args.topic_name
+    # Bucket the schema needs to be uploaded to
+    bucket_name = args.bucket_name
     # Publish every schema message to the topic
     messages_length = len(messages)
     print('Found {} schema messages'.format(messages_length))
