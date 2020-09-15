@@ -94,7 +94,6 @@ def fill_refs_new(schema, schema_folder_path):
                 # Pull apart the URN
                 ref_array = ref.split("/")
                 ref_schema_path = schema_folder_path + "/" + ref_array[-1]
-                print("Current working directory is: {}".format(os.getcwd()))
                 # Check if the path to the schema exists in the schemas folder
                 try:
                     with open(ref_schema_path, 'r') as f:
@@ -213,6 +212,9 @@ if __name__ == "__main__":
     bucket_name = args.bucket_name
     # Path where the schemas are
     schema_folder_path = args.schema_folder
+    # Complete path
+    working_dir = os.getcwd()
+    schema_folder_path = "{}{}".format(working_dir, schema_folder_path)
     # Publish every schema message to the topic
     messages_length = len(messages)
     print('Found {} schema messages'.format(messages_length))
