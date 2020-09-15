@@ -67,7 +67,7 @@ def fill_refs_new(schema, schema_folder_path):
                 ref = line_array[1].replace('\"', '')
                 # Check if the url still works
                 ref_status = requests.get(ref).status_code
-                time.sleep(2)
+                time.sleep(4)
                 print('meta data schema status code: {}'.format(ref_status))
                 if(ref_status == 200):
                     # Get the reference via the url
@@ -94,11 +94,8 @@ def fill_refs_new(schema, schema_folder_path):
                 # Pull apart the URN
                 ref_array = ref.split("/")
                 ref_schema_path = schema_folder_path + "/" + ref_array[-1]
-                ref_schema_path_exists = os.path.exists(ref_schema_path)
-                time.sleep(2)
-                print("reference schema path exits: {}".format(ref_schema_path_exists))
                 # Check if the path to the schema exists in the schemas folder
-                if ref_schema_path_exists:
+                try:
                     with open(ref_schema_path, 'r') as f:
                         reference_schema = json.load(f)
                     # Double check if the urn of the schema is the same as the
@@ -120,9 +117,9 @@ def fill_refs_new(schema, schema_folder_path):
                             ))
                     else:
                         logging.error('Reference schema of reference {} has no ID'.format(ref))
-                else:
-                    logging.error('The path {} to the schema reference {} does not exist'.format(
-                        ref_schema_path, ref))
+                except Exception as e:
+                    logging.exception('The schema reference in path {} could not be opened because of {}'.format(
+                        ref_schema_path, e))
                     sys.exit(1)
         else:
             # If the line does not contain any references
