@@ -66,7 +66,11 @@ def fill_refs_new(schema, schema_folder_path):
                 ref = line_array[1].replace('\"', '')
                 # Check if the url still works
                 ref_status = requests.get(ref).status_code
-                time.sleep(4)
+                retry_request = 0
+                while(ref_status == 404 and retry_request < 11):
+                    retry_request = retry_request + 1
+                    time.sleep(retry_request)
+                    ref_status = requests.get(ref).status_code
                 print('meta data schema status code: {}'.format(ref_status))
                 if(ref_status == 200):
                     # Get the reference via the url
@@ -128,7 +132,6 @@ def fill_refs_new(schema, schema_folder_path):
 
 
 def validate_schema(schema, schema_folder_path):
-    print("Schema folder path in validate_schema is: {}".format(schema_folder_path))
     if '$schema' in schema:
         meta_data_schema_urn = schema['$schema']
         if 'http' in meta_data_schema_urn:
