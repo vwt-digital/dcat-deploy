@@ -124,10 +124,10 @@ def fill_refs_new(schema, schema_folder_path, all_schemas_list):
                     line_array = ''
                 ref = line_array[1].replace('\"', '')
                 # Check if the path to the schema exists in all schemas list
+                reference_schema_found = False
                 for reference_schema in all_schemas_list:
                     # Check if the URN of the schema is the same as in the reference
                     if '$id' in reference_schema:
-                        reference_schema_found = False
                         print("ID ref schema is: {}".format(reference_schema["$id"]))
                         print("Ref: {}".format(ref))
                         if reference_schema['$id'] == ref:
@@ -140,9 +140,9 @@ def fill_refs_new(schema, schema_folder_path, all_schemas_list):
                                 if i != 0 and i != (len(reference_schema_list)-1):
                                     # Write the reference schema to the stringio file
                                     new_schema.write(reference_schema_list[i])
-                        if reference_schema_found is False:
-                            logging.error('The schema reference of {} cannot be found'.format(ref))
-                            sys.exit(1)
+                if reference_schema_found is False:
+                    logging.error('The schema reference of {} cannot be found'.format(ref))
+                    sys.exit(1)
         else:
             # If the line does not contain any references
             # Just write it to the stringio file
