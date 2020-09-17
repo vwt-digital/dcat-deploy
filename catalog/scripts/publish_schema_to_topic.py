@@ -123,7 +123,7 @@ def fill_refs_new(schema, schema_folder_path, all_schemas_list):
                 else:
                     line_array = ''
                 ref = line_array[1].replace('\"', '')
-                ref = line_array[1].replace(',', '')
+                ref = ref.replace(',', '')
                 # Check if the path to the schema exists in all schemas list
                 reference_schema_found = False
                 for reference_schema in all_schemas_list:
