@@ -26,9 +26,7 @@ def get_schema_messages(args, schema_folder_path):
             # Check if schema has any references and fill in the references
             schema = fill_refs(schema, schema_folder_path)
             contents = schema.getvalue()
-            print("IOString contents: {}".format(contents))
             schema = json.loads(contents)
-            print("Final schema: {}".format(schema))
             for dataset in catalog['dataset']:
                 for dist in dataset.get('distribution', []):
                     if dist.get('format') == 'topic':
@@ -127,8 +125,6 @@ def fill_refs(schema, schema_folder_path):
                     # Double check if the urn of the schema is the same as the
                     # one of the reference
                     if '$id' in reference_schema:
-                        print("reference_schema['$id'] is: {}".format(reference_schema['$id']))
-                        print("ref is: {}".format(ref))
                         if reference_schema['$id'] == ref.replace(',', ''):
                             # Add the schema to the new schema
                             reference_schema_txt = json.dumps(reference_schema, indent=2)
