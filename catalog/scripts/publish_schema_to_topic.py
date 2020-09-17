@@ -22,14 +22,12 @@ def get_schema_messages(args, schema_folder_path):
 
         all_schemas = args.all_schemas
         all_schemas = all_schemas.split(',')
-        print("all_schemas is: {}".format(all_schemas))
         all_schemas_list = []
         for s in all_schemas:
             try:
                 with open(s, 'r') as f:
                     a_schema = json.load(f)
                 all_schemas_list.append(a_schema)
-                print("Adding following schema to all_schemas_list: {}".format(json.dumps(a_schema)))
             except Exception as e:
                 logging.exception('Unable to open schema ' +
                                   'because of {}'.format(e))
@@ -42,7 +40,6 @@ def get_schema_messages(args, schema_folder_path):
             schema = fill_refs_new(schema, schema_folder_path, all_schemas_list)
             contents = schema.getvalue()
             schema = json.loads(contents)
-            # print(schema)
             for dataset in catalog['dataset']:
                 for dist in dataset.get('distribution', []):
                     if dist.get('format') == 'topic':
@@ -127,7 +124,6 @@ def fill_refs_new(schema, schema_folder_path, all_schemas_list):
                 ref = line_array[1].replace('\"', '')
                 # Check if the path to the schema exists in all schemas list
                 for reference_schema in all_schemas_list:
-                    print("Reference_schema from all_schemas_list: {}".format(json.dumps(reference_schema)))
                     # Check if the URN of the schema is the same as in the reference
                     if '$id' in reference_schema:
                         if reference_schema['$id'] == ref:
@@ -222,10 +218,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Path where the schemas are
     schema_folder_path = args.schema_folder
-    # # Complete path
-    # working_dir = os.getcwd()
-    # schema_folder_path = "{}{}".format(working_dir, schema_folder_path)
-    # print("Schema folder path is: {}".format(schema_folder_path))
     # A message should be send to the schemas topic
     # for every topic that has this schema
     messages = get_schema_messages(args, schema_folder_path)
