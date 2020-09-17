@@ -123,6 +123,7 @@ def fill_refs_new(schema, schema_folder_path, all_schemas_list):
                 else:
                     line_array = ''
                 ref = line_array[1].replace('\"', '')
+                ref = line_array[1].replace(',', '')
                 # Check if the path to the schema exists in all schemas list
                 reference_schema_found = False
                 for reference_schema in all_schemas_list:
@@ -131,6 +132,7 @@ def fill_refs_new(schema, schema_folder_path, all_schemas_list):
                         print("ID ref schema is: {}".format(reference_schema["$id"]))
                         print("Ref: {}".format(ref))
                         if reference_schema['$id'] == ref:
+                            print("Reference schema found")
                             reference_schema_found = True
                             # Add the schema to the new schema
                             reference_schema_txt = json.dumps(reference_schema, indent=2)
