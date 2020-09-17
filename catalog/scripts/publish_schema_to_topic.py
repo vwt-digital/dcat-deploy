@@ -100,6 +100,10 @@ def fill_refs_new(schema, schema_folder_path):
                 ref_schema_path = schema_folder_path + "/" + ref_array[-1]
                 # Check if the path to the schema exists in the schemas folder
                 try:
+                    print("Current working directory is")
+                    print(os.getcwd())
+                    print("Reference schema path is")
+                    print(ref_schema_path)
                     with open(ref_schema_path, 'r') as f:
                         reference_schema = json.load(f)
                     # Double check if the urn of the schema is the same as the
