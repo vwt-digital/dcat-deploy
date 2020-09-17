@@ -149,6 +149,7 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     if [ -d "${SCHEMAS_FOLDER}" ]; then
         echo "Schemas folder found"
         SCHEMAS_FOLDER_ABS_PATH=$(get_abs_filename "${SCHEMAS_FOLDER}")
+        echo "${SCHEMAS_FOLDER_ABS_PATH} contains $(find "${SCHEMAS_FOLDER_ABS_PATH}" -type f | wc -l) files"
         # For every schema in the schemas folder
         for f in "${SCHEMAS_FOLDER_ABS_PATH}"/*.json;
         do
