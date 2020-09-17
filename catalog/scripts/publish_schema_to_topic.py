@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import json
 import argparse
 import logging
@@ -123,6 +125,7 @@ def fill_refs_new(schema, schema_folder_path):
                             that of the schema is {}'.format(
                                 ref, reference_schema['$id']
                             ))
+                            sys.exit(1)
                     else:
                         logging.error('Reference schema of reference {} has no ID'.format(ref))
                 except Exception as e:
