@@ -26,7 +26,9 @@ def get_schema_messages(args, schema_folder_path):
             # Check if schema has any references and fill in the references
             schema = fill_refs_new(schema, schema_folder_path)
             contents = schema.getvalue()
+            print("IOString contents: {}".format(contents))
             schema = json.loads(contents)
+            print("Final schema: {}".format(schema))
             for dataset in catalog['dataset']:
                 for dist in dataset.get('distribution', []):
                     if dist.get('format') == 'topic':
@@ -126,15 +128,12 @@ def fill_refs_new(schema, schema_folder_path):
                         if reference_schema['$id'] == ref:
                             # Add the schema to the new schema
                             reference_schema_txt = json.dumps(reference_schema, indent=2)
-                            print("Reference schema: {}".format(reference_schema_txt))
                             reference_schema_list = reference_schema_txt.split('\n')
-                            print("Adding lines:")
                             for i in range(len(reference_schema_list)):
                                 # Do not add the beginning '{' and '}'
                                 if i != 0 and i != (len(reference_schema_list)-1):
                                     # Write the reference schema to the stringio file
                                     new_schema.write(reference_schema_list[i])
-                                    print(reference_schema_list[i])
                         else:
                             logging.error('ID of reference is {} while \
                             that of the schema is {}'.format(
