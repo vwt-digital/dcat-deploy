@@ -156,7 +156,6 @@ if [ "${RUN_MODE}" = "deploy" ]; then
             topic_project_id=$(sed -n "s/\s*topic_project_id.*:\s*\(.*\)$/\1/p" ./config/"${PROJECT_ID}"/config.schemastopic.yaml | head -n1)
             topic_name=$(sed -n "s/\s*topic_name.*:\s*\(.*\)$/\1/p" ./config/"${PROJECT_ID}"/config.schemastopic.yaml | head -n1)
             bucket_name=$(sed -n "s/\s*bucket_name.*:\s*\(.*\)$/\1/p" ./config/"${PROJECT_ID}"/config.schemastopic.yaml | head -n1)
-            echo "Absolute path schemas is ${SCHEMAS_FOLDER_ABS_PATH}"
             if ! python3 "${basedir}"/publish_schema_to_topic.py -d "${gcp_catalog}" -s "$f" -sf "${SCHEMAS_FOLDER_ABS_PATH}" -tpi "${topic_project_id}" -tn "${topic_name}" -b "${bucket_name}"
             then
                 echo "ERROR publishing schema."

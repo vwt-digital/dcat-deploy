@@ -69,6 +69,7 @@ def fill_refs_new(schema, schema_folder_path):
                 retry_request = 0
                 while(ref_status == 404 and retry_request < 11):
                     retry_request = retry_request + 1
+                    print("Retry in {} second(s)".format(retry_request))
                     time.sleep(retry_request)
                     ref_status = requests.get(ref).status_code
                 print('meta data schema status code: {}'.format(ref_status))
