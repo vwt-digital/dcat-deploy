@@ -23,6 +23,7 @@ def get_schema_messages(args, schema_folder_path):
         all_schemas = args.all_schemas
         all_schemas = all_schemas.split(',')
         all_schemas_list = []
+        print("All schemas: {}".format(all_schemas))
         for s in all_schemas:
             try:
                 with open(s, 'r') as f:
