@@ -62,7 +62,7 @@ gcloud compute instances create "${instance_name}" \
   --service-account "${IAM_ACCOUNT}@${PROJECT_ID}.iam.gserviceaccount.com" \
   --metadata "serial-port-enable=true,branch-name=${BRANCH_NAME},iam-account=${IAM_ACCOUNT},secret-name=${SECRET_NAME}" \
   --metadata-from-file startup-script="${basedir}"/startup_script.sh \
-  --machine-type "f1-micro" \
+  --machine-type "g1-small" \
   --boot-disk-size "25GB" \
   --preemptible
 
