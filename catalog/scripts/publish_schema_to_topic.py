@@ -20,7 +20,8 @@ def get_schema_messages(args, schema_folder_path):
         with open(args.schema, 'r') as f:
             schema = json.load(f)
 
-        all_schemas = args.all_schemas
+        all_schemas = args.all_schemas_list
+        all_schemas = all_schemas.split(',')
         all_schemas_list = []
         for s in all_schemas:
             try:

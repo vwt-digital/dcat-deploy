@@ -152,7 +152,7 @@ if [ "${RUN_MODE}" = "deploy" ]; then
         declare -a schemas_list
         for f in "${SCHEMAS_FOLDER_ABS_PATH}"/*.json;
         do
-            schemas_list+=("$f")
+            schemas_list+=("$f,")
         done
         # For every schema in the schemas folder
         for f in "${SCHEMAS_FOLDER_ABS_PATH}"/*.json;
