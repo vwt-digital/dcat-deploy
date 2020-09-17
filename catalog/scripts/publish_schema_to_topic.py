@@ -111,11 +111,9 @@ def fill_refs_new(schema, schema_folder_path):
                 else:
                     line_array = ''
                 ref = line_array[1].replace('\"', '')
-                if ',' in ref:
-                    ref = ref.replace(',', '')
                 # Pull apart the URN
                 ref_array = ref.split("/")
-                ref_schema_path = schema_folder_path + "/" + ref_array[-1]
+                ref_schema_path = schema_folder_path + "/" + ref_array[-1].replace(',', '')
                 # Check if the path to the schema exists in the schemas folder
                 try:
                     with open(ref_schema_path, 'r') as f:
@@ -125,7 +123,7 @@ def fill_refs_new(schema, schema_folder_path):
                     if '$id' in reference_schema:
                         print("reference_schema['$id'] is: {}".format(reference_schema['$id']))
                         print("ref is: {}".format(ref))
-                        if reference_schema['$id'] == ref:
+                        if reference_schema['$id'] == ref.replace(',', ''):
                             # Add the schema to the new schema
                             reference_schema_txt = json.dumps(reference_schema, indent=2)
                             reference_schema_list = reference_schema_txt.split('\n')
