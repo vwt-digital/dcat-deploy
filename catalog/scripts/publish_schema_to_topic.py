@@ -24,7 +24,7 @@ def get_schema_messages(args, schema_folder_path):
         # Check if the schema has an id
         if '$id' in schema:
             # Check if schema has any references and fill in the references
-            schema = fill_refs_new(schema, schema_folder_path)
+            schema = fill_refs(schema, schema_folder_path)
             contents = schema.getvalue()
             print("IOString contents: {}".format(contents))
             schema = json.loads(contents)
@@ -53,7 +53,7 @@ def get_schema_messages(args, schema_folder_path):
     return []
 
 
-def fill_refs_new(schema, schema_folder_path):
+def fill_refs(schema, schema_folder_path):
     new_schema = StringIO()
     schema = json.dumps(schema, indent=2)
     # Make schema into list so that every newline can be printed
@@ -89,8 +89,14 @@ def fill_refs_new(schema, schema_folder_path):
                             for i in range(len(reference_schema_list)):
                                 # Do not add the beginning '{' and '}'
                                 if i != 0 and i != (len(reference_schema_list)-1):
+                                    reference_schema_list[i]
+                                    # Check if the line has a comma at the end
+                                    if i != (len(reference_schema_list)-2):
+                                        line = reference_schema_list[i]
+                                        if line[-1] != ",":
+                                            line = "{},".format(line)
                                     # Write the reference schema to the stringio file
-                                    new_schema.write(reference_schema_list[i])
+                                    new_schema.write(line)
                         else:
                             logging.error('ID of reference is {} while \
                             that of the schema is {}'.format(
