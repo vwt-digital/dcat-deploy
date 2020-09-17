@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import json
 import argparse
 import logging
@@ -11,22 +13,20 @@ import jsonschema
 import time
 
 
-def get_schema_messages(args):
+def get_schema_messages(args, schema_folder_path):
     try:
         with open(args.data_catalog, 'r') as f:
             catalog = json.load(f)
         with open(args.schema, 'r') as f:
             schema = json.load(f)
-        schema_folder_path = args.schema_folder
 
         schema_messages = []
         # Check if the schema has an id
         if '$id' in schema:
             # Check if schema has any references and fill in the references
-            schema = fill_refs_new(schema, schema_folder_path)
+            schema = fill_refs(schema, schema_folder_path)
             contents = schema.getvalue()
             schema = json.loads(contents)
-            # print(schema)
             for dataset in catalog['dataset']:
                 for dist in dataset.get('distribution', []):
                     if dist.get('format') == 'topic':
@@ -47,10 +47,11 @@ def get_schema_messages(args):
     except Exception as e:
         logging.exception('Unable to publish schema ' +
                           'because of {}'.format(e))
+        sys.exit(1)
     return []
 
 
-def fill_refs_new(schema, schema_folder_path):
+def fill_refs(schema, schema_folder_path):
     new_schema = StringIO()
     schema = json.dumps(schema, indent=2)
     # Make schema into list so that every newline can be printed
@@ -67,19 +68,42 @@ def fill_refs_new(schema, schema_folder_path):
                 ref = line_array[1].replace('\"', '')
                 # Check if the url still works
                 ref_status = requests.get(ref).status_code
-                time.sleep(2)
+                retry_request = 0
+                while(ref_status == 404 and retry_request < 11):
+                    retry_request = retry_request + 1
+                    print("Retry in {} second(s)".format(retry_request))
+                    time.sleep(retry_request)
+                    ref_status = requests.get(ref).status_code
                 print('meta data schema status code: {}'.format(ref_status))
                 if(ref_status == 200):
                     # Get the reference via the url
                     reference_schema = requests.get(ref).json()
-                    # Add the schema to the new schema
-                    reference_schema_txt = json.dumps(reference_schema, indent=2)
-                    reference_schema_list = reference_schema_txt.split('\n')
-                    for i in range(len(reference_schema_list)):
-                        # Do not add the beginning '{' and '}'
-                        if i != 0 and i != (len(reference_schema_list)-1):
-                            # Write the reference schema to the stringio file
-                            new_schema.write(reference_schema_list[i])
+                    # Double check
+                    if '$id' in reference_schema:
+                        if reference_schema['$id'] == ref:
+                            # Add the schema to the new schema
+                            reference_schema_txt = json.dumps(reference_schema, indent=2)
+                            reference_schema_list = reference_schema_txt.split('\n')
+                            for i in range(len(reference_schema_list)):
+                                # Do not add the beginning '{' and '}'
+                                if i != 0 and i != (len(reference_schema_list)-1):
+                                    reference_schema_list[i]
+                                    # Check if the line has a comma at the end
+                                    if i != (len(reference_schema_list)-2):
+                                        line = reference_schema_list[i]
+                                        if line[-1] != ",":
+                                            line = "{},".format(line)
+                                    # Write the reference schema to the stringio file
+                                    new_schema.write(line)
+                        else:
+                            logging.error('ID of reference is {} while \
+                            that of the schema is {}'.format(
+                                ref, reference_schema['$id']
+                            ))
+                            sys.exit(1)
+                    else:
+                        logging.error('Reference schema of reference {} has no ID'.format(ref))
+                        sys.exit(1)
                 else:
                     logging.error('The URL to the reference of {} does not exist anymore'.format(ref))
                     sys.exit(1)
@@ -93,18 +117,15 @@ def fill_refs_new(schema, schema_folder_path):
                 ref = line_array[1].replace('\"', '')
                 # Pull apart the URN
                 ref_array = ref.split("/")
-                ref_schema_path = schema_folder_path + "/" + ref_array[-1]
-                ref_schema_path_exists = os.path.exists(ref_schema_path)
-                time.sleep(2)
-                print("reference schema path exits: {}".format(ref_schema_path_exists))
+                ref_schema_path = schema_folder_path + "/" + ref_array[-1].replace(',', '')
                 # Check if the path to the schema exists in the schemas folder
-                if ref_schema_path_exists:
+                try:
                     with open(ref_schema_path, 'r') as f:
                         reference_schema = json.load(f)
                     # Double check if the urn of the schema is the same as the
                     # one of the reference
                     if '$id' in reference_schema:
-                        if reference_schema['$id'] == ref:
+                        if reference_schema['$id'] == ref.replace(',', ''):
                             # Add the schema to the new schema
                             reference_schema_txt = json.dumps(reference_schema, indent=2)
                             reference_schema_list = reference_schema_txt.split('\n')
@@ -118,11 +139,13 @@ def fill_refs_new(schema, schema_folder_path):
                             that of the schema is {}'.format(
                                 ref, reference_schema['$id']
                             ))
+                            sys.exit(1)
                     else:
                         logging.error('Reference schema of reference {} has no ID'.format(ref))
-                else:
-                    logging.error('The path {} to the schema reference {} does not exist'.format(
-                        ref_schema_path, ref))
+                        sys.exit(1)
+                except Exception as e:
+                    logging.exception('The schema reference in path {} could not be opened because of {}'.format(
+                        ref_schema_path, e))
                     sys.exit(1)
         else:
             # If the line does not contain any references
@@ -204,17 +227,17 @@ if __name__ == "__main__":
     parser.add_argument('-tn', '--topic-name', required=True)
     parser.add_argument('-b', '--bucket-name', required=True)
     args = parser.parse_args()
+    # Path where the schemas are
+    schema_folder_path = args.schema_folder
     # A message should be send to the schemas topic
     # for every topic that has this schema
-    messages = get_schema_messages(args)
+    messages = get_schema_messages(args, schema_folder_path)
     # Project id of the topic the schema needs to be published to
     topic_project_id = args.topic_project_id
     # Topic the schema needs to be published to
     topic_name = args.topic_name
     # Bucket the schema needs to be uploaded to
     bucket_name = args.bucket_name
-    # Path where the schemas are
-    schema_folder_path = args.schema_folder
     # Publish every schema message to the topic
     messages_length = len(messages)
     print('Found {} schema messages'.format(messages_length))
