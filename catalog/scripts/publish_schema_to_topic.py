@@ -109,7 +109,8 @@ def fill_refs_new(schema, schema_folder_path):
                 else:
                     line_array = ''
                 ref = line_array[1].replace('\"', '')
-                ref = ref.replace(',', '')
+                if ',' in ref:
+                    ref = ref.replace(',', '')
                 # Pull apart the URN
                 ref_array = ref.split("/")
                 ref_schema_path = schema_folder_path + "/" + ref_array[-1]
@@ -120,6 +121,8 @@ def fill_refs_new(schema, schema_folder_path):
                     # Double check if the urn of the schema is the same as the
                     # one of the reference
                     if '$id' in reference_schema:
+                        print("reference_schema['$id'] is: {}".format(reference_schema['$id']))
+                        print("ref is: {}".format(ref))
                         if reference_schema['$id'] == ref:
                             # Add the schema to the new schema
                             reference_schema_txt = json.dumps(reference_schema, indent=2)
