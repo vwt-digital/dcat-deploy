@@ -149,6 +149,11 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     if [ -d "${SCHEMAS_FOLDER}" ]; then
         echo "Schemas folder found"
         SCHEMAS_FOLDER_ABS_PATH=$(get_abs_filename "${SCHEMAS_FOLDER}")
+        declare -a schemas_list
+        for f in "${SCHEMAS_FOLDER_ABS_PATH}"/*.json;
+        do
+            schemas_list+=("$f")
+        done
         # For every schema in the schemas folder
         for f in "${SCHEMAS_FOLDER_ABS_PATH}"/*.json;
         do
@@ -156,7 +161,7 @@ if [ "${RUN_MODE}" = "deploy" ]; then
             topic_project_id=$(sed -n "s/\s*topic_project_id.*:\s*\(.*\)$/\1/p" ./config/"${PROJECT_ID}"/config.schemastopic.yaml | head -n1)
             topic_name=$(sed -n "s/\s*topic_name.*:\s*\(.*\)$/\1/p" ./config/"${PROJECT_ID}"/config.schemastopic.yaml | head -n1)
             bucket_name=$(sed -n "s/\s*bucket_name.*:\s*\(.*\)$/\1/p" ./config/"${PROJECT_ID}"/config.schemastopic.yaml | head -n1)
-            if ! python3 "${basedir}"/publish_schema_to_topic.py -d "${gcp_catalog}" -s "$f" -sf "${SCHEMAS_FOLDER_ABS_PATH}" -tpi "${topic_project_id}" -tn "${topic_name}" -b "${bucket_name}"
+            if ! python3 "${basedir}"/publish_schema_to_topic.py -d "${gcp_catalog}" -s "$f" -sf "${SCHEMAS_FOLDER_ABS_PATH}" -tpi "${topic_project_id}" -tn "${topic_name}" -b "${bucket_name}" -as "${schemas_list[@]}"
             then
                 echo "ERROR publishing schema."
                 exit 1

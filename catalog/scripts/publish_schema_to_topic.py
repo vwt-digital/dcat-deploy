@@ -20,11 +20,23 @@ def get_schema_messages(args, schema_folder_path):
         with open(args.schema, 'r') as f:
             schema = json.load(f)
 
+        all_schemas = args.all_schemas
+        all_schemas_list = []
+        for s in all_schemas:
+            try:
+                with open(s, 'r') as f:
+                    a_schema = json.load(f)
+                all_schemas_list.append(a_schema)
+            except Exception as e:
+                logging.exception('Unable to open schema ' +
+                                  'because of {}'.format(e))
+                sys.exit(1)
+
         schema_messages = []
         # Check if the schema has an id
         if '$id' in schema:
             # Check if schema has any references and fill in the references
-            schema = fill_refs_new(schema, schema_folder_path)
+            schema = fill_refs_new(schema, schema_folder_path, all_schemas_list)
             contents = schema.getvalue()
             schema = json.loads(contents)
             # print(schema)
@@ -48,10 +60,11 @@ def get_schema_messages(args, schema_folder_path):
     except Exception as e:
         logging.exception('Unable to publish schema ' +
                           'because of {}'.format(e))
+        sys.exit(1)
     return []
 
 
-def fill_refs_new(schema, schema_folder_path):
+def fill_refs_new(schema, schema_folder_path, all_schemas_list):
     new_schema = StringIO()
     schema = json.dumps(schema, indent=2)
     # Make schema into list so that every newline can be printed
@@ -109,15 +122,9 @@ def fill_refs_new(schema, schema_folder_path):
                 else:
                     line_array = ''
                 ref = line_array[1].replace('\"', '')
-                # Pull apart the URN
-                ref_array = ref.split("/")
-                ref_schema_path = schema_folder_path + "/" + ref_array[-1]
-                # Check if the path to the schema exists in the schemas folder
-                try:
-                    with open(ref_schema_path, 'r') as f:
-                        reference_schema = json.load(f)
-                    # Double check if the urn of the schema is the same as the
-                    # one of the reference
+                # Check if the path to the schema exists in all schemas list
+                for reference_schema in all_schemas_list:
+                    # Check if the URN of the schema is the same as in the reference
                     if '$id' in reference_schema:
                         if reference_schema['$id'] == ref:
                             # Add the schema to the new schema
@@ -128,19 +135,6 @@ def fill_refs_new(schema, schema_folder_path):
                                 if i != 0 and i != (len(reference_schema_list)-1):
                                     # Write the reference schema to the stringio file
                                     new_schema.write(reference_schema_list[i])
-                        else:
-                            logging.error('ID of reference is {} while \
-                            that of the schema is {}'.format(
-                                ref, reference_schema['$id']
-                            ))
-                            sys.exit(1)
-                    else:
-                        logging.error('Reference schema of reference {} has no ID'.format(ref))
-                        sys.exit(1)
-                except Exception as e:
-                    logging.exception('The schema reference in path {} could not be opened because of {}'.format(
-                        ref_schema_path, e))
-                    sys.exit(1)
         else:
             # If the line does not contain any references
             # Just write it to the stringio file
@@ -220,6 +214,7 @@ if __name__ == "__main__":
     parser.add_argument('-tpi', '--topic-project-id', required=True)
     parser.add_argument('-tn', '--topic-name', required=True)
     parser.add_argument('-b', '--bucket-name', required=True)
+    parser.add_argument('-as', '--all-schemas', required=True)
     args = parser.parse_args()
     # Path where the schemas are
     schema_folder_path = args.schema_folder
