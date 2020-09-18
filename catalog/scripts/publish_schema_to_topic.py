@@ -6,11 +6,9 @@ import logging
 from google.cloud import pubsub_v1
 import sys
 from gobits import Gobits
-import requests
 import os
 from io import StringIO
 import jsonschema
-import time
 
 
 def get_schema_messages(args, schema_folder_path):
@@ -66,47 +64,11 @@ def fill_refs(schema, schema_folder_path):
                 else:
                     line_array = ''
                 ref = line_array[1].replace('\"', '')
-                # Check if the url still works
-                ref_status = requests.get(ref).status_code
-                retry_request = 0
-                while(ref_status == 404 and retry_request < 11):
-                    retry_request = retry_request + 1
-                    print("Retry in {} second(s)".format(retry_request))
-                    time.sleep(retry_request)
-                    ref_status = requests.get(ref).status_code
-                print('meta data schema status code: {}'.format(ref_status))
-                if(ref_status == 200):
-                    # Get the reference via the url
-                    reference_schema = requests.get(ref).json()
-                    # Double check
-                    if '$id' in reference_schema:
-                        if reference_schema['$id'] == ref:
-                            # Add the schema to the new schema
-                            reference_schema_txt = json.dumps(reference_schema, indent=2)
-                            reference_schema_list = reference_schema_txt.split('\n')
-                            for i in range(len(reference_schema_list)):
-                                # Do not add the beginning '{' and '}'
-                                if i != 0 and i != (len(reference_schema_list)-1):
-                                    reference_schema_list[i]
-                                    # Check if the line has a comma at the end
-                                    if i != (len(reference_schema_list)-2):
-                                        line = reference_schema_list[i]
-                                        if line[-1] != ",":
-                                            line = "{},".format(line)
-                                    # Write the reference schema to the stringio file
-                                    new_schema.write(line)
-                        else:
-                            logging.error('ID of reference is {} while \
-                            that of the schema is {}'.format(
-                                ref, reference_schema['$id']
-                            ))
-                            sys.exit(1)
-                    else:
-                        logging.error('Reference schema of reference {} has no ID'.format(ref))
-                        sys.exit(1)
-                else:
-                    logging.error('The URL to the reference of {} does not exist anymore'.format(ref))
-                    sys.exit(1)
+                logging.error("The $ref {} contains a reference that can be found online. "
+                              "Download this reference, place it in the 'schemas' folder of this project, "
+                              "change its $id key to an URN reference "
+                              "and change the reference in the current schema to an URN reference".format(ref))
+                sys.exit(1)
             elif 'urn' in line:
                 if '"$ref": "' in line:
                     line_array = line.split('"$ref": "')
@@ -158,14 +120,12 @@ def validate_schema(schema, schema_folder_path):
     if '$schema' in schema:
         meta_data_schema_urn = schema['$schema']
         if 'http' in meta_data_schema_urn:
-            # Check if the url still works
-            meta_data_schema_status = requests.get(meta_data_schema_urn).status_code
-            print('Meta data schema status code: {}'.format(meta_data_schema_status))
-            if(meta_data_schema_status == 200):
-                # Get the schema via the url
-                meta_data_schema = requests.get(meta_data_schema_urn).json()
-            else:
-                logging.error('The URL to the meta_schema of {} does not exist anymore'.format(schema['$schema']))
+            logging.error("The meta data reference $schema {} contains a reference that can be found online. "
+                          "Download this reference, place it in the 'schemas' folder of this project, "
+                          "change its $id key to an URN reference "
+                          "and change the reference in the current schema to an URN reference".format(
+                              meta_data_schema_urn))
+            sys.exit(1)
         elif 'urn' in meta_data_schema_urn:
             # Pull apart the URN
             meta_data_urn_list = meta_data_schema_urn.split("/")
