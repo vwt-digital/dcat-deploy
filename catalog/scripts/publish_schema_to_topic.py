@@ -65,54 +65,59 @@ def fill_refs(schema, schema_folder_path):
                 else:
                     line_array_def = ''
                 ref_def = line_array_def[1].replace('\"', '')
-                # Check if there is a URN in front of the '#'
-                # Because then the definition is in another schema
-                comma_at_end = False
-                if 'urn' in ref_def:
-                    # Split on the '#/'
-                    ref_def_array = ref_def.split("#/")
-                    urn_part = ref_def_array[0]
-                    def_part = ref_def_array[1]
-                    if def_part[-1] == ',':
-                        def_part = def_part.replace(",", "")
-                        comma_at_end = True
-                    # Pull apart the URN
-                    ref_def_array_urn = urn_part.split("/")
-                    ref_def_schema_path = schema_folder_path + "/" + ref_def_array_urn[-1].replace(',', '')
-                    try:
-                        with open(ref_def_schema_path, 'r') as f:
-                            reference_schema_def = json.load(f)
-                    except Exception as e:
-                        logging.error("Schema of reference to definition cannot be openend "
-                                      "because of {}".format(e))
+                # If the reference is only '#'
+                if ref_def == '#':
+                    # Just write it to the stringio file
+                    new_schema.write(line)
                 else:
-                    # Reference to definition is in this schema
-                    # Split on the '#/'
-                    ref_def_array = ref_def.split("#/")
-                    def_part = ref_def_array[1]
-                    # If there's a comma at the end
-                    if def_part[-1] == ',':
-                        def_part = def_part.replace(",", "")
-                        comma_at_end = True
-                    reference_schema_def = schema_json
-                # Now find key in json where the reference is defined
-                def_part_array = def_part.split('/')
-                def_from_dict = getFromDict(reference_schema_def, def_part_array)
-                # If type of definition reference is dict
-                if type(def_from_dict) is dict:
-                    # put reference in stringio file
-                    def_from_dict_txt = json.dumps(def_from_dict, indent=2)
-                    def_from_dict_list = def_from_dict_txt.split('\n')
-                    for i in range(len(def_from_dict_list)):
-                        # Do not add the beginning '{' and '}'
-                        if i != 0 and i != (len(def_from_dict_list)-1):
-                            line_to_write = def_from_dict_list[i]
-                            # Write the reference schema to the stringio file
-                            if i == len(def_from_dict_list)-2 and comma_at_end:
-                                line_to_write = "{},".format(line_to_write)
-                            new_schema.write(line_to_write)
-                else:
-                    logging.error("Definition should be dict")
+                    # Check if there is a URN in front of the '#'
+                    # Because then the definition is in another schema
+                    comma_at_end = False
+                    if 'urn' in ref_def:
+                        # Split on the '#/'
+                        ref_def_array = ref_def.split("#/")
+                        urn_part = ref_def_array[0]
+                        def_part = ref_def_array[1]
+                        if def_part[-1] == ',':
+                            def_part = def_part.replace(",", "")
+                            comma_at_end = True
+                        # Pull apart the URN
+                        ref_def_array_urn = urn_part.split("/")
+                        ref_def_schema_path = schema_folder_path + "/" + ref_def_array_urn[-1].replace(',', '')
+                        try:
+                            with open(ref_def_schema_path, 'r') as f:
+                                reference_schema_def = json.load(f)
+                        except Exception as e:
+                            logging.error("Schema of reference to definition cannot be openend "
+                                          "because of {}".format(e))
+                    else:
+                        # Reference to definition is in this schema
+                        # Split on the '#/'
+                        ref_def_array = ref_def.split("#/")
+                        def_part = ref_def_array[1]
+                        # If there's a comma at the end
+                        if def_part[-1] == ',':
+                            def_part = def_part.replace(",", "")
+                            comma_at_end = True
+                        reference_schema_def = schema_json
+                    # Now find key in json where the reference is defined
+                    def_part_array = def_part.split('/')
+                    def_from_dict = getFromDict(reference_schema_def, def_part_array)
+                    # If type of definition reference is dict
+                    if type(def_from_dict) is dict:
+                        # put reference in stringio file
+                        def_from_dict_txt = json.dumps(def_from_dict, indent=2)
+                        def_from_dict_list = def_from_dict_txt.split('\n')
+                        for i in range(len(def_from_dict_list)):
+                            # Do not add the beginning '{' and '}'
+                            if i != 0 and i != (len(def_from_dict_list)-1):
+                                line_to_write = def_from_dict_list[i]
+                                # Write the reference schema to the stringio file
+                                if i == len(def_from_dict_list)-2 and comma_at_end:
+                                    line_to_write = "{},".format(line_to_write)
+                                new_schema.write(line_to_write)
+                    else:
+                        logging.error("Definition should be dict")
             # If reference is an URL
             elif 'http' in line:
                 if '"$ref": "' in line:
@@ -287,9 +292,9 @@ if __name__ == "__main__":
                 "schema": m['schema']
             }
             topic_that_uses_schema = m['topic_that_uses_schema']
-            # print(json.dumps(msg, indent=4, sort_keys=False))
-            # return_bool_publish_topic = publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name)
-            # if not return_bool_publish_topic:
-            #     sys.exit(1)
+            print(json.dumps(msg, indent=4, sort_keys=False))
+            return_bool_publish_topic = publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name)
+            if not return_bool_publish_topic:
+                sys.exit(1)
         else:
             sys.exit(1)
