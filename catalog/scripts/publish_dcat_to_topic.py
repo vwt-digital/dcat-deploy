@@ -5,6 +5,7 @@ from google.cloud import pubsub_v1
 import sys
 from gobits import Gobits
 
+
 def publish_to_topic(args, gobits):
     try:
         with open(args.data_catalog, 'r') as f:
@@ -33,14 +34,17 @@ def publish_to_topic(args, gobits):
                                         'with project ID {}'.format(
                                             dc_project_id))
             )
+            print("Published data catalog of project with project ID {}".format(dc_project_id))
         return True
     except Exception as e:
         logging.exception('Unable to publish data catalog ' +
                           'to topic because of {}'.format(e))
+        print("Unable to publish data catalog to topic because of {}".format(e))
     return False
 
 
 if __name__ == "__main__":
+    print("Running publish_dcat_to_topic script")
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--data-catalog', required=True)
     parser.add_argument('-p', '--project-id', required=True)
