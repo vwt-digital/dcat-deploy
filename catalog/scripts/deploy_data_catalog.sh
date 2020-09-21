@@ -15,9 +15,11 @@ fi
 SCHEMAS_CONFIG=""
 if [ -n "${7}" ]
 then
-    SCHEMAS_CONFIG=${6}
+    SCHEMAS_CONFIG=${7}
 fi
 
+echo "Schemas folder: ${SCHEMAS_FOLDER}"
+echo "Schemas config: ${SCHEMAS_CONFIG}"
 
 function error_exit() {
   # ${BASH_SOURCE[1]} is the file name of the caller.
