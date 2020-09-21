@@ -141,8 +141,6 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     fi &&
     deactivate &&
 
-    echo "Schemas folder check"
-    echo "${SCHEMAS_FOLDER}"
     # Check if the schemas folder is given as a parameter
     if [ -n "${SCHEMAS_FOLDER}" ]; then
         # Post the schema to the schemas topic
