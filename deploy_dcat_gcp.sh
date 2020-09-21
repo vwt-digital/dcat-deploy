@@ -8,7 +8,19 @@ BRANCH_NAME=${3}
 GITHUB_SECRET_ID=${4}
 SERVICE_ACCOUNT=${5}
 
-dcat_deploy_dir=$(dirname $0)
+SCHEMAS_FOLDER=""
+if [ -n "${6}" ]
+then
+    SCHEMAS_FOLDER=${6}
+fi
+
+SCHEMAS_CONFIG=""
+if [ -n "${7}" ]
+then
+    SCHEMAS_CONFIG=${7}
+fi
+
+dcat_deploy_dir=$(dirname "$0")
 
 if [ -z "${PROJECT_ID}" ]
 then
@@ -22,14 +34,14 @@ fi
 
 if [ -n "${GITHUB_SECRET_ID}" ]
 then
-    ${dcat_deploy_dir}/catalog/repos/create_github_repos.sh ${data_catalog_path} ${GITHUB_SECRET_ID}
+    "${dcat_deploy_dir}"/catalog/repos/create_github_repos.sh "${data_catalog_path}" "${GITHUB_SECRET_ID}"
 fi
 
 ############################################################
 # Deploy datasets using deployment manager
 ############################################################
 
-${dcat_deploy_dir}/catalog/scripts/deploy_data_catalog.sh ${PROJECT_ID}-dcat-deploy ${data_catalog_path} ${PROJECT_ID} ${BRANCH_NAME}
+"${dcat_deploy_dir}"/catalog/scripts/deploy_data_catalog.sh "${PROJECT_ID}"-dcat-deploy "${data_catalog_path}" "${PROJECT_ID}" "${BRANCH_NAME}" "${SCHEMAS_FOLDER}" "${SCHEMAS_CONFIG}"
 
 if [ $? -ne 0 ]
 then
@@ -41,7 +53,7 @@ fi
 # Schedule backup job
 ############################################################
 
-backup_destination=$(python3 ${dcat_deploy_dir}/backup/get_dcat_backup_destination.py ${data_catalog_path})
+backup_destination=$(python3 "${dcat_deploy_dir}"/backup/get_dcat_backup_destination.py "${data_catalog_path}")
 
 if [ -n "${backup_destination}" ]
 then
@@ -52,7 +64,7 @@ then
     fi
 
     # Prepare backup job payload
-    sed ${dcat_deploy_dir}/backup/cloudbuild_backup.json \
+    sed "${dcat_deploy_dir}"/backup/cloudbuild_backup.json \
         -e "s|__DEST_BUCKET__|${backup_destination}|" \
         -e "s|__GITHUB_SECRET_ID__|${GITHUB_SECRET_ID}|" \
         -e "s|__BRANCH_NAME__|${BRANCH_NAME}|" > cloudbuild_backup_gen.json
@@ -61,13 +73,13 @@ then
 
     # Check if job already exists
     echo " + Check if job ${PROJECT_ID}-run-backup exists..."
-    job_exists=$(gcloud scheduler jobs list --project=${PROJECT_ID} | grep ${PROJECT_ID}-run-backup)
+    job_exists=$(gcloud scheduler jobs list --project="${PROJECT_ID}" | grep "${PROJECT_ID}"-run-backup)
 
     # Delete job if it already exists
     if [[ -n "${job_exists}" ]]
     then
         echo " + Deleting existing job ${PROJECT_ID}-run-backup..."
-        gcloud scheduler jobs delete ${PROJECT_ID}-run-backup --quiet
+        gcloud scheduler jobs delete "${PROJECT_ID}"-run-backup --quiet
     fi
 
     # Random minute for scheduler
@@ -75,7 +87,7 @@ then
 
     # (Re)create job
     echo " + Creating job ${PROJECT_ID}-run-backup..."
-    gcloud scheduler jobs create http ${PROJECT_ID}-run-backup \
+    gcloud scheduler jobs create http "${PROJECT_ID}"-run-backup \
         --schedule="${minute} 4 * * *" \
         --uri="https://cloudbuild.googleapis.com/v1/projects/${PROJECT_ID}/builds" \
         --message-body-from-file=cloudbuild_backup_gen.json \

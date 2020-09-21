@@ -267,7 +267,6 @@ if __name__ == "__main__":
     parser.add_argument('-sf', '--schema-folder', required=True)
     parser.add_argument('-tpi', '--topic-project-id', required=True)
     parser.add_argument('-tn', '--topic-name', required=True)
-    parser.add_argument('-b', '--bucket-name', required=True)
     args = parser.parse_args()
     # Path where the schemas are
     schema_folder_path = args.schema_folder
@@ -278,8 +277,6 @@ if __name__ == "__main__":
     topic_project_id = args.topic_project_id
     # Topic the schema needs to be published to
     topic_name = args.topic_name
-    # Bucket the schema needs to be uploaded to
-    bucket_name = args.bucket_name
     # Publish every schema message to the topic
     messages_length = len(messages)
     print('Found {} schema message(s)'.format(messages_length))
