@@ -26,7 +26,7 @@ def publish_to_topic(args, gobits):
                 "gobits": [gobits.to_json()],
                 "data_catalog": catalog
             }
-            # print(json.dumps(msg, indent=4, sort_keys=True))
+            print(json.dumps(msg, indent=4, sort_keys=True))
             future = publisher.publish(
                 topic_path, bytes(json.dumps(msg).encode('utf-8')))
             future.add_done_callback(
