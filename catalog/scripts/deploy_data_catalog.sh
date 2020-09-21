@@ -20,9 +20,6 @@ fi
 
 RUN_MODE=${7:-"deploy"}
 
-echo "Schemas folder: ${SCHEMAS_FOLDER}"
-echo "Schemas config: ${SCHEMAS_CONFIG}"
-
 function error_exit() {
   # ${BASH_SOURCE[1]} is the file name of the caller.
   echo "${BASH_SOURCE[1]}: line ${BASH_LINENO[0]}: ${1:-Unknown Error.} (exit ${2:-1})" 1>&2
