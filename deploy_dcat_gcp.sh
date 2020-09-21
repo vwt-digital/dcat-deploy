@@ -20,9 +20,6 @@ then
     SCHEMAS_CONFIG=${7}
 fi
 
-echo "Schemas folder: ${SCHEMAS_FOLDER}"
-echo "Schemas config: ${SCHEMAS_CONFIG}"
-
 dcat_deploy_dir=$(dirname "$0")
 
 if [ -z "${PROJECT_ID}" ]

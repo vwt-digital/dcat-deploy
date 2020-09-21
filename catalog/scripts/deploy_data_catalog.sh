@@ -12,6 +12,7 @@ if [ -n "${6}" ]
 then
     SCHEMAS_FOLDER=${6}
 fi
+
 SCHEMAS_CONFIG=""
 if [ -n "${7}" ]
 then
