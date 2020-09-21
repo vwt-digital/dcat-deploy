@@ -5,19 +5,20 @@ DEPLOYMENT_NAME=${1}
 DATA_CATALOG=${2}
 PROJECT_ID=${3}
 BRANCH_NAME=${4}
-RUN_MODE=${5:-"deploy"}
 
 SCHEMAS_FOLDER=""
-if [ -n "${6}" ]
+if [ -n "${5}" ]
 then
-    SCHEMAS_FOLDER=${6}
+    SCHEMAS_FOLDER=${5}
 fi
 
 SCHEMAS_CONFIG=""
-if [ -n "${7}" ]
+if [ -n "${6}" ]
 then
-    SCHEMAS_CONFIG=${7}
+    SCHEMAS_CONFIG=${6}
 fi
+
+RUN_MODE=${7:-"deploy"}
 
 echo "Schemas folder: ${SCHEMAS_FOLDER}"
 echo "Schemas config: ${SCHEMAS_CONFIG}"
