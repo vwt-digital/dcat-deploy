@@ -5,6 +5,9 @@ from google.cloud import pubsub_v1
 import sys
 from gobits import Gobits
 
+logging.basicConfig(level=logging.INFO)
+
+
 def publish_to_topic(args, gobits):
     try:
         with open(args.data_catalog, 'r') as f:
@@ -33,10 +36,11 @@ def publish_to_topic(args, gobits):
                                         'with project ID {}'.format(
                                             dc_project_id))
             )
-        return True
+            return True
     except Exception as e:
         logging.exception('Unable to publish data catalog ' +
                           'to topic because of {}'.format(e))
+        print("Unable to publish data catalog to topic because of {}".format(e))
     return False
 
 

@@ -5,8 +5,20 @@ DEPLOYMENT_NAME=${1}
 DATA_CATALOG=${2}
 PROJECT_ID=${3}
 BRANCH_NAME=${4}
-RUN_MODE=${5:-"deploy"}
 
+SCHEMAS_FOLDER=""
+if [ -n "${5}" ]
+then
+    SCHEMAS_FOLDER=${5}
+fi
+
+SCHEMAS_CONFIG=""
+if [ -n "${6}" ]
+then
+    SCHEMAS_CONFIG=${6}
+fi
+
+RUN_MODE=${7:-"deploy"}
 
 function error_exit() {
   # ${BASH_SOURCE[1]} is the file name of the caller.
@@ -126,38 +138,49 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     fi &&
     deactivate &&
 
-    # Post the schema to the schemas topic
-    # Also post schema to the schemas storage
-    # Only if the data catalog has schemas
-    . venv/bin/activate
-    pip install google-cloud-pubsub==1.2.0
-    pip install gobits==0.0.7
-    pip install google-cloud-storage==1.31.0
-    pip install jsonschema==3.2.0
+    # Check if the schemas folder is given as a parameter
+    if [ -n "${SCHEMAS_FOLDER}" ]; then
+        # Post the schema to the schemas topic
+        # Also post schema to the schemas storage
+        # Only if the data catalog has schemas
+        . venv/bin/activate
+        pip install google-cloud-pubsub==1.2.0
+        pip install gobits==0.0.7
+        pip install google-cloud-storage==1.31.0
+        pip install jsonschema==3.2.0
 
-    get_abs_filename() {
-        echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
-    }
-    SCHEMAS_FOLDER="schemas"
-    # Check if there is a folder called "schemas"
-    if [ -d "${SCHEMAS_FOLDER}" ]; then
+        get_abs_filename() {
+            echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
+        }
         echo "Schemas folder found"
         SCHEMAS_FOLDER_ABS_PATH=$(get_abs_filename "${SCHEMAS_FOLDER}")
         # For every schema in the schemas folder
         for f in "${SCHEMAS_FOLDER_ABS_PATH}"/*.json;
         do
+            if [ -z "${SCHEMAS_CONFIG}" ]
+            then
+                echo "Schema config variable cannot be found."
+                exit 1
+            fi
+            if [ "${BRANCH_NAME}" == "develop" ]
+            then
+                topic_project_id=$(sed -n "s/\s*topic_project_id_develop.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
+                topic_name=$(sed -n "s/\s*topic_name_develop.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
+            elif [ "${BRANCH_NAME}" == "master" ]
+            then
+                topic_project_id=$(sed -n "s/\s*topic_project_id_production.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
+                topic_name=$(sed -n "s/\s*topic_name_production.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
+            fi
+
             # Run the script that publishes the schema
-            topic_project_id=$(sed -n "s/\s*topic_project_id.*:\s*\(.*\)$/\1/p" ./config/"${PROJECT_ID}"/config.schemastopic.yaml | head -n1)
-            topic_name=$(sed -n "s/\s*topic_name.*:\s*\(.*\)$/\1/p" ./config/"${PROJECT_ID}"/config.schemastopic.yaml | head -n1)
-            bucket_name=$(sed -n "s/\s*bucket_name.*:\s*\(.*\)$/\1/p" ./config/"${PROJECT_ID}"/config.schemastopic.yaml | head -n1)
-            if ! python3 "${basedir}"/publish_schema_to_topic.py -d "${gcp_catalog}" -s "$f" -sf "${SCHEMAS_FOLDER_ABS_PATH}" -tpi "${topic_project_id}" -tn "${topic_name}" -b "${bucket_name}"
+            if ! python3 "${basedir}"/publish_schema_to_topic.py -d "${gcp_catalog}" -s "$f" -sf "${SCHEMAS_FOLDER_ABS_PATH}" -tpi "${topic_project_id}" -tn "${topic_name}"
             then
                 echo "ERROR publishing schema."
                 exit 1
             fi
         done
+        deactivate
     fi
-    deactivate
 
 else
     cat "${gcp_template}" "${basedir}"/test.py > "${gcp_template}".test.py
