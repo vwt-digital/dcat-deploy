@@ -73,23 +73,24 @@ def fill_refs(schema, schema_folder_path):
                     # Check if there is a URI in front of the '#'
                     # Because then the definition is in another schema
                     comma_at_end = False
-                    if 'urn' in ref_def or 'http' in ref_def:
+                    if 'tag' in ref_def or 'http' in ref_def:
                         # Split on the '#/'
                         ref_def_array = ref_def.split("#/")
                         uri_part = ref_def_array[0]
                         def_part = ref_def_array[1]
                         if def_part[-1] == ',':
-                            def_part = def_part.replace(",", "")
+                            def_part = def_part[:-1]
                             comma_at_end = True
                         # Get filename
                         if 'http' in uri_part:
                             # Find schema via its URL locally
                             schema_file_name = uri_part.replace("://", "_")
-                        elif 'urn' in uri_part:
-                            # Find schema via its URN locally
-                            schema_file_name = uri_part.replace("urn:", "urn_")
+                        elif 'tag' in uri_part:
+                            # Find schema via its tag locally
+                            schema_file_name = uri_part.replace("tag:", "tag_")
+                            schema_file_name = uri_part.replace(":", "_")
                         else:
-                            logging.error("Reference is not a http(s) or urn as uri")
+                            logging.error("Reference is not a http(s) or tag as uri")
                             sys.exit(1)
                         schema_file_name = schema_file_name.replace('/', '_')
                         if (not schema_file_name.endswith('.json')):
@@ -108,7 +109,7 @@ def fill_refs(schema, schema_folder_path):
                         def_part = ref_def_array[1]
                         # If there's a comma at the end
                         if def_part[-1] == ',':
-                            def_part = def_part.replace(",", "")
+                            def_part = def_part[:-1]
                             comma_at_end = True
                         reference_schema_def = schema_json
                     # Now find key in json where the reference is defined
@@ -145,8 +146,8 @@ def fill_refs(schema, schema_folder_path):
                     meta_data_file_name = meta_data_file_name + ".json"
                 # Fill reference
                 new_schema = fill_from_local_schema(new_schema, schema_folder_path, ref, meta_data_file_name)
-            # If reference is an URN
-            elif 'urn' in line:
+            # If reference is a tag
+            elif 'tag' in line:
                 if '"$ref": "' in line:
                     line_array = line.split('"$ref": "')
                 elif '"$ref" : "' in line:
@@ -154,12 +155,13 @@ def fill_refs(schema, schema_folder_path):
                 else:
                     line_array = ''
                 ref = line_array[1].replace('\"', '')
-                # Find schema via its URN locally
-                meta_data_file_name = ref.replace("urn:", "urn_")
+                # Find schema via its tag locally
+                meta_data_file_name = ref.replace("tag:", "tag_")
+                meta_data_file_name = ref.replace(":", "_")
                 # Fill reference
                 new_schema = fill_from_local_schema(new_schema, schema_folder_path, ref, meta_data_file_name)
             else:
-                # If the line does not contain any URN references
+                # If the line does not contain any tag references
                 # Just write it to the stringio file
                 new_schema.write(line)
         else:
@@ -171,11 +173,11 @@ def fill_refs(schema, schema_folder_path):
     return new_schema
 
 
-def fill_from_local_schema(new_schema, schema_folder_path, meta_data_urn, meta_data_file_name):
+def fill_from_local_schema(new_schema, schema_folder_path, meta_data_uri, meta_data_file_name):
     # Replace /
     meta_data_file_name = meta_data_file_name.replace("/", "_")
     # Path to schema
-    ref_schema_path = schema_folder_path + "/" + meta_data_file_name.replace(',', '')
+    ref_schema_path = schema_folder_path + "/" + meta_data_file_name
     # Check if the path to the schema exists in the schemas folder
     try:
         with open(ref_schema_path, 'r') as f:
@@ -187,10 +189,15 @@ def fill_from_local_schema(new_schema, schema_folder_path, meta_data_urn, meta_d
     try:
         # Also fill in references if they occur in the reference schema
         reference_schema = fill_refs(reference_schema, schema_folder_path)
-        # Double check if the urn of the schema is the same as the
+    except Exception as e:
+        logging.exception('The references in schema with path {} '
+                          'could not be filled because of {}'.format(ref_schema_path, e))
+        sys.exit(1)
+    else:
+        # Double check if the uri of the schema is the same as the
         # one of the reference
         if '$id' in reference_schema:
-            if reference_schema['$id'] == meta_data_urn.replace(',', ''):
+            if reference_schema['$id'] == meta_data_uri:
                 # Add the schema to the new schema
                 reference_schema_txt = json.dumps(reference_schema, indent=2)
                 reference_schema_list = reference_schema_txt.split('\n')
@@ -202,28 +209,25 @@ def fill_from_local_schema(new_schema, schema_folder_path, meta_data_urn, meta_d
             else:
                 logging.error('ID of reference is {} while \
                 that of the schema is {}'.format(
-                    meta_data_urn, reference_schema['$id']
+                    meta_data_uri, reference_schema['$id']
                 ))
                 sys.exit(1)
         else:
-            logging.error('Reference schema of reference {} has no ID'.format(meta_data_urn))
+            logging.error('Reference schema of reference {} has no ID'.format(meta_data_uri))
             sys.exit(1)
-    except Exception as e:
-        logging.exception('The references in schema with path {} '
-                          'could not be filled because of {}'.format(ref_schema_path, e))
-        sys.exit(1)
     return new_schema
 
 
 def validate_schema(schema, schema_folder_path):
     if '$schema' in schema:
-        meta_data_schema_urn = schema['$schema']
-        if 'http' in meta_data_schema_urn:
+        meta_data_schema_uri = schema['$schema']
+        if 'http' in meta_data_schema_uri:
             # Find schema via its URL locally
-            meta_data_file_name = meta_data_schema_urn.replace("://", "_")
-        elif 'urn' in meta_data_schema_urn:
-            # Find schema via its URN locally
-            meta_data_file_name = meta_data_schema_urn.replace("urn:", "urn_")
+            meta_data_file_name = meta_data_schema_uri.replace("://", "_")
+        elif 'tag' in meta_data_schema_uri:
+            # Find schema via its tag locally
+            meta_data_file_name = meta_data_schema_uri.replace("tag:", "tag_")
+            meta_data_file_name = meta_data_schema_uri.replace(":", "_")
         else:
             logging.error('Cannot validate schema because no meta_data schema is found')
             sys.exit(1)
@@ -245,7 +249,7 @@ def validate_schema(schema, schema_folder_path):
         meta_data_schema = fill_refs(meta_data_schema, schema_folder_path)
     except Exception as e:
         logging.error('The path {} to the meta data schema {} does not exist because of {}'.format(
-            meta_data_schema_path, meta_data_schema_urn, e))
+            meta_data_schema_path, meta_data_schema_uri, e))
         sys.exit(1)
     # Validate the schema agains the meta data schema
     try:
@@ -268,7 +272,7 @@ def publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name):
         future = publisher.publish(
             topic_path, bytes(json.dumps(msg).encode('utf-8')))
         future.add_done_callback(
-            lambda x: logging.debug('Published schema with URN {} for topic {}'.format(
+            lambda x: logging.debug('Published schema with URI {} for topic {}'.format(
                                         msg['schema']['$id'], topic_that_uses_schema))
                 )
         return True
