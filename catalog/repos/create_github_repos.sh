@@ -59,13 +59,14 @@ done
 
 IFS="$OLDIFS"
 
-(
-    if [ -z "$(which pip3)" ]
-    then
-        pip install virtualenv==16.7.9
-        virtualenv -p python3 venv_github_perm
-        source venv_github_perm/bin/activate
-    fi
-    pip3 install requests==2.7.0
-    python3 ${basedir}/set_github_team_repo_permissions.py "${DATA_CATALOG}" "${GITHUB_ACCESS_TOKEN}"
-)
+if [ -z "$(which pip3)" ]
+then
+    pip install virtualenv==16.7.9
+else
+    pip3 install virtualenv
+fi
+virtualenv -p python3 venv_github_perm
+source venv_github_perm/bin/activate
+pip install requests==2.7.0
+python3 ${basedir}/set_github_team_repo_permissions.py "${DATA_CATALOG}" "${GITHUB_ACCESS_TOKEN}"
+deactivate

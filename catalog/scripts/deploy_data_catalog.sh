@@ -75,18 +75,17 @@ python3 "${basedir}"/prepare_data_catalog.py -c "${DATA_CATALOG}" -p "${PROJECT_
 # Generate datastore indexes
 ############################################################
 
-(
-    # Running in subshell to deactivate virtualenv that will be activated
-    # to allow python3 package install in python2 based gcloud
-    if [ -z "$(which pip3)" ]
-    then
-        pip install virtualenv==16.7.9
-        virtualenv -p python3 venv
-        . venv/bin/activate
-    fi
-    pip3 install pyyaml
-    python3 "${basedir}"/generate_datastore_indexes.py "${DATA_CATALOG}" > "${gcp_datastore_indexes}"
-)
+if [ -z "$(which pip3)" ]
+then
+    pip install virtualenv==16.7.9
+else
+    pip3 install virtualenv
+fi
+virtualenv -p python3 venv
+. venv/bin/activate
+pip install pyyaml
+python3 "${basedir}"/generate_datastore_indexes.py "${DATA_CATALOG}" > "${gcp_datastore_indexes}"
+deactivate
 
 ############################################################
 # Deploy data catalog
