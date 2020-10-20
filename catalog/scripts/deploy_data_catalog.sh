@@ -75,18 +75,17 @@ python3 "${basedir}"/prepare_data_catalog.py -c "${DATA_CATALOG}" -p "${PROJECT_
 # Generate datastore indexes
 ############################################################
 
-(
-    # Running in subshell to deactivate virtualenv that will be activated
-    # to allow python3 package install in python2 based gcloud
-    if [ -z "$(which pip3)" ]
-    then
-        pip install virtualenv==16.7.9
-        virtualenv -p python3 venv
-        . venv/bin/activate
-    fi
-    pip3 install pyyaml
-    python3 "${basedir}"/generate_datastore_indexes.py "${DATA_CATALOG}" > "${gcp_datastore_indexes}"
-)
+if [ -z "$(which pip3)" ]
+then
+    pip install virtualenv==16.7.9
+else
+    pip3 install virtualenv
+fi
+virtualenv -p python3 venv
+. venv/bin/activate
+pip install pyyaml
+python3 "${basedir}"/generate_datastore_indexes.py "${DATA_CATALOG}" > "${gcp_datastore_indexes}"
+deactivate
 
 ############################################################
 # Deploy data catalog
@@ -134,72 +133,58 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     gsutil cp "${gcp_catalog}" gs://"${PROJECT_ID}"-dcat-deployed-stg/data_catalog.json
 
     # Post the data catalog to the data catalogs topic
-    (
-        if [ -z "$(which pip3)" ]
-        then
-            . venv/bin/activate
-        fi
-        pip3 install google-cloud-pubsub==1.2.0
-        pip3 install gobits==0.0.7
-        python3 "${basedir}"/publish_dcat_to_topic.py -d "${gcp_catalog}" -p "${PROJECT_ID}"
-    )
-    if [ $? -ne 0 ]
+    . venv/bin/activate &&
+    pip install google-cloud-pubsub==1.2.0
+    pip install gobits==0.0.7
+    if ! python3 "${basedir}"/publish_dcat_to_topic.py -d "${gcp_catalog}" -p "${PROJECT_ID}"
     then
         echo "ERROR publishing data_catalog."
         exit 1
-    fi
+    fi &&
+    deactivate &&
 
     # Check if the schemas folder is given as a parameter
     if [ -n "${SCHEMAS_FOLDER}" ]; then
         # Post the schema to the schemas topic
         # Also post schema to the schemas storage
         # Only if the data catalog has schemas
-        (
-            if [ -z "$(which pip3)" ]
+        . venv/bin/activate
+        pip install google-cloud-pubsub==1.2.0
+        pip install gobits==0.0.7
+        pip install google-cloud-storage==1.31.0
+        pip install jsonschema==3.2.0
+
+        get_abs_filename() {
+            echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
+        }
+        echo "Schemas folder found"
+        SCHEMAS_FOLDER_ABS_PATH=$(get_abs_filename "${SCHEMAS_FOLDER}")
+        # For every schema in the schemas folder
+        for f in "${SCHEMAS_FOLDER_ABS_PATH}"/*.json;
+        do
+            if [ -z "${SCHEMAS_CONFIG}" ]
             then
-                . venv/bin/activate
+                echo "Schema config variable cannot be found."
+                exit 1
             fi
-            pip3 install google-cloud-pubsub==1.2.0
-            pip3 install gobits==0.0.7
-            pip3 install google-cloud-storage==1.31.0
-            pip3 install jsonschema==3.2.0
+            if [ "${BRANCH_NAME}" == "develop" ]
+            then
+                topic_project_id=$(sed -n "s/\s*topic_project_id_develop.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
+                topic_name=$(sed -n "s/\s*topic_name_develop.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
+            elif [ "${BRANCH_NAME}" == "master" ]
+            then
+                topic_project_id=$(sed -n "s/\s*topic_project_id_production.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
+                topic_name=$(sed -n "s/\s*topic_name_production.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
+            fi
 
-            get_abs_filename() {
-                echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
-            }
-            echo "Schemas folder found"
-            SCHEMAS_FOLDER_ABS_PATH=$(get_abs_filename "${SCHEMAS_FOLDER}")
-            # For every schema in the schemas folder
-            for f in "${SCHEMAS_FOLDER_ABS_PATH}"/*.json;
-            do
-                if [ -z "${SCHEMAS_CONFIG}" ]
-                then
-                    echo "Schema config variable cannot be found."
-                    exit 1
-                fi
-                if [ "${BRANCH_NAME}" == "develop" ]
-                then
-                    topic_project_id=$(sed -n "s/\s*topic_project_id_develop.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
-                    topic_name=$(sed -n "s/\s*topic_name_develop.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
-                elif [ "${BRANCH_NAME}" == "master" ]
-                then
-                    topic_project_id=$(sed -n "s/\s*topic_project_id_production.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
-                    topic_name=$(sed -n "s/\s*topic_name_production.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
-                fi
-
-                # Run the script that publishes the schema
-                if ! python3 "${basedir}"/publish_schema_to_topic.py -d "${gcp_catalog}" -s "$f" -sf "${SCHEMAS_FOLDER_ABS_PATH}" -tpi "${topic_project_id}" -tn "${topic_name}"
-                then
-                    echo "ERROR publishing schema."
-                    exit 1
-                fi
-            done
-        )
-        if [ $? -ne 0 ]
-        then
-            echo "ERROR publishing schemas."
-            exit 1
-        fi
+            # Run the script that publishes the schema
+            if ! python3 "${basedir}"/publish_schema_to_topic.py -d "${gcp_catalog}" -s "$f" -sf "${SCHEMAS_FOLDER_ABS_PATH}" -tpi "${topic_project_id}" -tn "${topic_name}"
+            then
+                echo "ERROR publishing schema."
+                exit 1
+            fi
+        done
+        deactivate
     fi
 
 else
