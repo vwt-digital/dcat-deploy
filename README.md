@@ -22,3 +22,31 @@ This will create the datasets as specified in the data_catalog.json file on the 
 
 See [Catalog deployment](deploy-dcat-gcp.md) for more information on the resources created on GCP from the data catalog.
 
+### Data Catalog Publish Config
+The data catalog can also be published to a topic. In order for this to work, the field *publishDataCatalog* has to be set in the data catalog. This field is as follows:
+
+```
+"publishDataCatalog": {
+    "topic": "topic-name",
+    "project": "project-name"
+}
+```
+
+[Here](https://github.com/vwt-digital/project-company-data.github.io/blob/develop/v1.1/examples/catalog-sample.json) an example of a data catalog can be found.
+
+### Schemas
+When the data catalog contains a dataset that has a *topic* distribution, it is highly recommended to send a schema along with the topic. This can be done by adding the fields *describedBy* and *describedByType* to the distribution. The value of *describedBy* should be the file name of the schema and the value of *describedByType* should be the type of the schema, for JSON schemas this is *application/schema+json*.
+
+The data catalog deployment needs to know where the schemas are and to what topic the schemas should be send. This is done by giving two extra parameters to [deploy_dcat_gcp.sh](deploy_dcat_gcp.sh). These parameters are:
+* schemas folder path: Path where the schemas can be found
+* schemas config: Yaml file with information about where the topic is the schemas need to be send to
+
+Here is an example of a schema config yaml:
+```
+---
+config:
+    topic_project_id_development: project-name-development
+    topic_name_development: topic-name-development
+    topic_project_id_production: project-name-production
+    topic_name_production: topic-name-production
+```
