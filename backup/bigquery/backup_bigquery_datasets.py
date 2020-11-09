@@ -2,10 +2,12 @@ import logging
 import argparse
 import subprocess
 
+from retry import retry
 from datetime import datetime
 from dateutil.parser import parse
 from google.cloud import storage
 from google.cloud import bigquery
+from google.api_core.exceptions import ServiceUnavailable
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)7s: %(message)s')
 
@@ -58,6 +60,7 @@ def main(args):
             delete_blob(storage_client, args.bucket, backup)
 
 
+@retry(ServiceUnavailable, tries=5, delay=5, backoff=2, logger=None)
 def list_blobs(client, bucket_name, path):
 
     bucket = client.get_bucket(bucket_name)
@@ -68,6 +71,7 @@ def list_blobs(client, bucket_name, path):
     return files
 
 
+@retry(ServiceUnavailable, tries=5, delay=5, backoff=2, logger=None)
 def delete_blob(client, bucket_name, file_name):
 
     bucket = client.get_bucket(bucket_name)
