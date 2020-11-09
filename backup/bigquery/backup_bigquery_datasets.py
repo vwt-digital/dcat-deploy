@@ -55,7 +55,7 @@ def main(args):
 
         logging.info('Removing expired backups for {}'.format(table))
         for backup in expired:
-            delete_blob(args.bucket, backup)
+            delete_blob(storage_client, args.bucket, backup)
 
 
 def list_blobs(client, bucket_name, path):
