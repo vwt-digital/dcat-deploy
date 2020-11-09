@@ -55,7 +55,7 @@ def main(args):
 
         logging.info('Removing expired backups for {}'.format(table))
         for backup in expired:
-            delete_blob(backup)
+            delete_blob(args.bucket, backup)
 
 
 def list_blobs(client, bucket_name, path):
@@ -69,13 +69,15 @@ def list_blobs(client, bucket_name, path):
 
 
 def delete_blob(client, bucket_name, file_name):
+
     bucket = client.get_bucket(bucket_name)
-    blob = bucket.blob(file_name)
-    blob.delete()
+    bucket.blob(file_name).delete()
+
     logging.info('Removed {} from {}'.format(file_name, bucket_name))
 
 
 def get_date(partition):
+
     return parse(partition).strftime('%Y/%m/%d')
 
 
