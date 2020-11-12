@@ -36,7 +36,7 @@ def publish_to_topic(args, gobits):
                                         'with project ID {}'.format(
                                             dc_project_id))
             )
-            return True
+        return True
     except Exception as e:
         logging.exception('Unable to publish data catalog ' +
                           'to topic because of {}'.format(e))
