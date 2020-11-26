@@ -70,7 +70,9 @@ for dataset in catalog.get('dataset', []):
                 # If they are, check if there is a schema folder
                 if schema_folder_path:
                     # Then check if schema can be found in the schema folder
-                    # Replace /
+                    # Replace / and :
+                    schema_file_name = describedBy.replace("tag:", "tag_")
+                    schema_file_name = describedBy.replace(":", "_")
                     schema_file_name = describedBy.replace("/", "_")
                     # Path to schema
                     ref_schema_path = schema_folder_path + "/" + schema_file_name
