@@ -305,8 +305,6 @@ if __name__ == "__main__":
     # Topic the schema needs to be published to
     topic_name = args.topic_name
     # Publish every schema message to the topic
-    messages_length = len(messages)
-    print('Found {} schema message(s)'.format(messages_length))
     for m in messages:
         if validate_schema(m['schema'], schema_folder_path):
             # The gobits of the message
@@ -316,6 +314,7 @@ if __name__ == "__main__":
                 "schema": m['schema']
             }
             topic_that_uses_schema = m['topic_that_uses_schema']
+            print('Publishing schema {} to topic'.format(m['schema']['$id']))
             # print(json.dumps(msg, indent=4, sort_keys=False))
             return_bool_publish_topic = publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name)
             if not return_bool_publish_topic:
