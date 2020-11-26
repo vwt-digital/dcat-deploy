@@ -1,7 +1,7 @@
 import sys
 import json
 import argparse
-import os.path
+# import os.path
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-d', '--data-catalog', required=True)
@@ -56,33 +56,33 @@ for dataset in catalog.get('dataset', []):
                      "Solve this by adding the group to a more limited role than roles/viewer.")
 
     # Check if dataset contains a distribution
-    for distribution in dataset.get('distribution', []):
-        # Check if distribution is a topic
-        if distribution.get('format') == 'topic':
-            # Check if describedBy and describedByType are set
-            describedBy = distribution.get('describedBy')
-            describedByType = distribution.get('describedByType')
-            # If they are not, give error
-            if not describedBy or not describedByType:
-                sys.exit("ERROR: topic distribution {} should contain".format(distribution.get('title')) +
-                         " 'describedBy' and 'describedByType' fields.")
-            elif describedBy and describedByType:
-                # If they are, check if there is a schema folder
-                if schema_folder_path:
-                    # Then check if schema can be found in the schema folder
-                    # Replace / and :
-                    schema_file_name = describedBy.replace("tag:", "tag_")
-                    schema_file_name = schema_file_name.replace(":", "_")
-                    schema_file_name = schema_file_name.replace("/", "_")
-                    # Path to schema
-                    ref_schema_path = schema_folder_path + "/" + schema_file_name
-                    # Check if the path to the schema exists in the schemas folder
-                    if not os.path.exists(ref_schema_path):
-                        print(ref_schema_path)
-                        sys.exit("ERROR: could not find schema {} in schema folder".format(describedBy))
-                else:
-                    # If there is no schema folder, give error
-                    sys.exit("ERROR: could not find schema folder for tag {}".format(describedBy))
+    # for distribution in dataset.get('distribution', []):
+    #     # Check if distribution is a topic
+    #     if distribution.get('format') == 'topic':
+    #         # Check if describedBy and describedByType are set
+    #         describedBy = distribution.get('describedBy')
+    #         describedByType = distribution.get('describedByType')
+    #         # If they are not, give error
+    #         if not describedBy or not describedByType:
+    #             sys.exit("ERROR: topic distribution {} should contain".format(distribution.get('title')) +
+    #                      " 'describedBy' and 'describedByType' fields.")
+    #         elif describedBy and describedByType:
+    #             # If they are, check if there is a schema folder
+    #             if schema_folder_path:
+    #                 # Then check if schema can be found in the schema folder
+    #                 # Replace / and :
+    #                 schema_file_name = describedBy.replace("tag:", "tag_")
+    #                 schema_file_name = schema_file_name.replace(":", "_")
+    #                 schema_file_name = schema_file_name.replace("/", "_")
+    #                 # Path to schema
+    #                 ref_schema_path = schema_folder_path + "/" + schema_file_name
+    #                 # Check if the path to the schema exists in the schemas folder
+    #                 if not os.path.exists(ref_schema_path):
+    #                     print(ref_schema_path)
+    #                     sys.exit("ERROR: could not find schema {} in schema folder".format(describedBy))
+    #             else:
+    #                 # If there is no schema folder, give error
+    #                 sys.exit("ERROR: could not find schema folder for tag {}".format(describedBy))
 
 # Make sure a datastore/firestore distribution has been added to the data-catalog if the service is active
 if has_datastore_service and not has_datastore_dis:
