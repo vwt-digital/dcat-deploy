@@ -48,7 +48,16 @@ roles=$(gcloud projects get-iam-policy "${PROJECT_ID}" \
 # Perform sanity check
 ############################################################
 
-python3 "${basedir}"/data_catalog_sanity_check.py "${DATA_CATALOG}" "${BRANCH_NAME}" "${roles}" "${services}"
+if [ -n "${SCHEMAS_FOLDER}" ]; then
+    get_abs_filename() {
+        echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
+    }
+    SCHEMAS_FOLDER_ABS_PATH=$(get_abs_filename "${SCHEMAS_FOLDER}")
+    python3 "${basedir}"/data_catalog_sanity_check.py -d "${DATA_CATALOG}" -b "${BRANCH_NAME}" -r "${roles}" -s "${services}" -sf "${SCHEMAS_FOLDER_ABS_PATH}"
+else
+    python3 "${basedir}"/data_catalog_sanity_check.py -d "${DATA_CATALOG}" -b "${BRANCH_NAME}" -r "${roles}" -s "${services}"
+fi
+
 result=$?
 
 if [ "${result}" -ne 0 ]; then
