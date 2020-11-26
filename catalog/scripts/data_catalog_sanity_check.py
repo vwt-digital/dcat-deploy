@@ -76,6 +76,7 @@ for dataset in catalog.get('dataset', []):
                     ref_schema_path = schema_folder_path + "/" + schema_file_name
                     # Check if the path to the schema exists in the schemas folder
                     if not os.path.exists(ref_schema_path):
+                        print(ref_schema_path)
                         sys.exit("ERROR: could not find schema {} in schema folder".format(describedBy))
                 else:
                     # If there is no schema folder, give error
