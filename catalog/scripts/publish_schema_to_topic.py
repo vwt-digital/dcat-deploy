@@ -7,7 +7,6 @@ from google.cloud import pubsub_v1
 import sys
 from gobits import Gobits
 from io import StringIO
-import jsonschema
 from functools import reduce
 import operator
 
@@ -218,51 +217,6 @@ def fill_from_local_schema(new_schema, schema_folder_path, meta_data_uri, meta_d
     return new_schema
 
 
-def validate_schema(schema, schema_folder_path):
-    if '$schema' in schema:
-        meta_data_schema_uri = schema['$schema']
-        if 'http' in meta_data_schema_uri:
-            # Find schema via its URL locally
-            meta_data_file_name = meta_data_schema_uri.replace("://", "_")
-        elif 'tag' in meta_data_schema_uri:
-            # Find schema via its tag locally
-            meta_data_file_name = meta_data_schema_uri.replace("tag:", "tag_")
-            meta_data_file_name = meta_data_schema_uri.replace(":", "_")
-        else:
-            logging.error('Cannot validate schema because no meta_data schema is found')
-            sys.exit(1)
-    else:
-        if '$id' in schema:
-            logging.error('The schema {} does not have a $schema key'.format(
-                            schema["$id"]))
-            sys.exit(1)
-        else:
-            logging.error('The schema does not have an $id key')
-            sys.exit(1)
-    # Check if the path to the schema exists in the schemas folder
-    try:
-        meta_data_file_name = meta_data_file_name.replace("/", "_")
-        meta_data_schema_path = schema_folder_path + "/" + meta_data_file_name + ".json"
-        with open(meta_data_schema_path, 'r') as f:
-            meta_data_schema = json.load(f)
-        # Also fill in references if they occur in the meta data schema
-        meta_data_schema = fill_refs(meta_data_schema, schema_folder_path)
-    except Exception as e:
-        logging.error('The path {} to the meta data schema {} does not exist because of {}'.format(
-            meta_data_schema_path, meta_data_schema_uri, e))
-        sys.exit(1)
-    # Validate the schema agains the meta data schema
-    try:
-        jsonschema.validate(schema, meta_data_schema)
-    except Exception as e:
-        logging.exception('Schema is not conform meta data schema' +
-                          ' because of {}'.format(e))
-        return False
-    logging.info('Schema is conform meta data schema')
-    print('Schema is conform meta data schema')
-    return True
-
-
 def publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name):
     try:
         # Publish to topic
@@ -306,18 +260,15 @@ if __name__ == "__main__":
     topic_name = args.topic_name
     # Publish every schema message to the topic
     for m in messages:
-        if validate_schema(m['schema'], schema_folder_path):
-            # The gobits of the message
-            gobits = Gobits()
-            msg = {
-                "gobits": [gobits.to_json()],
-                "schema": m['schema']
-            }
-            topic_that_uses_schema = m['topic_that_uses_schema']
-            print('Publishing schema {} to topic'.format(m['schema']['$id']))
-            # print(json.dumps(msg, indent=4, sort_keys=False))
-            return_bool_publish_topic = publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name)
-            if not return_bool_publish_topic:
-                sys.exit(1)
-        else:
+        # The gobits of the message
+        gobits = Gobits()
+        msg = {
+            "gobits": [gobits.to_json()],
+            "schema": m['schema']
+        }
+        topic_that_uses_schema = m['topic_that_uses_schema']
+        print('Publishing schema {} to topic'.format(m['schema']['$id']))
+        # print(json.dumps(msg, indent=4, sort_keys=False))
+        return_bool_publish_topic = publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name)
+        if not return_bool_publish_topic:
             sys.exit(1)
