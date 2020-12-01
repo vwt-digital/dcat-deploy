@@ -27,7 +27,7 @@ has_firestore_dis = False
 # Path where the schemas are
 schema_folder_path = args.schema_folder
 
-print("Check data_catalog sanity for {}".format(sys.argv[1]))
+print("Check data_catalog sanity for {}".format(args.data_catalog))
 
 if 'projectId' not in catalog:
     sys.exit("ERROR: catalog does not contain the projectId." +
