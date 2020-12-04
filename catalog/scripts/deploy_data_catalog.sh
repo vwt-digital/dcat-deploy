@@ -187,7 +187,7 @@ if [ "${RUN_MODE}" = "deploy" ]; then
             fi
 
             # Run the script that publishes the schema
-            if ! python3 "${basedir}"/publish_schema_to_topic.py -d "${gcp_catalog}" -s "$f" -sf "${SCHEMAS_FOLDER_ABS_PATH}" -tpi "${topic_project_id}" -tn "${topic_name}"
+            if ! python3 "${basedir}"/publish_schema_to_topic.py -d "${gcp_catalog}" -s "$f" -tpi "${topic_project_id}" -tn "${topic_name}"
             then
                 echo "ERROR publishing schema."
                 exit 1
