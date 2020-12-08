@@ -168,31 +168,33 @@ if [ "${RUN_MODE}" = "deploy" ]; then
         }
         echo "Schemas folder found"
         SCHEMAS_FOLDER_ABS_PATH=$(get_abs_filename "${SCHEMAS_FOLDER}")
+        SCHEMAS_ARR=()
         # For every schema in the schemas folder
         for f in "${SCHEMAS_FOLDER_ABS_PATH}"/*.json;
         do
-            if [ -z "${SCHEMAS_CONFIG}" ]
-            then
-                echo "Schema config variable cannot be found."
-                exit 1
-            fi
-            if [ "${BRANCH_NAME}" == "develop" ]
-            then
-                topic_project_id=$(sed -n "s/\s*topic_project_id_develop.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
-                topic_name=$(sed -n "s/\s*topic_name_develop.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
-            elif [ "${BRANCH_NAME}" == "master" ]
-            then
-                topic_project_id=$(sed -n "s/\s*topic_project_id_production.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
-                topic_name=$(sed -n "s/\s*topic_name_production.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
-            fi
-
-            # Run the script that publishes the schema
-            if ! python3 "${basedir}"/publish_schema_to_topic.py -d "${gcp_catalog}" -s "$f" -tpi "${topic_project_id}" -tn "${topic_name}"
-            then
-                echo "ERROR publishing schema."
-                exit 1
-            fi
+            SCHEMAS_ARR+=("$f")
         done
+        if [ -z "${SCHEMAS_CONFIG}" ]
+        then
+            echo "Schema config variable cannot be found."
+            exit 1
+        fi
+        if [ "${BRANCH_NAME}" == "develop" ]
+        then
+            topic_project_id=$(sed -n "s/\s*topic_project_id_develop.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
+            topic_name=$(sed -n "s/\s*topic_name_develop.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
+        elif [ "${BRANCH_NAME}" == "master" ]
+        then
+            topic_project_id=$(sed -n "s/\s*topic_project_id_production.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
+            topic_name=$(sed -n "s/\s*topic_name_production.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
+        fi
+
+        # Run the script that publishes the schema
+        if ! python3 "${basedir}"/publish_schema_to_topic.py -d "${gcp_catalog}" -tpi "${topic_project_id}" -tn "${topic_name}" -s "${SCHEMAS_ARR[@]}"
+        then
+            echo "ERROR publishing schema."
+            exit 1
+        fi
         deactivate
     fi
 

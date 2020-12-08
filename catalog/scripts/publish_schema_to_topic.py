@@ -8,41 +8,27 @@ import sys
 from gobits import Gobits
 
 
-def get_schema_messages(args):
-    try:
-        with open(args.data_catalog, 'r') as f:
-            catalog = json.load(f)
-        with open(args.schema, 'r') as f:
-            schema = json.load(f)
-
-        schema_messages = []
+def get_schemas(catalog, schema_list):
+    schemas = []
+    schema_names = []
+    for schema_file in schema_list:
+        try:
+            with open(schema_file, 'r') as f:
+                schema = json.load(f)
+        except Exception as e:
+            logging.exception('Unable to open schema ' +
+                              'because of {}'.format(e))
+            sys.exit(1)
         # Check if the schema has an id
         if '$id' in schema:
-            for dataset in catalog['dataset']:
-                for dist in dataset.get('distribution', []):
-                    if dist.get('format') == 'topic':
-                        # Get dataset topic only if it has a schema
-                        if 'describedBy' in dist and 'describedByType' in dist:
-                            # Check if the dataset topic has the given schema
-                            if(dist.get('describedBy') == schema['$id']):
-                                # Return schema
-                                topic_that_uses_schema = dist.get('title')
-                                schema_and_topic = {
-                                    "topic_that_uses_schema": topic_that_uses_schema,
-                                    "schema": schema
-                                }
-                                schema_messages.append(schema_and_topic)
+            schemas.append(schema)
+            schema_names.append(schema['$id'])
         else:
             logging.error("The given schema has no ID")
-        return schema_messages
-    except Exception as e:
-        logging.exception('Unable to publish schema ' +
-                          'because of {}'.format(e))
-        sys.exit(1)
-    return []
+    return schemas, schema_names
 
 
-def publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name):
+def publish_to_topic(msg, topic_project_id, topic_name):
     try:
         # Publish to topic
         publisher = pubsub_v1.PublisherClient()
@@ -51,8 +37,8 @@ def publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name):
         future = publisher.publish(
             topic_path, bytes(json.dumps(msg).encode('utf-8')))
         future.add_done_callback(
-            lambda x: logging.debug('Published schema with URI {} for topic {}'.format(
-                                        msg['schema']['$id'], topic_that_uses_schema))
+            lambda x: logging.debug('Published schema with URI {}'.format(
+                                        msg['schema']['$id']))
                 )
         return True
     except Exception as e:
@@ -64,28 +50,39 @@ def publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--data-catalog', required=True)
-    parser.add_argument('-s', '--schema', required=True)
+    parser.add_argument('-s', '--schemas', nargs='+', required=True)
     parser.add_argument('-tpi', '--topic-project-id', required=True)
     parser.add_argument('-tn', '--topic-name', required=True)
     args = parser.parse_args()
+    # Open data catalog
+    try:
+        with open(args.data_catalog, 'r') as f:
+            catalog = json.load(f)
+    except Exception as e:
+        logging.exception('Unable to open catalog ' +
+                          'because of {}'.format(e))
+        sys.exit(1)
+    # Get schemas list
+    schemas_list = args.schemas
     # A message should be send to the schemas topic
     # for every topic that has this schema
-    messages = get_schema_messages(args)
+    schemas, schema_names = get_schemas(catalog, schemas_list)
     # Project id of the topic the schema needs to be published to
     topic_project_id = args.topic_project_id
     # Topic the schema needs to be published to
     topic_name = args.topic_name
+    # Print which schemas are published
+    print(f"Publishing schemas {schema_names} to topic")
     # Publish every schema message to the topic
-    for m in messages:
-        # The gobits of the message
-        gobits = Gobits()
-        msg = {
-            "gobits": [gobits.to_json()],
-            "schema": m['schema']
-        }
-        topic_that_uses_schema = m['topic_that_uses_schema']
-        print('Publishing schema {} to topic'.format(m['schema']['$id']))
-        # print(json.dumps(msg, indent=2, sort_keys=False))
-        return_bool_publish_topic = publish_to_topic(msg, topic_that_uses_schema, topic_project_id, topic_name)
-        if not return_bool_publish_topic:
-            sys.exit(1)
+    # The gobits of the message
+    gobits = Gobits()
+    msg = {
+        "gobits": [gobits.to_json()],
+        "schemas": schemas
+    }
+    # print(json.dumps(msg, indent=2, sort_keys=False))
+    # with open('data.json', 'w') as outfile:
+    #     json.dump(msg, outfile, indent=2, sort_keys=False)
+    return_bool_publish_topic = publish_to_topic(msg, topic_project_id, topic_name)
+    if not return_bool_publish_topic:
+        sys.exit(1)
