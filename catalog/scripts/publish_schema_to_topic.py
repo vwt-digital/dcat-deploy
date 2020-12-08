@@ -72,7 +72,7 @@ if __name__ == "__main__":
     # Topic the schema needs to be published to
     topic_name = args.topic_name
     # Print which schemas are published
-    print(f"Publishing schemas {schema_names} to topic")
+    print("Publishing schemas {} to topic".format(schema_names))
     # Publish every schema message to the topic
     # The gobits of the message
     gobits = Gobits()
