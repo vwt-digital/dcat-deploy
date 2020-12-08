@@ -28,7 +28,7 @@ def get_schemas(catalog, schema_list):
     return schemas, schema_names
 
 
-def publish_to_topic(msg, topic_project_id, topic_name):
+def publish_to_topic(msg, schema_names, topic_project_id, topic_name):
     try:
         # Publish to topic
         publisher = pubsub_v1.PublisherClient()
@@ -37,8 +37,7 @@ def publish_to_topic(msg, topic_project_id, topic_name):
         future = publisher.publish(
             topic_path, bytes(json.dumps(msg).encode('utf-8')))
         future.add_done_callback(
-            lambda x: logging.debug('Published schema with URI {}'.format(
-                                        msg['schema']['$id']))
+            lambda x: logging.debug('Published schemas with tag {}'.format(schema_names))
                 )
         return True
     except Exception as e:
@@ -83,6 +82,6 @@ if __name__ == "__main__":
     # print(json.dumps(msg, indent=2, sort_keys=False))
     # with open('data.json', 'w') as outfile:
     #     json.dump(msg, outfile, indent=2, sort_keys=False)
-    return_bool_publish_topic = publish_to_topic(msg, topic_project_id, topic_name)
+    return_bool_publish_topic = publish_to_topic(msg, schema_names, topic_project_id, topic_name)
     if not return_bool_publish_topic:
         sys.exit(1)
