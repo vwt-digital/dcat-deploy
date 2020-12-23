@@ -21,11 +21,11 @@ do
     # Workaround for scheduler INTERNAL 500 error
     skew=$(($i % 15))
 
-    if [[ $period =~ .T1M$ ]]
+    if [[ $period =~ .T[1-4]M$ ]]
     then
         # Workaround for scheduler 12/15 * * * * does not work
         cron="*/15 * * * *"
-    elif [[ $period =~ .T5M$ ]]
+    elif [[ $period =~ .T[0-9]*M$ ]]
     then
         cron="$skew * * * *"
     else
