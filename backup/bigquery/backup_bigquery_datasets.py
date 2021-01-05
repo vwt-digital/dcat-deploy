@@ -39,7 +39,7 @@ def main(args):
 
                 logging.info('Starting backup for schema {}'.format(partition))
                 schema = get_schema(partition_name)
-                schema_file = '{}/schema.json'.format(partition_path, partition_date)
+                schema_file = '{}/{}/schema.json'.format(partition_path, partition_date)
                 backup_schema(storage_client, args.bucket, schema_file, schema)
 
             if not any('.avro' in blob for blob in blobs):
@@ -53,7 +53,7 @@ def main(args):
 
         table_path = "backup/bigquery/{}/{}".format(args.dataset, table)
         backups = list_blobs(storage_client, args.bucket, table_path)
-        expired = [backup for backup in backups if not any(get_date(partition) in backup for partition in partitions)]
+        expired = [backup for backup in backups if not any(get_date(partition) in backup for partition in filtered_partitions)]
 
         logging.info('Removing expired backups for {}'.format(table))
         for backup in expired:
