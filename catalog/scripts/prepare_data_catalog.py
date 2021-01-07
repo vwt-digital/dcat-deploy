@@ -139,6 +139,17 @@ for i, dataset in enumerate(catalog.get('dataset', [])):
                 "format": "blob-storage",
                 "title": "{}-history-stg".format(distribution.get('title')),
                 "description": "{} history storage".format(distribution.get('description'))
+              },
+              {
+                "accessURL": "https://console.cloud.google.com/storage/browser/{}-history-staging-stg".format(distribution.get('title')),
+                "mediaType": "application/json",
+                "deploymentZone": get_deployment_zone(project),
+                "format": "blob-storage",
+                "title": "{}-history-staging-stg".format(distribution.get('title')),
+                "description": "{} history staging storage".format(distribution.get('description')),
+                "deploymentProperties": {
+                  "defaultEventBasedHold": True
+                }
               }
             ]
             catalog['dataset'][i]['distribution'].extend(resources_to_append)
