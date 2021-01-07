@@ -284,9 +284,8 @@ def generate_config(context):
                 else:
                     resource_to_append['properties']['labels'] = labels
 
-                resource_to_append['properties']['lifecycle'] = gather_bucket_lifecycle(dataset.get('temporal', ''))
-
                 if not resource_to_append['properties'].get('defaultEventBasedHold', False):
+                    resource_to_append['properties']['lifecycle'] = gather_bucket_lifecycle(dataset.get('temporal', ''))
                     resource_to_append['properties']['retentionPolicy'] = \
                         gather_bucket_retentionPolicy(dataset.get('temporal', ''))
 
