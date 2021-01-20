@@ -19,7 +19,7 @@ git clone --branch="${BRANCH_NAME}" https://github.com/vwt-digital/pubsub-backup
   --memory=512MB \
   --timeout=540s \
   --service-account="${SERVICE_ACCOUNT}" \
-  --set-env-vars=PROJECT_ID="${PROJECT_ID}",BRANCH_NAME="${BRANCH_NAME}")
+  --set-env-vars=PROJECT_ID="${PROJECT_ID}")
 
 echo " + Setting permissions for ${PROJECT_ID}-history-func..."
 
