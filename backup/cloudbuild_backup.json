@@ -1,5 +1,5 @@
 {
-  "timeout": "7200s",
+  "timeout": "14400s",
   "logsBucket": "gs://${PROJECT_ID}_cloudbuild",
   "steps": [
     {
