@@ -141,7 +141,7 @@ if [ "${RUN_MODE}" = "deploy" ]; then
 
     # Deploy FireStore indexes
     . venv/bin/activate
-    pip install google-auth==1.24.0 google-cloud-firestore==1.9.0
+    pip install google-auth google-cloud-firestore==1.9.0
     python3 "${basedir}"/deploy_firestore_indexes.py "${DATA_CATALOG}"
     deactivate
 
