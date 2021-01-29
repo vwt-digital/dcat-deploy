@@ -90,8 +90,8 @@ then
 else
     pip3 install virtualenv
 fi
-virtualenv -p python3 venv
-. venv/bin/activate
+virtualenv -p python3 datastore-venv
+source datastore-venv/bin/activate
 pip install pyyaml
 python3 "${basedir}"/generate_datastore_indexes.py "${DATA_CATALOG}" > "${gcp_datastore_indexes}"
 deactivate
@@ -140,14 +140,8 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     fi
 
     # Deploy FireStore indexes
-    if [ -z "$(which pip3)" ]
-    then
-        pip install virtualenv==16.7.9
-    else
-        pip3 install virtualenv
-    fi
-    virtualenv -p python3 venv
-    . venv/bin/activate
+    virtualenv -p python3 firebase-venv
+    source firebase-venv/bin/activate
     pip install google-cloud-firestore
     python3 "${basedir}"/deploy_firestore_indexes.py "${DATA_CATALOG}"
     deactivate

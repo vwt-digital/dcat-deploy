@@ -1,7 +1,7 @@
 import json
 import sys
 import os
-import google
+import google.api_core.exceptions as gcp_exceptions
 
 from google.cloud import firestore_admin_v1
 
@@ -105,16 +105,16 @@ def deploy_indexes():
 
             # Create a list of index field objects
             index_fields = [
-                firestore_admin_v1.Index().IndexField(field_path=field['field_path'], order=field['order']) for
+                firestore_admin_v1.types.Index.IndexField(field_path=field['field_path'], order=field['order']) for
                 field in index['field_config']]
 
             # Create a index object
-            index_obj = firestore_admin_v1.Index(query_scope=1, fields=index_fields)
+            index_obj = firestore_admin_v1.types.Index(query_scope=1, fields=index_fields)
 
             # Create an index
             try:
                 fs_client.create_index(parent=index_parent, index=index_obj)
-            except google.api_core.exceptions.AlreadyExists:
+            except gcp_exceptions.AlreadyExists:
                 count_existed += 1
                 deployed_indexes.append(index)
                 pass
