@@ -139,6 +139,19 @@ if [ "${RUN_MODE}" = "deploy" ]; then
         fi
     fi
 
+    # Deploy FireStore indexes
+    if [ -z "$(which pip3)" ]
+    then
+        pip install virtualenv==16.7.9
+    else
+        pip3 install virtualenv
+    fi
+    virtualenv -p python3 venv
+    . venv/bin/activate
+    pip install google-cloud-firestore==2.0.2
+    python3 "${basedir}"/deploy_firestore_indexes.py "${DATA_CATALOG}"
+    deactivate
+
     gsutil cp "${gcp_catalog}" gs://"${PROJECT_ID}"-dcat-deployed-stg/data_catalog.json
 
     # Post the data catalog to the data catalogs topic
