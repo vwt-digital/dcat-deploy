@@ -95,8 +95,8 @@ def deploy_indexes():
     if len(indexes) > 0:
         deployed_indexes = []
 
-        count_deployed = 0
-        count_existing = 0
+        count_created = 0
+        count_existed = 0
 
         for index in indexes:
             # Generate the index parent
@@ -115,21 +115,21 @@ def deploy_indexes():
             try:
                 fs_client.create_index(parent=index_parent, index=index_obj)
             except google.api_core.exceptions.AlreadyExists:
-                count_existing += 1
+                count_existed += 1
                 deployed_indexes.append(index)
                 pass
             except Exception as e:
-                print(f"ERROR creating Firestore index: {str(e)}")
+                print("ERROR creating Firestore index: {}".format(str(e)))
                 continue
             else:
-                count_deployed += 1
+                count_created += 1
                 deployed_indexes.append(index)
 
         count_deleted = delete_obsolete_indexes(deployed_indexes)  # Remove obsolete indexes
 
         print(
-            f"Created {count_deployed} new Firestore indexes, {count_existing} already existed " +
-            f"and {count_deleted} obsolete were deleted")
+            "Created {} new Firestore indexes, {} already existed and {} obsolete were deleted".format(
+                count_created, count_existed, count_deleted))
 
 
 deploy_indexes()

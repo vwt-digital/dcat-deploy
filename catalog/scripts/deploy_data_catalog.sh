@@ -148,7 +148,7 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     fi
     virtualenv -p python3 venv
     . venv/bin/activate
-    pip install google-cloud-firestore==2.0.2
+    pip install google-cloud-firestore
     python3 "${basedir}"/deploy_firestore_indexes.py "${DATA_CATALOG}"
     deactivate
 
