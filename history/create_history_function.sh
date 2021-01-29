@@ -12,7 +12,7 @@ echo " + Cloning pubsub-backup repo..."
 git clone --branch="${BRANCH_NAME}" https://github.com/vwt-digital/pubsub-backup.git
 (cd pubsub-backup/functions/pubsub-backup && gcloud functions deploy "${PROJECT_ID}-history-func" \
   --entry-point=handler \
-  --runtime=python38 \
+  --runtime=python37 \
   --trigger-http \
   --project="${PROJECT_ID}" \
   --region=europe-west1 \
