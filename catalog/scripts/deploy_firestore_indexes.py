@@ -1,15 +1,15 @@
 import json
 import sys
-import os
+import google.auth
 import google.api_core.exceptions as gcp_exceptions
 
 from google.cloud import firestore_admin_v1
 
 catalogfile = open(sys.argv[1], "r")
 catalog = json.load(catalogfile)
-project_id = os.environ.get("PROJECT_ID")
 
-fs_client = firestore_admin_v1.FirestoreAdminClient()
+credentials, project_id = google.auth.default()
+fs_client = firestore_admin_v1.FirestoreAdminClient(credentials=credentials)
 
 
 def get_order_value(order):
@@ -79,8 +79,13 @@ def delete_obsolete_indexes(deployed_indexes):
 
         # Check if index fields are within data-catalog index fields
         if current_index_fields not in deployed_indexes_fields:
-            fs_client.delete_index(name=current_index.name)
-            count_deleted += 1
+            try:
+                fs_client.delete_index(name=current_index.name)
+            except gcp_exceptions.PermissionDenied as e:
+                print("ERROR deleting Firestore index: {}".format(str(e)))
+                break
+            else:
+                count_deleted += 1
 
     return count_deleted
 
