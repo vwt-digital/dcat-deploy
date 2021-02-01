@@ -139,6 +139,12 @@ if [ "${RUN_MODE}" = "deploy" ]; then
         fi
     fi
 
+    # Deploy FireStore indexes
+    . venv/bin/activate
+    pip install google-auth google-cloud-firestore==1.9.0
+    python3 "${basedir}"/deploy_firestore_indexes.py "${DATA_CATALOG}"
+    deactivate
+
     gsutil cp "${gcp_catalog}" gs://"${PROJECT_ID}"-dcat-deployed-stg/data_catalog.json
 
     # Post the data catalog to the data catalogs topic
