@@ -36,6 +36,7 @@ basedir=$(dirname "$0")
 gcp_template=$(mktemp "${DEPLOYMENT_NAME}"-XXXXX.py)
 gcp_catalog=$(mktemp "${DEPLOYMENT_NAME}"-catalog-XXXXX.json)
 gcp_datastore_indexes="$(mktemp -d)/index.yaml"
+gcp_cloudtasks_scripts="$(mktemp -d)/cloudtasks.txt"
 
 services=$(gcloud services list --enabled --format="value(config.name)" --quiet --project="${PROJECT_ID}")
 roles=$(gcloud projects get-iam-policy "${PROJECT_ID}" \
@@ -97,6 +98,14 @@ python3 "${basedir}"/generate_datastore_indexes.py "${DATA_CATALOG}" > "${gcp_da
 deactivate
 
 ############################################################
+# Generate Cloud Tasks deployment scripts
+############################################################
+
+. venv/bin/activate
+python3 "${basedir}"/generate_cloud_tasks_scripts.py "${DATA_CATALOG}" > "${gcp_cloudtasks_scripts}"
+deactivate
+
+############################################################
 # Deploy data catalog
 ############################################################
 
@@ -144,6 +153,15 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     pip install google-auth google-cloud-firestore==1.9.0
     python3 "${basedir}"/deploy_firestore_indexes.py "${DATA_CATALOG}"
     deactivate
+
+    # Deploy Cloud Tasks Queues
+    while read -r script; do
+      if ! eval "gcloud tasks queues create ${script}" | eval "gcloud tasks queues update ${script}"
+      then
+          echo "ERROR deploying Cloud Tasks queue: \"${script}\""
+          exit 1
+      fi
+    done < "${gcp_cloudtasks_scripts}"
 
     gsutil cp "${gcp_catalog}" gs://"${PROJECT_ID}"-dcat-deployed-stg/data_catalog.json
 
