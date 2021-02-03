@@ -12,7 +12,7 @@ queues = []
 
 for dataset in catalog['dataset']:
     for distribution in dataset['distribution']:
-        if distribution['format'] == 'cloudtask-queue':
+        if distribution['format'] == 'cloudtasks-queue':
             queue_deployment = [distribution['title'], '--quiet']
 
             for key in distribution.get('deploymentProperties', []):
