@@ -16,19 +16,19 @@ basedir=$(dirname "$0")
 result=0
 
 #########################################################################
-# Backup repositories
+# Create functions to backup repositories
 #########################################################################
 
 if [ -n "${GITHUB_SECRET_ID}" ]
 then
 
-echo "Backup source code repositories..."
+echo "Creating functions to backup source code repositories..."
 
-"${basedir}"/repositories/backup_github_repos.sh "${data_catalog_file}" "${PROJECT_ID}" "${dest_bucket}" "${GITHUB_SECRET_ID}"
+"${basedir}"/repositories/setup_backup_github_repos.sh "${data_catalog_file}" "${PROJECT_ID}" "${dest_bucket}" "${GITHUB_SECRET_ID}"
 
     if [ $? -ne 0 ]
     then
-        echo "ERROR backing up source code repositories"
+        echo "ERROR creating functions"
         result=1
     fi
 
