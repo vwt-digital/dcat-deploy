@@ -69,6 +69,8 @@ class GitHubDownloadBackup:
                     raise
                 else:
                     logging.info("Deleted the GitHub archive")
+        else:
+            logging.error("No migration url can be found")
 
     def get_archive_url(self, organisation):
         """
@@ -84,9 +86,12 @@ class GitHubDownloadBackup:
         except requests.exceptions.RequestException:
             raise
         else:
-            # Return the archive url
-            response = json.loads(gh_r.content)
-            return f"https://api.github.com/orgs/{organisation}/migrations/{response[0]['id']}/archive"
+            # Return the archive url of the latest exported migration
+            for migration in json.loads(gh_r.content):
+                if migration['state'] == 'exported':
+                    return f"https://api.github.com/orgs/{organisation}/migrations/{migration['id']}/archive"
+
+            return None
 
 
 def github_download_backup(request):
