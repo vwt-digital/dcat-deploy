@@ -87,7 +87,15 @@ class GitHubDownloadBackup:
             raise
         else:
             # Return the archive url of the latest exported migration
-            for migration in json.loads(gh_r.content):
+            migrations = [{
+                'id': int(migration['id']),
+                'created_at': datetime.strptime((migration['created_at']), '%Y-%m-%dT%H:%M:%S.%f%z'),
+                'state': migration['state']
+            } for migration in json.loads(gh_r.content)]
+
+            migrations.sort(key=lambda x: x['created_at'], reverse=True)
+
+            for migration in migrations:
                 if migration['state'] == 'exported':
                     return f"https://api.github.com/orgs/{organisation}/migrations/{migration['id']}/archive"
 
