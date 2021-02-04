@@ -94,7 +94,9 @@ def github_download_backup(request):
     Download a backup export from GitHub
     """
 
-    if request.args and 'organisation' in request.args and 'PROJECT_ID' in os.environ and \
+    request_json = request.get_json(silent=True)
+
+    if request_json and 'organisation' in request_json and 'PROJECT_ID' in os.environ and \
             'SECRET_ID' in os.environ and 'REPO_BACKUP_BUCKET' in os.environ:
         # Set configuration
         project_id = os.environ.get("PROJECT_ID")

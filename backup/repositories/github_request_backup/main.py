@@ -80,7 +80,9 @@ def github_request_backup(request):
     Request a backup export for GitHub
     """
 
-    if request.args and 'organisation' in request.args and 'PROJECT_ID' in os.environ and \
+    request_json = request.get_json(silent=True)
+
+    if request_json and 'organisation' in request_json and 'PROJECT_ID' in os.environ and \
             'SECRET_ID' in os.environ and 'CATALOG_FILE_NAME' in os.environ:
         # Set configuration
         project_id = os.environ.get("PROJECT_ID")
