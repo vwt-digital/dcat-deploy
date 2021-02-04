@@ -3,11 +3,8 @@ import json
 
 import logging
 import requests
-import tempfile
 
 import secretmanager
-
-from google.cloud import storage, exceptions as gcp_exceptions
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -42,15 +39,15 @@ class GitHubRequestBackup:
 
 class DataCatalog:
     def __init__(self):
-        self.stg_client = storage.Client()
+        pass
 
-    def get_organisation_repositories(self, organisation, catalog_uri):
+    def get_organisation_repositories(self, organisation, catalog_name):
         """
         Get the organisation repositories from a data-catalog file
         """
 
         # Get data-catalog file
-        catalog = self.get_catalog(catalog_uri)
+        catalog = self.get_catalog(catalog_name)
 
         # Find organisation repositories in data-catalog
         repositories = []
@@ -63,20 +60,17 @@ class DataCatalog:
 
         return repositories
 
-    def get_catalog(self, catalog_uri):
+    @staticmethod
+    def get_catalog(catalog_name):
         """
-        Get a data-catalog file from a GCS URI
+        Get a data-catalog file from the local storage
         """
 
         try:
             # Get data-catalog as JSON object
-            with tempfile.TemporaryFile() as temp_file:
-                self.stg_client.download_blob_to_file(catalog_uri, temp_file)
-                temp_file.seek(0)
-
-                catalog = json.loads(temp_file.read().decode('utf-8'))
-        except (gcp_exceptions.NotFound, json.decoder.JSONDecodeError):
-            logging.error(f"Data catalog '{catalog_uri}' not found")
+            with open(catalog_name, 'r') as json_file:
+                catalog = json.loads(json_file.read())
+        except (FileNotFoundError, json.decoder.JSONDecodeError):
             raise
         else:
             return catalog
@@ -87,11 +81,12 @@ def github_request_backup(request):
     Request a backup export for GitHub
     """
 
-    if request.args and 'organisation' in request.args and 'PROJECT_ID' in os.environ and 'SECRET_ID' in os.environ:
+    if request.args and 'organisation' in request.args and 'PROJECT_ID' in os.environ and \
+            'SECRET_ID' in os.environ and 'CATALOG_FILE_NAME' in os.environ:
         # Set configuration
         project_id = os.environ.get("PROJECT_ID")
         secret_id = os.environ.get("SECRET_ID")
-        catalog_uri = f"gs://{project_id}-dcat-deployed-stg/data_catalog.json"
+        catalog_name = os.environ.get("CATALOG_FILE_NAME")
         organisation = request.args.get('organisation')
 
         logging.info(f"Making migration request for {organisation}")
@@ -100,7 +95,7 @@ def github_request_backup(request):
         github_access_token = secretmanager.get_secret(project_id, secret_id)
 
         # Get organisation repositories from data-catalog
-        repositories = DataCatalog().get_organisation_repositories(organisation, catalog_uri)
+        repositories = DataCatalog().get_organisation_repositories(organisation, catalog_name)
 
         # Request backup for organisation repositories
         if repositories:
