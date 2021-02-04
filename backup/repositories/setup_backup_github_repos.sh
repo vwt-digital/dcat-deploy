@@ -13,7 +13,7 @@ fi
 
 basedir=$(dirname "$0")
 
-cp "${basedir}/${data_catalog_file}" "${basedir}"/github_request_backup
+cp "${data_catalog_file}" "${basedir}"/github_request_backup
 
 cloud_tasks_queue="${PROJECT_ID}-cloudtasks-queue-github-backups"
 github_organisations=$(python3 "${basedir}"/list_github_organisations.py "${data_catalog_file}")
@@ -24,7 +24,7 @@ github_organisations=$(python3 "${basedir}"/list_github_organisations.py "${data
 
 sed "${basedir}"/cloudbuild_create_backup_tasks.json \
   -e "s|__CLOUD_TASKS_QUEUE__|${cloud_tasks_queue}|" \
-  -e "s|__GITHUB_ORGANISATIONS__|${github_organisations}|" > cloudbuild_create_backup_tasks_gen.json
+  -e "s|__GITHUB_ORGANISATIONS__|${github_organisations}|" > "${basedir}"/cloudbuild_create_backup_tasks_gen.json
 
 #########################################################################
 # Deploy GitHub Backup Request function
@@ -39,7 +39,7 @@ gcloud functions deploy "${PROJECT_ID}"-backup-request-func \
   --max-instances=1 \
   --timeout=540 \
   --source="${basedir}"/github_request_backup/ \
-  --set-env-vars=PROJECT_ID="${PROJECT_ID}",SECRET_ID="${github_secret_id}",CATALOG_FILE_NAME="${data_catalog_file}"
+  --set-env-vars=PROJECT_ID="${PROJECT_ID}",SECRET_ID="${github_secret_id}",CATALOG_FILE_NAME=data_catalog.json
 
 #########################################################################
 # Deploy GitHub Backup Download function
@@ -62,11 +62,11 @@ gcloud functions deploy "${PROJECT_ID}"-backup-download-func \
 
 gcloud functions set-iam-policy "${PROJECT_ID}"-backup-request-func \
   --region=europe-west1 \
-  --project="${PROJECT_ID}" ../../../config/"${PROJECT_ID}"/repo_backup_func_permissions.json
+  --project="${PROJECT_ID}" config/"${PROJECT_ID}"/repo_backup_func_permissions.json
 
 gcloud functions set-iam-policy "${PROJECT_ID}"-backup-download-func \
   --region=europe-west1 \
-  --project="${PROJECT_ID}" ../../../config/"${PROJECT_ID}"/repo_backup_func_permissions.json
+  --project="${PROJECT_ID}" config/"${PROJECT_ID}"/repo_backup_func_permissions.json
 
 #########################################################################
 # Create Cloud Scheduler for scheduling backups
