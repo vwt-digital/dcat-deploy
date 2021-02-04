@@ -4,35 +4,15 @@
 data_catalog_file=${1}
 PROJECT_ID=${2}
 dest_bucket=${3}
-GITHUB_SECRET_ID=${4}
 
 if [ -z "${dest_bucket}" ]
 then
-    echo "Usage: $0 <data_catalog_file> <project_id> <dest_bucket> [github_secret_id]"
+    echo "Usage: $0 <data_catalog_file> <project_id> <dest_bucket>"
     exit 1
 fi
 
 basedir=$(dirname "$0")
 result=0
-
-#########################################################################
-# Create functions to backup repositories
-#########################################################################
-
-if [ -n "${GITHUB_SECRET_ID}" ]
-then
-
-echo "Creating functions to backup source code repositories..."
-
-"${basedir}"/repositories/setup_backup_github_repos.sh "${data_catalog_file}" "${PROJECT_ID}" "${dest_bucket}" "${GITHUB_SECRET_ID}"
-
-    if [ $? -ne 0 ]
-    then
-        echo "ERROR creating functions"
-        result=1
-    fi
-
-fi
 
 #########################################################################
 # Backup storage buckets
