@@ -29,12 +29,11 @@ class GitHubRequestBackup:
                 json={'lock_repositories': False, 'repositories': repositories})
             gh_r.raise_for_status()
         except requests.exceptions.RequestException as e:
-            print(e)
+            logging.error(f"An error occurred during migration request: {str(e)}")
             raise
         else:
             response = json.loads(gh_r.content.decode('utf-8'))
-            with open('gh_request.json', 'w') as json_file:
-                json_file.write(json.dumps(response, indent=2, sort_keys=True))
+            logging.info(f"Successfully requested migration {response['id']}")
 
 
 class DataCatalog:
