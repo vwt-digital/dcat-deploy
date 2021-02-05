@@ -36,7 +36,7 @@ gcloud functions deploy "${PROJECT_ID}"-backup-request-func \
   --trigger-http \
   --project="${PROJECT_ID}" \
   --region=europe-west1 \
-  --max-instances=1 \
+  --max-instances=5 \
   --source="${basedir}"/github_request_backup/ \
   --set-env-vars=PROJECT_ID="${PROJECT_ID}",SECRET_ID="${github_secret_id}",CATALOG_FILE_NAME=data_catalog.json
 
@@ -50,7 +50,7 @@ gcloud functions deploy "${PROJECT_ID}"-backup-download-func \
   --trigger-http \
   --project="${PROJECT_ID}" \
   --region=europe-west1 \
-  --max-instances=1 \
+  --max-instances=5 \
   --timeout=540 \
   --source="${basedir}"/github_download_backup/ \
   --set-env-vars=PROJECT_ID="${PROJECT_ID}",SECRET_ID="${github_secret_id}",REPO_BACKUP_BUCKET="${dest_bucket}"
