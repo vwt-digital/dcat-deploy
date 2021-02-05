@@ -99,7 +99,6 @@ class GitHubDownloadBackup:
                 migrations.sort(key=lambda x: x['created_at'], reverse=True)
 
                 for migration in migrations:
-                    print(migration['created_at'].date(), datetime.utcnow().date())
                     if migration['created_at'].date() == datetime.utcnow().date() and migration['state'] == 'exported':
                         logging.info(f"Found migration {migration['id']} for '{organisation}'")
 
