@@ -27,13 +27,19 @@ class GitHubRequestBackup:
             gh_r = requests.post(
                 github_url, headers=self.http_headers,
                 json={'lock_repositories': False, 'repositories': repositories})
-            gh_r.raise_for_status()
         except requests.exceptions.RequestException as e:
-            logging.error(f"An error occurred during migration request: {str(e)}")
+            logging.error(f"An error occurred during migration request for '{organisation}': {str(e)}")
             raise
         else:
-            response = json.loads(gh_r.content.decode('utf-8'))
-            logging.info(f"Successfully requested migration {response['id']}")
+            if gh_r.ok:
+                response = json.loads(gh_r.content.decode('utf-8'))
+                logging.info(
+                    f"Successfully requested migration {response['id']} for '{organisation}' with " +
+                    f"{len(repositories)} repositories")
+            else:
+                logging.error(
+                    f"Migration request for '{organisation}' failed with status code " +
+                    f"{gh_r.status_code}: {str(gh_r.reason)}")
 
 
 class DataCatalog:
@@ -90,7 +96,7 @@ def github_request_backup(request):
         catalog_name = os.environ.get("CATALOG_FILE_NAME")
         organisation = request_json.get('organisation')
 
-        logging.info(f"Making migration request for {organisation}")
+        logging.info(f"Making migration request for '{organisation}'")
 
         # Get GitHub access token from Secret Manager
         github_access_token = secretmanager.get_secret(project_id, secret_id)
@@ -112,5 +118,9 @@ if __name__ == '__main__':
     class R:
         def __init__(self):
             self.args = {'organisation': 'vwt-digital'}
+
+        def get_json(self, silent=True):
+            return self.args
+
     r = R()
     github_request_backup(r)

@@ -31,16 +31,15 @@ class GitHubDownloadBackup:
         """
 
         # Get backup archive urls
-        archive_url = self.get_archive_url(organisation)
+        archive_url, archive_id = self.get_archive_url(organisation)
 
         if archive_url:
-            logging.info(f"Downloading archive '{archive_url}'")
-
             # Create Streamable upload
             archive_filename = f"{self.bucket_prefix}/{organisation}.tgz"
+            archive_filename_uri = f"gs://{self.bucket_name}/{archive_filename}"
 
             if storage.Blob(bucket=stg_client.get_bucket(self.bucket_name), name=archive_filename).exists(stg_client):
-                logging.info(f"File already exists (gs://{self.bucket_name}/{archive_filename})")
+                logging.info(f"File for archive {archive_id} already exists: '{archive_filename_uri}'")
                 return False
 
             stream_upload = gcs_stream_upload.GCSObjectStreamUpload(
@@ -48,18 +47,21 @@ class GitHubDownloadBackup:
 
             # Stream archive towards GCS
             try:
-                logging.info("Starting download, this could take a while")
+                logging.info(
+                    f"Starting download of archive {archive_id} towards '{archive_filename_uri}', " +
+                    "this could take some time")
+
                 with requests.get(archive_url, stream=True, headers=self.http_headers) as gh_r:
                     gh_r.raise_for_status()
                     stream_upload.start()
                     for chunk in gh_r.iter_content(chunk_size=CHUNK_SIZE):
                         stream_upload.write(chunk)
             except requests.exceptions.ReadTimeout as e:
-                logging.error(f"An error occurred when streaming archive: {str(e)}")
+                logging.error(f"An error occurred when streaming archive {archive_id}: {str(e)}")
                 raise
             else:
                 stream_upload.stop()
-                logging.info("Finished download")
+                logging.info(f"Finished download of migration {archive_id}")
 
                 # Let github delete the archive
                 try:
@@ -68,9 +70,9 @@ class GitHubDownloadBackup:
                 except requests.exceptions.RequestException:
                     raise
                 else:
-                    logging.info("Deleted the GitHub archive")
+                    logging.info(f"Deleted the GitHub archive for migration {archive_id}")
         else:
-            logging.error("No migration url can be found")
+            logging.error(f"No migration url for '{organisation}' found")
 
     def get_archive_url(self, organisation):
         """
@@ -82,24 +84,33 @@ class GitHubDownloadBackup:
         try:
             # Request backup archive urls
             gh_r = requests.get(github_url, headers=self.http_headers)
-            gh_r.raise_for_status()
-        except requests.exceptions.RequestException:
+        except requests.exceptions.RequestException as e:
+            logging.error(f"An error occurred during archive url request for '{organisation}': {str(e)}")
             raise
         else:
-            # Return the archive url of the latest exported migration
-            migrations = [{
-                'id': int(migration['id']),
-                'created_at': datetime.strptime((migration['created_at']), '%Y-%m-%dT%H:%M:%S.%f%z'),
-                'state': migration['state']
-            } for migration in json.loads(gh_r.content)]
+            if gh_r.ok:
+                # Return the archive url of the latest exported migration
+                migrations = [{
+                    'id': int(migration['id']),
+                    'created_at': datetime.strptime((migration['created_at']), '%Y-%m-%dT%H:%M:%S.%f%z'),
+                    'state': migration['state']
+                } for migration in json.loads(gh_r.content)]
 
-            migrations.sort(key=lambda x: x['created_at'], reverse=True)
+                migrations.sort(key=lambda x: x['created_at'], reverse=True)
 
-            for migration in migrations:
-                if migration['state'] == 'exported':
-                    return f"https://api.github.com/orgs/{organisation}/migrations/{migration['id']}/archive"
+                for migration in migrations:
+                    print(migration['created_at'].date(), datetime.utcnow().date())
+                    if migration['created_at'].date() == datetime.utcnow().date() and migration['state'] == 'exported':
+                        logging.info(f"Found migration {migration['id']} for '{organisation}'")
 
-            return None
+                        return f"https://api.github.com/orgs/{organisation}/migrations/{migration['id']}/archive", \
+                               migration['id']
+            else:
+                logging.error(
+                    f"Migration request for '{organisation}' failed with status code " +
+                    f"{gh_r.status_code}: {str(gh_r.reason)}")
+
+            return None, None
 
 
 def github_download_backup(request):
@@ -117,7 +128,7 @@ def github_download_backup(request):
         backup_bucket = os.environ.get("REPO_BACKUP_BUCKET")
         organisation = request_json.get('organisation')
 
-        logging.info(f"Downloading migration archive for {organisation}")
+        logging.info(f"Starting migration download for '{organisation}'")
 
         # Get GitHub access token from Secret Manager
         github_access_token = secretmanager.get_secret(project_id, secret_id)
@@ -135,5 +146,9 @@ if __name__ == '__main__':
     class R:
         def __init__(self):
             self.args = {'organisation': 'vwt-digital'}
+
+        def get_json(self, silent=True):
+            return self.args
+
     r = R()
     github_download_backup(r)
