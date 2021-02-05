@@ -88,7 +88,7 @@ def github_request_backup(request):
         project_id = os.environ.get("PROJECT_ID")
         secret_id = os.environ.get("SECRET_ID")
         catalog_name = os.environ.get("CATALOG_FILE_NAME")
-        organisation = request.args.get('organisation')
+        organisation = request_json.get('organisation')
 
         logging.info(f"Making migration request for {organisation}")
 

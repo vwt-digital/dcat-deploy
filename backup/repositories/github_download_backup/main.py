@@ -115,7 +115,7 @@ def github_download_backup(request):
         project_id = os.environ.get("PROJECT_ID")
         secret_id = os.environ.get("SECRET_ID")
         backup_bucket = os.environ.get("REPO_BACKUP_BUCKET")
-        organisation = request.args.get('organisation')
+        organisation = request_json.get('organisation')
 
         logging.info(f"Downloading migration archive for {organisation}")
 
