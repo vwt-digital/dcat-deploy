@@ -36,10 +36,12 @@ class GitHubRequestBackup:
                 logging.info(
                     f"Successfully requested migration {response['id']} for '{organisation}' with " +
                     f"{len(repositories)} repositories")
+                return response['id']
             else:
                 logging.error(
                     f"Migration request for '{organisation}' failed with status code " +
                     f"{gh_r.status_code}: {str(gh_r.reason)}")
+                return False
 
 
 class DataCatalog:

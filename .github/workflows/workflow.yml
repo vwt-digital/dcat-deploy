@@ -1,0 +1,36 @@
+---
+name: Run Tests
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare repo
+        uses: actions/checkout@v2
+        with:
+          ref: 'develop'
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.7'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+        working-directory: ./backup/repositories/github_request_backup
+      - name: Run test with coverage
+        run: coverage run --source=./ -m unittest tests
+        working-directory: ./backup/repositories/github_request_backup
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
+          verbose: true
