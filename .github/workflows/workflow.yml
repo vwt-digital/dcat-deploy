@@ -10,7 +10,8 @@ on:
       - master
   workflow_dispatch:
 jobs:
-  test:
+  test-github-backup-func:
+    name: Test Github Backup functions
     runs-on: ubuntu-latest
     steps:
       - name: Prepare repo
