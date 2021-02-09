@@ -2,12 +2,13 @@ import unittest
 import json
 import uuid
 
+import main
+
 from unittest.mock import patch
-from github_request_backup import main
 
 
 class TestGitHubBackupRequest(unittest.TestCase):
-    @patch('github_request_backup.main.requests.post')  # Mock 'requests' module 'post' method.
+    @patch('main.requests.post')  # Mock 'requests' module 'post' method.
     def test_backup_request(self, mock_post):
         """Mocking using a decorator"""
 
@@ -23,7 +24,7 @@ class TestGitHubBackupRequest(unittest.TestCase):
         # Assert that the request-response cycle contains the correct response id.
         self.assertEqual(response, mock_response_id)
 
-    @patch('github_request_backup.main.DataCatalog.get_catalog')
+    @patch('main.DataCatalog.get_catalog')
     def test_catalog_parsing(self, mock_open):
         """Mocking using a decorator"""
 
