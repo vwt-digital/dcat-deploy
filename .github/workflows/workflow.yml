@@ -35,3 +35,5 @@ jobs:
         with:
           fail_ci_if_error: true
           verbose: true
+          fixes:
+            - "::backup/repositories/github_request_backup"
