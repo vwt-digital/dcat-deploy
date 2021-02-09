@@ -10,8 +10,7 @@ on:
       - master
   workflow_dispatch:
 jobs:
-  test-github-backup-func:
-    name: Test Github Backup functions
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Prepare repo
@@ -28,8 +27,8 @@ jobs:
           pip install -r requirements.txt
         working-directory: ./backup/repositories/github_request_backup
       - name: Run test with coverage
-        run: coverage run --source=./github_request_backup -m unittest tests
-        working-directory: ./backup/repositories
+        run: coverage run --source=./ -m unittest tests
+        working-directory: ./backup/repositories/github_request_backup
       - name: Upload coverage report
         uses: codecov/codecov-action@v1
         with:
