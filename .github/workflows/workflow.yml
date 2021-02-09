@@ -1,5 +1,5 @@
 ---
-name: Run Tests
+name: Run Code Coverage Tests
 
 on:
   push:
@@ -10,8 +10,8 @@ on:
       - master
   workflow_dispatch:
 jobs:
-  test-github-backup-func:
-    name: Test Github Backup functions
+  test-github-request-backup-func:
+    name: Test Github Request Backup function
     runs-on: ubuntu-latest
     steps:
       - name: Prepare repo
@@ -35,4 +35,5 @@ jobs:
         with:
           fail_ci_if_error: true
           verbose: true
-          gcov_prefix: "backup/repositories/github_request_backup"
+          gcov_root_dir: ./
+          gcov_prefix: backup/repositories/github_request_backup
