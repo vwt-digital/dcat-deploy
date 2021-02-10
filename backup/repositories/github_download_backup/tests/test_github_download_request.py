@@ -12,7 +12,9 @@ mock_organisation_name = 'test-vwt-digital'  # Set mock GitHub organisation name
 
 
 class TestGitHubDownloadRequest(unittest.TestCase):
-    @patch.dict(os.environ, {"GOOGLE_CLOUD_PROJECT": "gcp-project"})  # Mock 'GOOGLE_CLOUD_PROJECT' env variable
+    @patch.dict(
+        os.environ, {"GOOGLE_CLOUD_PROJECT": "gcp-project",
+                     "GOOGLE_APPLICATION_CREDENTIALS": ""})  # Mock env variables
     @patch('main.requests.get')  # Mock 'requests' module 'get' method.
     def test_get_archive_url(self, mock_get):
         """Mocking using a decorator"""
