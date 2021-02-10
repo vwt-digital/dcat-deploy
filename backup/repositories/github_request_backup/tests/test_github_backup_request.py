@@ -6,6 +6,8 @@ import main
 
 from unittest.mock import patch
 
+mock_organisation_name = 'test-vwt-digital'
+
 
 class TestGitHubBackupRequest(unittest.TestCase):
     @patch('main.requests.post')  # Mock 'requests' module 'post' method.
@@ -19,7 +21,7 @@ class TestGitHubBackupRequest(unittest.TestCase):
             str(json.dumps({'id': mock_response_id})).encode('utf-8')  # Mock content of response.
 
         response = main.GitHubRequestBackup(None).request_backup(
-            organisation='vwt-digital', repositories=['dcat-deploy'])  # Call function to request backup
+            organisation=mock_organisation_name, repositories=['dcat-deploy'])  # Call function to request backup
 
         # Assert that the request-response cycle contains the correct response id.
         self.assertEqual(response, mock_response_id)
@@ -29,10 +31,10 @@ class TestGitHubBackupRequest(unittest.TestCase):
         """Mocking using a decorator"""
 
         mock_open.return_value = {'dataset': [{'distribution': [
-            {'title': 'test-vwt-digital/test-repo', 'format': 'gitrepo'}]}]}  # Mock 'get_catalog' return value
+            {'title': f"{mock_organisation_name}/test-repo", 'format': 'gitrepo'}]}]}  # Mock 'get_catalog' return value
 
         response = main.DataCatalog().get_organisation_repositories(
-            organisation='test-vwt-digital', catalog_name=None)  # Call function to parse catalog
+            organisation=mock_organisation_name, catalog_name=None)  # Call function to parse catalog
 
         # Assert that the request-response cycle returns correct value.
-        self.assertEqual(response, ['test-vwt-digital/test-repo'])
+        self.assertEqual(response, [f"{mock_organisation_name}/test-repo"])
