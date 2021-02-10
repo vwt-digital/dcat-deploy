@@ -12,7 +12,6 @@ from google.cloud import storage
 
 logging.getLogger().setLevel(logging.INFO)
 
-stg_client = storage.Client()
 CHUNK_SIZE = 256 * 1024  # 256KB
 
 
@@ -34,6 +33,8 @@ class GitHubDownloadBackup:
         archive_url, archive_id = self.get_archive_url(organisation)
 
         if archive_url:
+            stg_client = storage.Client()
+
             # Create Streamable upload
             archive_filename = f"{self.bucket_prefix}/{organisation}.tgz"
             archive_filename_uri = f"gs://{self.bucket_name}/{archive_filename}"
