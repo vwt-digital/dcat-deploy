@@ -62,5 +62,4 @@ jobs:
         with:
           fail_ci_if_error: true
           verbose: true
-          gcov_root_dir: ./
           gcov_prefix: backup/repositories/github_download_backup
