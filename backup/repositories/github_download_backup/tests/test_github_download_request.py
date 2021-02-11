@@ -6,7 +6,7 @@ import os
 import main
 import secretmanager
 
-from unittest.mock import patch
+from unittest import mock
 from random import randrange
 from datetime import datetime
 
@@ -23,8 +23,8 @@ class CloudSecretPayload:
 
 
 class TestGitHubDownloadRequest(unittest.TestCase):
-    @patch.dict(os.environ, {"GOOGLE_CLOUD_PROJECT": "gcp-project"})  # Mock env variables
-    @patch('main.requests.get')  # Mock 'requests' module 'get' method.
+    @mock.patch.dict(os.environ, {"GOOGLE_CLOUD_PROJECT": "gcp-project"})  # Mock env variables
+    @mock.patch('main.requests.get')  # Mock 'requests' module 'get' method.
     def test_get_archive_url(self, mock_get):
         """Mocking using a decorator"""
 
@@ -47,8 +47,8 @@ class TestGitHubDownloadRequest(unittest.TestCase):
             (f"https://api.github.com/orgs/{mock_organisation_name}/migrations/{mock_get_content_correct_id}/archive",
              mock_get_content_correct_id))
 
-    @patch.dict(os.environ, {"GOOGLE_CLOUD_PROJECT": "gcp-project"})  # Mock env variables
-    @patch("secretmanager.secretmanager_v1.SecretManagerServiceClient", autospec=True)
+    @mock.patch.dict(os.environ, {"GOOGLE_CLOUD_PROJECT": "gcp-project"})  # Mock env variables
+    @mock.patch("secretmanager.secretmanager_v1.SecretManagerServiceClient", autospec=True)
     def test_secret_manager(self, mock_secret):
         """Mocking using a decorator"""
 
