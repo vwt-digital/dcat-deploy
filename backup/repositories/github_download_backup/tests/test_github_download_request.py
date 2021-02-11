@@ -1,14 +1,25 @@
 import unittest
 import json
+import uuid
 import os
 
 import main
+import secretmanager
 
 from unittest.mock import patch
 from random import randrange
 from datetime import datetime
 
 mock_organisation_name = 'test-vwt-digital'  # Set mock GitHub organisation name
+
+
+class CloudSecretPayload:
+    def __init__(self, data):
+        self.payload = self.CloudSecretData(data)
+
+    class CloudSecretData:
+        def __init__(self, data):
+            self.data = data
 
 
 class TestGitHubDownloadRequest(unittest.TestCase):
@@ -35,3 +46,19 @@ class TestGitHubDownloadRequest(unittest.TestCase):
             response,
             (f"https://api.github.com/orgs/{mock_organisation_name}/migrations/{mock_get_content_correct_id}/archive",
              mock_get_content_correct_id))
+
+    @patch.dict(os.environ, {"GOOGLE_CLOUD_PROJECT": "gcp-project"})  # Mock env variables
+    @patch("secretmanager.secretmanager_v1.SecretManagerServiceClient", autospec=True)
+    def test_secret_manager(self, mock_secret):
+        """Mocking using a decorator"""
+
+        secret_value = str(uuid.uuid4())
+
+        mock_secret().secret_version_path.return_value = 'secret-version-path'
+        mock_secret().access_secret_version.return_value = CloudSecretPayload(secret_value.encode('utf-8'))
+
+        response = secretmanager.get_secret(
+            project_id='test-project', secret_id='test-id')  # Call function to retrieve secret
+
+        # Assert that the request-response cycle returns correct value.
+        self.assertEqual(response, secret_value)
