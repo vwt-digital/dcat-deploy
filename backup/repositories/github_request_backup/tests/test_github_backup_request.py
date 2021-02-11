@@ -6,7 +6,7 @@ import os
 import main
 import secretmanager
 
-from unittest.mock import patch
+from unittest import mock
 from requests.exceptions import RequestException
 
 mock_organisation_name = 'test-vwt-digital'
@@ -22,7 +22,7 @@ class CloudSecretPayload:
 
 
 class TestRequestBackup(unittest.TestCase):
-    @patch('main.requests.post')  # Mock 'requests' module 'post' method.
+    @mock.patch('main.requests.post')  # Mock 'requests' module 'post' method.
     def test_backup_request_successful(self, mock_post):
         """Mocking using a decorator"""
 
@@ -38,7 +38,7 @@ class TestRequestBackup(unittest.TestCase):
         # Assert that the request-response cycle contains the correct response id.
         self.assertEqual(response, mock_response_id)
 
-    @patch('main.requests.post')  # Mock 'requests' module 'post' method.
+    @mock.patch('main.requests.post')  # Mock 'requests' module 'post' method.
     def test_backup_request_failing_with_exception(self, mock_post):
         """Mocking using a decorator"""
 
@@ -49,7 +49,7 @@ class TestRequestBackup(unittest.TestCase):
             main.GitHubRequestBackup(None).request_backup(
                 organisation=mock_organisation_name, repositories=['dcat-deploy'])  # Call function to request backup
 
-    @patch('main.requests.post')  # Mock 'requests' module 'post' method.
+    @mock.patch('main.requests.post')  # Mock 'requests' module 'post' method.
     def test_backup_request_failing_with_response_code(self, mock_post):
         """Mocking using a decorator"""
 
@@ -65,12 +65,13 @@ class TestRequestBackup(unittest.TestCase):
 
 
 class TestCatalogParsing(unittest.TestCase):
-    @patch('main.DataCatalog.get_catalog')
+    @mock.patch('builtins.open')
     def test_catalog_parsing(self, mock_open):
         """Mocking using a decorator"""
 
-        mock_open.return_value = {'dataset': [{'distribution': [
-            {'title': f"{mock_organisation_name}/test-repo", 'format': 'gitrepo'}]}]}  # Mock 'get_catalog' return value
+        mock_open_data = json.dumps({'dataset': [{'distribution': [
+            {'title': f"{mock_organisation_name}/test-repo", 'format': 'gitrepo'}]}]})
+        mock_open.side_effect = mock.mock_open(read_data=mock_open_data)  # Mock 'file read' value.
 
         response = main.DataCatalog().get_organisation_repositories(
             organisation=mock_organisation_name, catalog_name=None)  # Call function to parse catalog
@@ -80,8 +81,8 @@ class TestCatalogParsing(unittest.TestCase):
 
 
 class TestSecretManager(unittest.TestCase):
-    @patch.dict(os.environ, {"GOOGLE_CLOUD_PROJECT": "gcp-project"})  # Mock env variables
-    @patch("secretmanager.secretmanager_v1.SecretManagerServiceClient", autospec=True)
+    @mock.patch.dict(os.environ, {"GOOGLE_CLOUD_PROJECT": "gcp-project"})  # Mock env variables
+    @mock.patch("secretmanager.secretmanager_v1.SecretManagerServiceClient", autospec=True)
     def test_secret_manager(self, mock_secret):
         """Mocking using a decorator"""
 
