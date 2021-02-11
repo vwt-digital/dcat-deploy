@@ -1,2 +1,2 @@
 [bandit]
-skips: B311
+exclude: ./backup/repositories/github_request_backup/tests,./backup/repositories/github_download_backup/tests
