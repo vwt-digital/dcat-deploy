@@ -8,7 +8,7 @@ on:
   pull_request:
     branches:
       - master
-  workflow_dispatch:
+
 jobs:
   test-github-request-backup-func:
     name: Test Github Request Backup function
@@ -18,18 +18,22 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: 'develop'
+
       - name: Setup python
         uses: actions/setup-python@v2
         with:
           python-version: '3.8.7'
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
         working-directory: ./backup/repositories/github_request_backup
+
       - name: Run test with coverage
         run: coverage run --source=./ -m unittest tests
         working-directory: ./backup/repositories/github_request_backup
+
       - name: Upload coverage report
         uses: codecov/codecov-action@v1
         with:
@@ -37,6 +41,7 @@ jobs:
           verbose: true
           gcov_root_dir: ./
           gcov_prefix: backup/repositories/github_request_backup
+
   test-github-download-backup-func:
     name: Test Github Download Backup function
     runs-on: ubuntu-latest
@@ -45,21 +50,26 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: 'develop'
+
       - name: Setup python
         uses: actions/setup-python@v2
         with:
           python-version: '3.8.7'
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
         working-directory: ./backup/repositories/github_download_backup
+
       - name: Run test with coverage
         run: coverage run --source=./ -m unittest tests
         working-directory: ./backup/repositories/github_download_backup
+
       - name: Upload coverage report
         uses: codecov/codecov-action@v1
         with:
           fail_ci_if_error: true
           verbose: true
+          gcov_root_dir: ./
           gcov_prefix: backup/repositories/github_download_backup
