@@ -7,6 +7,7 @@ import main
 import secretmanager
 
 from unittest.mock import patch
+from requests.exceptions import RequestException
 
 mock_organisation_name = 'test-vwt-digital'
 
@@ -20,9 +21,9 @@ class CloudSecretPayload:
             self.data = data
 
 
-class TestGitHubBackupRequest(unittest.TestCase):
+class TestRequestBackup(unittest.TestCase):
     @patch('main.requests.post')  # Mock 'requests' module 'post' method.
-    def test_backup_request(self, mock_post):
+    def test_backup_request_successful(self, mock_post):
         """Mocking using a decorator"""
 
         mock_response_id = str(uuid.uuid4())  # Create a mock response id
@@ -37,6 +38,33 @@ class TestGitHubBackupRequest(unittest.TestCase):
         # Assert that the request-response cycle contains the correct response id.
         self.assertEqual(response, mock_response_id)
 
+    @patch('main.requests.post')  # Mock 'requests' module 'post' method.
+    def test_backup_request_failing_with_exception(self, mock_post):
+        """Mocking using a decorator"""
+
+        mock_post.return_value.status_code = 400  # Mock status code of response.
+        mock_post.side_effect = RequestException('Test raises exception')  # Mock content of response.
+
+        with self.assertRaises(RequestException):
+            main.GitHubRequestBackup(None).request_backup(
+                organisation=mock_organisation_name, repositories=['dcat-deploy'])  # Call function to request backup
+
+    @patch('main.requests.post')  # Mock 'requests' module 'post' method.
+    def test_backup_request_failing_with_response_code(self, mock_post):
+        """Mocking using a decorator"""
+
+        mock_post.return_value.status_code = 400  # Mock status code of response.
+        mock_post.return_value.ok = False  # Mock ok value of response.
+        mock_post.return_value.reason = 'Test returning 400'  # Mock ok value of response.
+
+        response = main.GitHubRequestBackup(None).request_backup(
+            organisation=mock_organisation_name, repositories=['dcat-deploy'])  # Call function to request backup
+
+        # Assert that the request-response cycle contains the correct response id.
+        self.assertEqual(response, False)
+
+
+class TestCatalogParsing(unittest.TestCase):
     @patch('main.DataCatalog.get_catalog')
     def test_catalog_parsing(self, mock_open):
         """Mocking using a decorator"""
@@ -50,6 +78,8 @@ class TestGitHubBackupRequest(unittest.TestCase):
         # Assert that the request-response cycle returns correct value.
         self.assertEqual(response, [f"{mock_organisation_name}/test-repo"])
 
+
+class TestSecretManager(unittest.TestCase):
     @patch.dict(os.environ, {"GOOGLE_CLOUD_PROJECT": "gcp-project"})  # Mock env variables
     @patch("secretmanager.secretmanager_v1.SecretManagerServiceClient", autospec=True)
     def test_secret_manager(self, mock_secret):
