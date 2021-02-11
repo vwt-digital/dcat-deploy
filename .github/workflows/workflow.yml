@@ -41,7 +41,6 @@ jobs:
           verbose: true
           gcov_root_dir: ./
           gcov_prefix: backup/repositories/github_request_backup
-        working-directory: ./
 
   test-github-download-backup-func:
     name: Test Github Download Backup function
@@ -74,4 +73,3 @@ jobs:
           verbose: true
           gcov_root_dir: ./
           gcov_prefix: backup/repositories/github_download_backup
-        working-directory: ./
