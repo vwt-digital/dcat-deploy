@@ -1,0 +1,17 @@
+{
+  "logsBucket": "gs://${PROJECT_ID}_cloudbuild",
+  "steps": [
+    {
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
+      "entrypoint": "bash",
+      "args": [
+        "-c",
+        "_NAME_PREFIX=$(openssl rand -hex 12)\nfor _ORG in $(echo ${_GITHUB_ORGANISATIONS} | sed \"s/,/ /g\"); do\n  gcloud tasks create-http-task \"$${_NAME_PREFIX}_$${_ORG}_request\" --queue=${_CLOUD_TASKS_QUEUE} --url=\"https://europe-west1-${PROJECT_ID}.cloudfunctions.net/${PROJECT_ID}-backup-request-func\" --header=Content-Type:application/json --body-content='{\"organisation\": \"'$${_ORG}'\"}' --oidc-service-account-email=\"${PROJECT_ID}@appspot.gserviceaccount.com\" --project=${PROJECT_ID} --quiet\n  gcloud tasks create-http-task \"$${_NAME_PREFIX}_$${_ORG}_download\" --queue=${_CLOUD_TASKS_QUEUE} --schedule-time=\"$(date -d \"1 hour\" --utc \"+%Y-%m-%dT%H:%M:%SZ\")\" --url=\"https://europe-west1-${PROJECT_ID}.cloudfunctions.net/${PROJECT_ID}-backup-download-func\" --header=Content-Type:application/json --body-content='{\"organisation\": \"'$${_ORG}'\"}' --oidc-service-account-email=\"${PROJECT_ID}@appspot.gserviceaccount.com\" --project=${PROJECT_ID} --quiet\ndone\n"
+      ]
+    }
+  ],
+  "substitutions": {
+    "_CLOUD_TASKS_QUEUE": "__CLOUD_TASKS_QUEUE__",
+    "_GITHUB_ORGANISATIONS": "__GITHUB_ORGANISATIONS__"
+  }
+}

@@ -66,7 +66,6 @@ then
     # Prepare backup job payload
     sed "${dcat_deploy_dir}"/backup/cloudbuild_backup.json \
         -e "s|__DEST_BUCKET__|${backup_destination}|" \
-        -e "s|__GITHUB_SECRET_ID__|${GITHUB_SECRET_ID}|" \
         -e "s|__BRANCH_NAME__|${BRANCH_NAME}|" > cloudbuild_backup_gen.json
 
     echo "Scheduling backup..."
@@ -124,4 +123,20 @@ if [ $? -ne 0 ]
 then
     echo "ERROR creating pub/sub topic history function and job"
     exit 1
+fi
+
+#########################################################################
+# Create functions to backup repositories
+#########################################################################
+
+if [ -n "${GITHUB_SECRET_ID}" ]
+then
+  echo "Creating functions to backup source code repositories..."
+
+  "${dcat_deploy_dir}"/backup/repositories/setup_backup_github_repos.sh "${data_catalog_path}" "${PROJECT_ID}" "${backup_destination}" "${GITHUB_SECRET_ID}"
+  if [ $? -ne 0 ]
+  then
+    echo "ERROR creating functions"
+    exit 1
+  fi
 fi

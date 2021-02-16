@@ -1,0 +1,2 @@
+google-cloud-secret-manager==2.2.0
+nose2==0.10.0

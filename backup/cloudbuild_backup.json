@@ -32,13 +32,12 @@
       "entrypoint": "bash",
       "args": [
         "-c",
-        "source dcat-deploy/backup/venv/bin/activate && dcat-deploy/backup/run_backup.sh data_catalog.json ${PROJECT_ID} ${_DEST_BUCKET} ${_GITHUB_SECRET_ID}"
+        "source dcat-deploy/backup/venv/bin/activate && dcat-deploy/backup/run_backup.sh data_catalog.json ${PROJECT_ID} ${_DEST_BUCKET}"
       ]
     }
   ],
   "substitutions": {
     "_BRANCH_NAME": "__BRANCH_NAME__",
-    "_GITHUB_SECRET_ID": "__GITHUB_SECRET_ID__",
     "_DEST_BUCKET": "__DEST_BUCKET__"
   }
 }
