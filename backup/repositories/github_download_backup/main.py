@@ -80,7 +80,7 @@ class GitHubDownloadBackup:
         Get the archive url of the latest backup
         """
 
-        github_url = f"https://api.github.com/orgs/{organisation}/migrations"
+        github_url = f"https://api.github.com/orgs/{organisation}/migrations?exclude=repositories"
 
         try:
             # Request backup archive urls
