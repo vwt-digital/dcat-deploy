@@ -16,7 +16,7 @@ git clone --branch="${BRANCH_NAME}" https://github.com/vwt-digital/pubsub-backup
   --trigger-http \
   --project="${PROJECT_ID}" \
   --region=europe-west1 \
-  --memory=512MB \
+  --memory=256MB \
   --timeout=540s \
   --service-account="${SERVICE_ACCOUNT}" \
   --set-env-vars=PROJECT_ID="${PROJECT_ID}")
