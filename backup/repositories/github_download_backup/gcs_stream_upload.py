@@ -1,28 +1,26 @@
 from google.auth.transport.requests import AuthorizedSession
-from google.resumable_media import requests, common
 from google.cloud import storage
+from google.resumable_media import common, requests
 
 
 class GCSObjectStreamUpload(object):
     def __init__(
-            self,
-            client: storage.Client,
-            bucket_name: str,
-            blob_name: str,
-            chunk_size: int = 256 * 1024
+        self,
+        client: storage.Client,
+        bucket_name: str,
+        blob_name: str,
+        chunk_size: int = 256 * 1024,
     ):
         self._client = client
         self._bucket = self._client.bucket(bucket_name)
         self._blob = self._bucket.blob(blob_name)
 
-        self._buffer = b''
+        self._buffer = b""
         self._buffer_size = 0
         self._chunk_size = chunk_size
         self._read = 0
 
-        self._transport = AuthorizedSession(
-            credentials=self._client._credentials
-        )
+        self._transport = AuthorizedSession(credentials=self._client._credentials)
         self._request = None  # type: requests.ResumableUpload
 
     def __enter__(self):
@@ -35,18 +33,18 @@ class GCSObjectStreamUpload(object):
 
     def start(self):
         url = (
-            f'https://www.googleapis.com/upload/storage/v1/b/'
-            f'{self._bucket.name}/o?uploadType=resumable'
+            f"https://www.googleapis.com/upload/storage/v1/b/"
+            f"{self._bucket.name}/o?uploadType=resumable"
         )
         self._request = requests.ResumableUpload(
             upload_url=url, chunk_size=self._chunk_size
         )
         self._request.initiate(
             transport=self._transport,
-            content_type='application/octet-stream',
+            content_type="application/octet-stream",
             stream=self,
             stream_final=False,
-            metadata={'name': self._blob.name},
+            metadata={"name": self._blob.name},
         )
 
     def stop(self):

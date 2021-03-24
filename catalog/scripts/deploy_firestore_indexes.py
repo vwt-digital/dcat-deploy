@@ -1,8 +1,8 @@
 import json
 import sys
-import google.auth
-import google.api_core.exceptions as gcp_exceptions
 
+import google.api_core.exceptions as gcp_exceptions
+import google.auth
 from google.cloud import firestore_admin_v1
 
 catalogfile = open(sys.argv[1], "r")
@@ -22,9 +22,9 @@ def get_order_value(order):
 
     if not order:
         return 0
-    if order == 'asc':
+    if order == "asc":
         return 1
-    if order == 'desc':
+    if order == "desc":
         return 2
 
     return order
@@ -37,22 +37,28 @@ def generate_indexes():
 
     indexes = []
 
-    for dataset in catalog['dataset']:
-        for distribution in dataset['distribution']:
-            if distribution['format'] == 'firestore-index':
-                if 'deploymentProperties' in distribution:
+    for dataset in catalog["dataset"]:
+        for distribution in dataset["distribution"]:
+            if distribution["format"] == "firestore-index":
+                if "deploymentProperties" in distribution:
                     index = {
-                        'collection_group': distribution['deploymentProperties'].get('kind'),
-                        'field_config': []
+                        "collection_group": distribution["deploymentProperties"].get(
+                            "kind"
+                        ),
+                        "field_config": [],
                     }
 
-                    for property in distribution['deploymentProperties'].get('properties', []):
-                        index['field_config'].append({
-                            'field_path': property.get('name'),
-                            'order': get_order_value(property['direction'])
-                        })
+                    for property in distribution["deploymentProperties"].get(
+                        "properties", []
+                    ):
+                        index["field_config"].append(
+                            {
+                                "field_path": property.get("name"),
+                                "order": get_order_value(property["direction"]),
+                            }
+                        )
 
-                    if index['collection_group'] and len(index['field_config']) > 0:
+                    if index["collection_group"] and len(index["field_config"]) > 0:
                         indexes.append(index)
 
     return indexes
@@ -66,16 +72,19 @@ def delete_obsolete_indexes(deployed_indexes):
     count_deleted = 0
 
     # Retrieve existing indexes
-    indexes_parent = fs_client.collection_group_path(project=project_id, database="(default)", collection=None)
+    indexes_parent = fs_client.collection_group_path(
+        project=project_id, database="(default)", collection=None
+    )
     current_indexes = fs_client.list_indexes(parent=indexes_parent)
 
-    deployed_indexes_fields = [index['field_config'] for index in deployed_indexes]
+    deployed_indexes_fields = [index["field_config"] for index in deployed_indexes]
 
     for current_index in current_indexes:
-        current_index_fields = [{
-            'field_path': field.field_path,
-            'order': field.order
-        } for field in current_index.fields if field.field_path != '__name__']
+        current_index_fields = [
+            {"field_path": field.field_path, "order": field.order}
+            for field in current_index.fields
+            if field.field_path != "__name__"
+        ]
 
         # Check if index fields are within data-catalog index fields
         if current_index_fields not in deployed_indexes_fields:
@@ -106,15 +115,23 @@ def deploy_indexes():
         for index in indexes:
             # Generate the index parent
             index_parent = fs_client.collection_group_path(
-                project=project_id, database="(default)", collection=index['collection_group'])
+                project=project_id,
+                database="(default)",
+                collection=index["collection_group"],
+            )
 
             # Create a list of index field objects
             index_fields = [
-                firestore_admin_v1.types.Index.IndexField(field_path=field['field_path'], order=field['order']) for
-                field in index['field_config']]
+                firestore_admin_v1.types.Index.IndexField(
+                    field_path=field["field_path"], order=field["order"]
+                )
+                for field in index["field_config"]
+            ]
 
             # Create a index object
-            index_obj = firestore_admin_v1.types.Index(query_scope=1, fields=index_fields)
+            index_obj = firestore_admin_v1.types.Index(
+                query_scope=1, fields=index_fields
+            )
 
             # Create an index
             try:
@@ -130,11 +147,15 @@ def deploy_indexes():
                 count_created += 1
                 deployed_indexes.append(index)
 
-        count_deleted = delete_obsolete_indexes(deployed_indexes)  # Remove obsolete indexes
+        count_deleted = delete_obsolete_indexes(
+            deployed_indexes
+        )  # Remove obsolete indexes
 
         print(
             "Created {} new Firestore indexes, {} already existed and {} obsolete were deleted".format(
-                count_created, count_existed, count_deleted))
+                count_created, count_existed, count_deleted
+            )
+        )
 
 
 deploy_indexes()

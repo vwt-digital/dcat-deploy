@@ -6,141 +6,95 @@ from datetime import timedelta
 
 
 def find_topic(dataset):
-    for distribution in dataset['distribution']:
-        if distribution['format'] == 'topic':
-            return distribution['title']
+    for distribution in dataset["distribution"]:
+        if distribution["format"] == "topic":
+            return distribution["title"]
     return None
 
 
 resource_default_policy_bindings = {
-    'blob-storage': {
-        'public': [
+    "blob-storage": {
+        "public": [
             {
-                'role': 'roles/storage.legacyBucketOwner',
-                'members': [
-                    'projectEditor:{project_id}',
-                    'projectOwner:{project_id}'
-                ]
+                "role": "roles/storage.legacyBucketOwner",
+                "members": ["projectEditor:{project_id}", "projectOwner:{project_id}"],
             },
             {
-                'role': 'roles/storage.legacyObjectOwner',
-                'members': [
-                    'projectEditor:{project_id}',
-                    'projectOwner:{project_id}'
-                ]
+                "role": "roles/storage.legacyObjectOwner",
+                "members": ["projectEditor:{project_id}", "projectOwner:{project_id}"],
             },
             {
-                'role': 'roles/storage.legacyObjectReader',
-                'members': [
-                    'projectViewer:{project_id}',
-                    'allUsers'
-                ]
+                "role": "roles/storage.legacyObjectReader",
+                "members": ["projectViewer:{project_id}", "allUsers"],
             },
             {
-                'role': 'roles/storage.legacyBucketReader',
-                'members': [
-                    'projectViewer:{project_id}',
-                    'allUsers'
-                ]
-            }
+                "role": "roles/storage.legacyBucketReader",
+                "members": ["projectViewer:{project_id}", "allUsers"],
+            },
         ],
-        'internal': [
+        "internal": [
             {
-                'role': 'roles/storage.legacyBucketOwner',
-                'members': [
-                    'projectEditor:{project_id}',
-                    'projectOwner:{project_id}'
-                ]
+                "role": "roles/storage.legacyBucketOwner",
+                "members": ["projectEditor:{project_id}", "projectOwner:{project_id}"],
             },
             {
-                'role': 'roles/storage.legacyObjectOwner',
-                'members': [
-                    'projectEditor:{project_id}',
-                    'projectOwner:{project_id}'
-                ]
+                "role": "roles/storage.legacyObjectOwner",
+                "members": ["projectEditor:{project_id}", "projectOwner:{project_id}"],
             },
             {
-                'role': 'roles/storage.legacyObjectReader',
-                'members': [
-                    'projectViewer:{project_id}'
-                ]
+                "role": "roles/storage.legacyObjectReader",
+                "members": ["projectViewer:{project_id}"],
             },
             {
-                'role': 'roles/storage.legacyBucketReader',
-                'members': [
-                    'projectViewer:{project_id}'
-                ]
-            }
+                "role": "roles/storage.legacyBucketReader",
+                "members": ["projectViewer:{project_id}"],
+            },
         ],
-        'restricted': [
+        "restricted": [
             {
-                'role': 'roles/storage.legacyBucketOwner',
-                'members': [
-                    'projectEditor:{project_id}',
-                    'projectOwner:{project_id}'
-                ]
+                "role": "roles/storage.legacyBucketOwner",
+                "members": ["projectEditor:{project_id}", "projectOwner:{project_id}"],
             },
             {
-                'role': 'roles/storage.legacyObjectOwner',
-                'members': [
-                    'projectEditor:{project_id}',
-                    'projectOwner:{project_id}'
-                ]
+                "role": "roles/storage.legacyObjectOwner",
+                "members": ["projectEditor:{project_id}", "projectOwner:{project_id}"],
             },
             {
-                'role': 'roles/storage.legacyObjectReader',
-                'members': [
-                    'projectViewer:{project_id}'
-                ]
+                "role": "roles/storage.legacyObjectReader",
+                "members": ["projectViewer:{project_id}"],
             },
             {
-                'role': 'roles/storage.legacyBucketReader',
-                'members': [
-                    'projectViewer:{project_id}'
-                ]
-            }
+                "role": "roles/storage.legacyBucketReader",
+                "members": ["projectViewer:{project_id}"],
+            },
         ],
-        'confidential': []
+        "confidential": [],
     }
 }
 
 
 resource_odrl_policy_bindings = {
-    'blob-storage': {
-        'read': [
-            'roles/storage.legacyBucketReader',
-            'roles/storage.legacyObjectReader'
+    "blob-storage": {
+        "read": [
+            "roles/storage.legacyBucketReader",
+            "roles/storage.legacyObjectReader",
         ],
-        'write': [
-            'roles/storage.legacyBucketWriter',
-            'roles/storage.legacyObjectOwner'
+        "write": [
+            "roles/storage.legacyBucketWriter",
+            "roles/storage.legacyObjectOwner",
         ],
-        'modify': [
-            'roles/storage.legacyBucketOwner',
-            'roles/storage.legacyObjectOwner'
-        ]
+        "modify": [
+            "roles/storage.legacyBucketOwner",
+            "roles/storage.legacyObjectOwner",
+        ],
     },
-    'topic': {
-        'read': [
-            'roles/pubsub.subscriber'
-        ],
-        'write': [
-            'roles/pubsub.publisher'
-        ],
-        'modify': [
-            'roles/pubsub.editor'
-        ]
+    "topic": {
+        "read": ["roles/pubsub.subscriber"],
+        "write": ["roles/pubsub.publisher"],
+        "modify": ["roles/pubsub.editor"],
     },
-    'subscription': {
-        'read': [
-            'roles/pubsub.subscriber'
-        ]
-    },
-    'bigquery-dataset': {
-        'read': 'READER',
-        'write': 'WRITER',
-        'modify': 'OWNER'
-    }
+    "subscription": {"read": ["roles/pubsub.subscriber"]},
+    "bigquery-dataset": {"read": "READER", "write": "WRITER", "modify": "OWNER"},
 }
 
 
@@ -151,50 +105,56 @@ def gather_odrl_policy_roles_to_add(resource_format, action):
         return []
 
 
-def gather_permissions(access_level, resource_title, resource_format, project_id, odrlPolicy):
+def gather_permissions(  # noqa: C901
+    access_level, resource_title, resource_format, project_id, odrl_policy
+):
     bindings_per_level = resource_default_policy_bindings.get(resource_format, None)
     bindings = None
 
     if bindings_per_level:
         bindings = bindings_per_level[access_level]
 
-    if odrlPolicy:
-        for permission in odrlPolicy.get('permission', []):
-            if permission.get('target') == resource_title:
-                for role_to_add in gather_odrl_policy_roles_to_add(resource_format, permission['action']):
+    if odrl_policy:
+        for permission in odrl_policy.get("permission", []):
+            if permission.get("target") == resource_title:
+                for role_to_add in gather_odrl_policy_roles_to_add(
+                    resource_format, permission["action"]
+                ):
                     if not bindings:
                         bindings = []
-                    binding = next((b for b in bindings if b['role'] == role_to_add), None)
+                    binding = next(
+                        (b for b in bindings if b["role"] == role_to_add), None
+                    )
                     if not binding:
-                        binding = {
-                            'role': role_to_add,
-                            'members': []
-                        }
+                        binding = {"role": role_to_add, "members": []}
                         bindings.append(binding)
-                    if not permission['assignee'] in binding['members']:
-                        binding['members'].append(permission['assignee'])
+                    if not permission["assignee"] in binding["members"]:
+                        binding["members"].append(permission["assignee"])
 
     if bindings is not None:
         for binding in bindings:
-            binding['members'] = [member.format(project_id=project_id) for member in binding['members']]
+            binding["members"] = [
+                member.format(project_id=project_id) for member in binding["members"]
+            ]
 
         return bindings
     else:
         return None
 
 
-def append_gcp_policy(resource, resource_title, resource_format, access_level, project_id, odrlPolicy):
-    if resource_format == 'bigquery-dataset':
-        resource['properties']['access'] = gather_bigquery_permissions(
-            access_level, resource_title, resource_format, project_id, odrlPolicy)
+def append_gcp_policy(
+    resource, resource_title, resource_format, access_level, project_id, odrl_policy
+):
+    if resource_format == "bigquery-dataset":
+        resource["properties"]["access"] = gather_bigquery_permissions(
+            access_level, resource_title, resource_format, project_id, odrl_policy
+        )
     else:
-        permissions = gather_permissions(access_level, resource_title, resource_format, project_id, odrlPolicy)
+        permissions = gather_permissions(
+            access_level, resource_title, resource_format, project_id, odrl_policy
+        )
         if permissions is not None:
-            resource['accessControl'] = {
-                'gcpIamPolicy': {
-                    'bindings': permissions
-                }
-            }
+            resource["accessControl"] = {"gcpIamPolicy": {"bindings": permissions}}
 
 
 def gather_bigquery_retention(temporal):
@@ -202,168 +162,180 @@ def gather_bigquery_retention(temporal):
     return str(int(duration.total_seconds() * 1000))
 
 
-def gather_bigquery_permissions(access_level, resource_title, resource_format, project_id, odrlPolicy={}):
+def gather_bigquery_permissions(
+    access_level, resource_title, resource_format, project_id, odrl_policy={}
+):
 
     permissions = []
 
-    for permission in odrlPolicy.get('permission', []):
-        if permission.get('target') == resource_title:
+    for permission in odrl_policy.get("permission", []):
+        if permission.get("target") == resource_title:
 
-            identity = 'groupByEmail' if permission['assignee'].startswith('group:') else 'userByEmail'
-            member = permission['assignee'].split(':')[-1]
+            identity = (
+                "groupByEmail"
+                if permission["assignee"].startswith("group:")
+                else "userByEmail"
+            )
+            member = permission["assignee"].split(":")[-1]
 
-            permissions.append({
-                'role': resource_odrl_policy_bindings[resource_format][permission['action']],
-                identity: member
-            })
+            permissions.append(
+                {
+                    "role": resource_odrl_policy_bindings[resource_format][
+                        permission["action"]
+                    ],
+                    identity: member,
+                }
+            )
 
     return permissions
 
 
 def gather_bucket_lifecycle(temporal):
-    if temporal and temporal.startswith('P'):
+    if temporal and temporal.startswith("P"):
         duration = parse_duration(temporal)
         return {
-            'rule': [
-                {
-                    'action': {
-                        'type': 'Delete'
-                    },
-                    'condition': {
-                        'age': duration.days
-                    }
-                }
+            "rule": [
+                {"action": {"type": "Delete"}, "condition": {"age": duration.days}}
             ]
         }
     else:
         return {}
 
 
-def gather_bucket_retentionPolicy(temporal):
-    print('temporal {}'.format(temporal))
-    if temporal and temporal.startswith('P'):
-        retentionPeriod = parse_duration(temporal)
-        return {
-            'retentionPeriod': int(retentionPeriod.total_seconds())
-        }
+def gather_bucket_retention_policy(temporal):
+    print("temporal {}".format(temporal))
+    if temporal and temporal.startswith("P"):
+        retention_period = parse_duration(temporal)
+        return {"retentionPeriod": int(retention_period.total_seconds())}
     else:
         return {}
 
 
-def generate_config(context):
+def generate_config(context):  # noqa: C901
 
     resources = []
 
-    for dataset in catalog['dataset']:  # noqa: F821
-        for distribution in dataset['distribution']:
+    for dataset in catalog["dataset"]:  # noqa: F821
+        for distribution in dataset["distribution"]:
             resource_to_append = None
 
-            if distribution['format'] == 'blob-storage':
+            if distribution["format"] == "blob-storage":
                 resource_to_append = {
-                        'name': distribution['title'],
-                        'type': 'storage.v1.bucket'
-                    }
-                resource_to_append['properties'] = distribution.get('deploymentProperties', {})
+                    "name": distribution["title"],
+                    "type": "storage.v1.bucket",
+                }
+                resource_to_append["properties"] = distribution.get(
+                    "deploymentProperties", {}
+                )
 
-                if 'deploymentZone' in distribution:
-                    resource_to_append['properties'].update({
-                        'location': distribution['deploymentZone']
-                    })
+                if "deploymentZone" in distribution:
+                    resource_to_append["properties"].update(
+                        {"location": distribution["deploymentZone"]}
+                    )
 
-                if 'accessLevel' in dataset:
-                    resource_to_append['properties'].update({
-                        'iamConfiguration': {
-                            'bucketPolicyOnly': {'enabled': True}
-                        }
-                    })
+                if "accessLevel" in dataset:
+                    resource_to_append["properties"].update(
+                        {"iamConfiguration": {"bucketPolicyOnly": {"enabled": True}}}
+                    )
 
-                labels = {'accesslevel': dataset.get('accessLevel', '')}
+                labels = {"accesslevel": dataset.get("accessLevel", "")}
 
-                if 'labels' in resource_to_append['properties']:
-                    resource_to_append['properties']['labels'].update(labels)
+                if "labels" in resource_to_append["properties"]:
+                    resource_to_append["properties"]["labels"].update(labels)
                 else:
-                    resource_to_append['properties']['labels'] = labels
+                    resource_to_append["properties"]["labels"] = labels
 
-                if not resource_to_append['properties'].get('defaultEventBasedHold', False):
-                    resource_to_append['properties']['lifecycle'] = gather_bucket_lifecycle(dataset.get('temporal', ''))
-                    resource_to_append['properties']['retentionPolicy'] = \
-                        gather_bucket_retentionPolicy(dataset.get('temporal', ''))
+                if not resource_to_append["properties"].get(
+                    "defaultEventBasedHold", False
+                ):
+                    resource_to_append["properties"][
+                        "lifecycle"
+                    ] = gather_bucket_lifecycle(dataset.get("temporal", ""))
+                    resource_to_append["properties"][
+                        "retentionPolicy"
+                    ] = gather_bucket_retention_policy(dataset.get("temporal", ""))
 
-            if distribution['format'] == 'topic':
+            if distribution["format"] == "topic":
                 resource_to_append = {
-                    'name': distribution['title'],
-                    'type': 'pubsub.v1.topic',
-                    'properties':
-                        {
-                            'topic': distribution['title'],
-                            'labels': {
-                                'accesslevel':  dataset.get('accessLevel', '')
-                            }
-                        }
-                }
-
-            if distribution['format'] == 'subscription':
-                resource_to_append = {
-                    'name': distribution['title'],
-                    'type': 'pubsub.v1.subscription',
-                    'properties': {
-                        'topic': '$(ref.' + find_topic(dataset) + '.name)',
-                        'subscription': distribution['title'],
-                        'expirationPolicy': {}
+                    "name": distribution["title"],
+                    "type": "pubsub.v1.topic",
+                    "properties": {
+                        "topic": distribution["title"],
+                        "labels": {"accesslevel": dataset.get("accessLevel", "")},
                     },
-                    'metadata': {
-                        'dependsOn': [find_topic(dataset)]
-                    }
-                }
-                if distribution.get('deploymentProperties'):
-                    resource_to_append['properties'].update(distribution['deploymentProperties'])
-
-            if distribution['format'] == 'cloudsql-instance':
-                resource_to_append = {
-                    'name': distribution['title'],
-                    'type': 'gcp-types/sqladmin-v1beta4:instances'
                 }
 
-            if distribution['format'] == 'cloudsql-db':
+            if distribution["format"] == "subscription":
                 resource_to_append = {
-                    'name': distribution['title'],
-                    'type': 'gcp-types/sqladmin-v1beta4:databases',
-                    'properties': distribution['deploymentProperties'],
-                    'metadata': {
-                        'dependsOn': [distribution['deploymentProperties']['instance']]
-                    }
+                    "name": distribution["title"],
+                    "type": "pubsub.v1.subscription",
+                    "properties": {
+                        "topic": "$(ref." + find_topic(dataset) + ".name)",
+                        "subscription": distribution["title"],
+                        "expirationPolicy": {},
+                    },
+                    "metadata": {"dependsOn": [find_topic(dataset)]},
+                }
+                if distribution.get("deploymentProperties"):
+                    resource_to_append["properties"].update(
+                        distribution["deploymentProperties"]
+                    )
+
+            if distribution["format"] == "cloudsql-instance":
+                resource_to_append = {
+                    "name": distribution["title"],
+                    "type": "gcp-types/sqladmin-v1beta4:instances",
                 }
 
-            if distribution['format'] == 'bigquery-dataset':
+            if distribution["format"] == "cloudsql-db":
                 resource_to_append = {
-                    'name': distribution['title'],
-                    'type': 'gcp-types/bigquery-v2:datasets',
-                    'properties': {
-                        'datasetReference':
-                            {
-                                'datasetId': distribution['title'],
-                                'projectId': catalog['projectId']  # noqa: F821
-                            },
-                        'location': distribution['deploymentZone'],
-                    }
+                    "name": distribution["title"],
+                    "type": "gcp-types/sqladmin-v1beta4:databases",
+                    "properties": distribution["deploymentProperties"],
+                    "metadata": {
+                        "dependsOn": [distribution["deploymentProperties"]["instance"]]
+                    },
                 }
-                if dataset.get('temporal'):
-                    resource_to_append['properties']['defaultPartitionExpirationMs'] = gather_bigquery_retention(dataset.get('temporal'))
+
+            if distribution["format"] == "bigquery-dataset":
+                resource_to_append = {
+                    "name": distribution["title"],
+                    "type": "gcp-types/bigquery-v2:datasets",
+                    "properties": {
+                        "datasetReference": {
+                            "datasetId": distribution["title"],
+                            "projectId": catalog["projectId"],  # noqa: F821
+                        },
+                        "location": distribution["deploymentZone"],
+                    },
+                }
+                if dataset.get("temporal"):
+                    resource_to_append["properties"][
+                        "defaultPartitionExpirationMs"
+                    ] = gather_bigquery_retention(dataset.get("temporal"))
 
             if resource_to_append:
 
-                if 'deploymentProperties' in distribution:
-                    if 'properties' not in resource_to_append:
-                        resource_to_append['properties'] = {}
-                    resource_to_append['properties'].update(distribution['deploymentProperties'])
+                if "deploymentProperties" in distribution:
+                    if "properties" not in resource_to_append:
+                        resource_to_append["properties"] = {}
+                    resource_to_append["properties"].update(
+                        distribution["deploymentProperties"]
+                    )
 
-                if 'accessLevel' in dataset:
-                    append_gcp_policy(resource_to_append, distribution['title'], distribution['format'], dataset['accessLevel'],
-                                      context.env['project'], dataset.get('odrlPolicy'))
+                if "accessLevel" in dataset:
+                    append_gcp_policy(
+                        resource_to_append,
+                        distribution["title"],
+                        distribution["format"],
+                        dataset["accessLevel"],
+                        context.env["project"],
+                        dataset.get("odrlPolicy"),
+                    )
 
                 resources.append(resource_to_append)
 
-    return {'resources': resources}
+    return {"resources": resources}
 
 
 # Code below is a modified version of duration calculation of isodate package.
@@ -406,7 +378,8 @@ ISO8601_PERIOD_REGEX = re.compile(
     r"(?P<days>[0-9]+([,.][0-9]+)?D)?"
     r"((?P<separator>T)(?P<hours>[0-9]+([,.][0-9]+)?H)?"
     r"(?P<minutes>[0-9]+([,.][0-9]+)?M)?"
-    r"(?P<seconds>[0-9]+([,.][0-9]+)?S)?)?$")
+    r"(?P<seconds>[0-9]+([,.][0-9]+)?S)?)?$"
+)
 # regular expression to parse ISO duartion strings.
 
 
@@ -434,16 +407,23 @@ def parse_duration(datestring):
         raise TypeError("Expecting a string %r" % datestring)
     match = ISO8601_PERIOD_REGEX.match(datestring)
     if not match:
-        raise ValueError("Expecting ISO8601 duration format, which is not %r" % datestring)
+        raise ValueError(
+            "Expecting ISO8601 duration format, which is not %r" % datestring
+        )
     groups = match.groupdict()
     for key, val in groups.items():
-        if key not in ('separator', 'sign'):
+        if key not in ("separator", "sign"):
             if val is None:
-                groups[key] = '0n'
-            print('groups {} val {}'.format(key, groups[key]))
-            groups[key] = float(groups[key][:-1].replace(',', '.'))
-    ret = timedelta(days=groups["days"]+(groups['years']*365)+(groups['months']*30), hours=groups["hours"],
-                    minutes=groups["minutes"], seconds=groups["seconds"], weeks=groups["weeks"])
-    if groups["sign"] == '-':
+                groups[key] = "0n"
+            print("groups {} val {}".format(key, groups[key]))
+            groups[key] = float(groups[key][:-1].replace(",", "."))
+    ret = timedelta(
+        days=groups["days"] + (groups["years"] * 365) + (groups["months"] * 30),
+        hours=groups["hours"],
+        minutes=groups["minutes"],
+        seconds=groups["seconds"],
+        weeks=groups["weeks"],
+    )
+    if groups["sign"] == "-":
         ret = timedelta(0) - ret
     return ret

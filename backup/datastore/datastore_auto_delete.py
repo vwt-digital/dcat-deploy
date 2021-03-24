@@ -1,17 +1,17 @@
-import logging
-import json
-import sys
 import datetime
+import json
+import logging
 import re
+import sys
 
 from google.cloud import datastore
 
-json_file = open(sys.argv[1], 'r')
+json_file = open(sys.argv[1], "r")
 catalog = json.load(json_file)
 
 
 def gather_bucket_lifecycle(temporal):
-    if temporal and temporal.startswith('P'):
+    if temporal and temporal.startswith("P"):
         duration = parse_duration(temporal)
         return duration.days
     else:
@@ -19,28 +19,35 @@ def gather_bucket_lifecycle(temporal):
 
 
 def datastore_auto_delete(dataset):
-    temporal_days = gather_bucket_lifecycle(entry['temporal'])
-    if temporal_days and temporal_days > 0 and 'distribution' in dataset:
-        for distribution in dataset['distribution']:
-            if 'datastore-kind' in distribution['format'] \
-                    and 'deploymentProperties' in distribution \
-                    and 'kind' in distribution['deploymentProperties'] \
-                    and 'keyField' in distribution['deploymentProperties']:
-                kind = distribution['deploymentProperties']['kind']
-                field = distribution['deploymentProperties']['keyField']
+    temporal_days = gather_bucket_lifecycle(entry["temporal"])
+    if temporal_days and temporal_days > 0 and "distribution" in dataset:
+        for distribution in dataset["distribution"]:
+            if (
+                "datastore-kind" in distribution["format"]
+                and "deploymentProperties" in distribution
+                and "kind" in distribution["deploymentProperties"]
+                and "keyField" in distribution["deploymentProperties"]
+            ):
+                kind = distribution["deploymentProperties"]["kind"]
+                field = distribution["deploymentProperties"]["keyField"]
 
                 db_client = datastore.Client()
                 batch = db_client.batch()
                 query = db_client.query(kind=kind)
 
-                time_delta = (datetime.datetime.now() - datetime.timedelta(
-                    days=temporal_days)).isoformat()
+                time_delta = (
+                    datetime.datetime.now() - datetime.timedelta(days=temporal_days)
+                ).isoformat()
                 query.add_filter(field, "<=", time_delta)
                 query.keys_only()
                 entities = list(query.fetch())
 
                 if len(entities) > 0:
-                    print("Auto-deleting {} entities older than {} days".format(kind, temporal_days))
+                    print(
+                        "Auto-deleting {} entities older than {} days".format(
+                            kind, temporal_days
+                        )
+                    )
 
                     batch.begin()
                     batch_count = 0
@@ -58,11 +65,15 @@ def datastore_auto_delete(dataset):
                         batch_count_total += 1
 
                     batch.commit()
-                    print("Deleted total of {} {} entities".format(batch_count_total, kind))
+                    print(
+                        "Deleted total of {} {} entities".format(
+                            batch_count_total, kind
+                        )
+                    )
                 else:
                     print("No deletable {} entities found".format(kind))
     else:
-        print("Temporal for {} is invalid".format(dataset['identifier']))
+        print("Temporal for {} is invalid".format(dataset["identifier"]))
 
 
 # Code below is a modified version of duration calculation of isodate package.
@@ -104,7 +115,8 @@ ISO8601_PERIOD_REGEX = re.compile(
     r"(?P<days>[0-9]+([,.][0-9]+)?D)?"
     r"((?P<separator>T)(?P<hours>[0-9]+([,.][0-9]+)?H)?"
     r"(?P<minutes>[0-9]+([,.][0-9]+)?M)?"
-    r"(?P<seconds>[0-9]+([,.][0-9]+)?S)?)?$")
+    r"(?P<seconds>[0-9]+([,.][0-9]+)?S)?)?$"
+)
 # regular expression to parse ISO duartion strings.
 
 
@@ -132,33 +144,34 @@ def parse_duration(datestring):
         raise TypeError("Expecting a string %r" % datestring)
     match = ISO8601_PERIOD_REGEX.match(datestring)
     if not match:
-        raise ValueError("Expecting ISO8601 duration format, which is not %r"
-                         % datestring)
+        raise ValueError(
+            "Expecting ISO8601 duration format, which is not %r" % datestring
+        )
     groups = match.groupdict()
     for key, val in groups.items():
-        if key not in ('separator', 'sign'):
+        if key not in ("separator", "sign"):
             if val is None:
-                groups[key] = '0n'
-            groups[key] = float(groups[key][:-1].replace(',', '.'))
-    ret = datetime.timedelta(days=groups["days"] +
-                             (groups['years']*365) +
-                             (groups['months']*30),
-                             hours=groups["hours"],
-                             minutes=groups["minutes"],
-                             seconds=groups["seconds"],
-                             weeks=groups["weeks"])
-    if groups["sign"] == '-':
+                groups[key] = "0n"
+            groups[key] = float(groups[key][:-1].replace(",", "."))
+    ret = datetime.timedelta(
+        days=groups["days"] + (groups["years"] * 365) + (groups["months"] * 30),
+        hours=groups["hours"],
+        minutes=groups["minutes"],
+        seconds=groups["seconds"],
+        weeks=groups["weeks"],
+    )
+    if groups["sign"] == "-":
         ret = datetime.timedelta(0) - ret
     return ret
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
 
-    if 'dataset' in catalog:
+    if "dataset" in catalog:
         no_temporal = True
-        for entry in catalog['dataset']:
-            if 'temporal' in entry:
+        for entry in catalog["dataset"]:
+            if "temporal" in entry:
                 no_temporal = False
                 try:
                     datastore_auto_delete(entry)
@@ -167,8 +180,8 @@ if __name__ == '__main__':
                     sys.exit(1)
 
         if no_temporal:
-            logging.info('No datasets with temporals found')
+            logging.info("No datasets with temporals found")
     else:
-        logging.info('No datasets found')
+        logging.info("No datasets found")
 
     sys.exit(0)

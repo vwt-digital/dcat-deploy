@@ -10,12 +10,14 @@ catalogfile = open(sys.argv[1], "r")
 catalog = json.load(catalogfile)
 queues = []
 
-for dataset in catalog['dataset']:
-    for distribution in dataset['distribution']:
-        if distribution['format'] == 'cloudtasks-queue':
-            queue_deployment = [distribution['title'], '--quiet']
+for dataset in catalog["dataset"]:
+    for distribution in dataset["distribution"]:
+        if distribution["format"] == "cloudtasks-queue":
+            queue_deployment = [distribution["title"], "--quiet"]
 
-            for key in distribution.get('deploymentProperties', []):
-                queue_deployment.append('--{}={}'.format(key, distribution['deploymentProperties'][key]))
+            for key in distribution.get("deploymentProperties", []):
+                queue_deployment.append(
+                    "--{}={}".format(key, distribution["deploymentProperties"][key])
+                )
 
-            print(' '.join(queue_deployment))
+            print(" ".join(queue_deployment))
