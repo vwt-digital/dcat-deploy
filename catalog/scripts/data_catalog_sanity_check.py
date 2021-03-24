@@ -38,8 +38,8 @@ if "projectId" not in catalog:
 
 def apply_firestore_checks(has_datastore_service, has_firestore_service, dataset):
     # Check if datastore/firestore distributions are within a dataset
-    nonlocal has_datastore_dis
-    nonlocal has_firestore_dis
+    global has_datastore_dis
+    global has_firestore_dis
 
     if has_datastore_service or has_firestore_service:
         for distribution in dataset.get("distribution", []):
