@@ -35,19 +35,20 @@ class GitHubRequestBackup:
             )
             raise
         else:
+            response = json.loads(gh_r.content.decode("utf-8"))
+
             if gh_r.ok:
-                response = json.loads(gh_r.content.decode("utf-8"))
                 logging.info(
                     f"Successfully requested migration {response['id']} for '{organisation}' with "
                     + f"{len(repositories)} repositories"
                 )
                 return response["id"]
-            else:
-                logging.error(
-                    f"Migration request for '{organisation}' failed with status code "
-                    + f"{gh_r.status_code}: {str(gh_r.reason)}"
-                )
-                return False
+
+            logging.error(
+                f"Migration request for '{organisation}' failed with status code "
+                + f"{gh_r.status_code}: {str(gh_r.reason)} {json.dumps(response)}"
+            )
+            return False
 
 
 class DataCatalog:
@@ -135,7 +136,7 @@ if __name__ == "__main__":
 
     class R:
         def __init__(self):
-            self.args = {"organisation": "vwt-digital"}
+            self.args = {"organisation": "vwt-digital-solutions"}
 
         def get_json(self, silent=True):
             return self.args
