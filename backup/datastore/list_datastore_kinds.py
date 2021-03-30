@@ -1,11 +1,11 @@
 import logging
 
-from google.cloud import datastore
 from google.api_core import exceptions
+from google.cloud import datastore
 
 try:
     client = datastore.Client()
-    query = client.query(kind='__kind__')
+    query = client.query(kind="__kind__")
     query.keys_only()
     kinds = [entity.key.id_or_name for entity in query.fetch()]
     for kind in kinds:

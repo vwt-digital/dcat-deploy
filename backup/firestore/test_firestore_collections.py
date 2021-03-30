@@ -1,7 +1,7 @@
 import logging
 
-from google.cloud import firestore_v1
 from google.api_core import exceptions
+from google.cloud import firestore_v1
 
 try:
     client = firestore_v1.Client()
@@ -14,9 +14,9 @@ try:
             results = [doc.to_dict() for doc in documents]
             for item in results:
                 if not isinstance(item, dict):
-                    raise TypeError('Item must be a JSON')
+                    raise TypeError("Item must be a JSON")
                 else:
-                    logging.info(' + collection {} is OK!'.format(coll))
+                    logging.info(" + collection {} is OK!".format(coll))
 
 except exceptions.FailedPrecondition as e:
     logging.info(str(e))
