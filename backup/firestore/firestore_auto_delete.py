@@ -3,13 +3,13 @@ import json
 import logging
 import sys
 
-from google.cloud import datastore
+from google.cloud import firestore_v1
 from isodate import parse_duration
 
 logging.getLogger().setLevel(logging.INFO)
 
 catalog = json.load(open(sys.argv[1], "r"))
-datastore_client = datastore.Client()
+firestore_client = firestore_v1.Client()
 
 
 def get_temporal_in_days(temporal):
@@ -52,50 +52,58 @@ def process_distribution(dist, temporal_days):
         )
         return
 
-    # Create Datastore batch & query
-    batch = datastore_client.batch()
-    query = datastore_client.query(kind=kind)
+    # Create Firestore batch
+    batch_limit = 500
+    batch_has_new_entities = True
+    batch_last_reference = None
 
-    # Set filters on query
-    time_delta = (
-        datetime.datetime.now() - datetime.timedelta(days=temporal_days)
-    ).isoformat()
-    query.add_filter(field, "<=", time_delta)
-    query.keys_only()
+    count_entities = 0
 
-    # Retrieve query results
-    entities = list(query.fetch())
+    # Get query filter
+    time_delta = datetime.datetime.now() - datetime.timedelta(days=temporal_days)
 
-    if len(entities) == 0:
-        logging.info("No deletable '{}' entities found".format(kind))
-        return
+    while batch_has_new_entities:
+        # Setup query
+        query = firestore_client.collection(kind)
 
-    # Begin batch
-    batch.begin()
-    batch_count = 0
-    batch_count_total = 0
+        # Add filters to query
+        query = query.where(field, "<=", time_delta)
+        query = query.order_by(field, "ASCENDING")
+        query = query.limit(batch_limit)
 
-    for entity in entities:
-        # Commit batch if full (max: 500)
-        if batch_count == 500:
+        # Start on previous entity if existing
+        if batch_last_reference:
+            query = query.start_after(batch_last_reference)
+
+        # Retrieve query results
+        docs = query.stream()
+        if docs:
+            # Create batch
+            batch = firestore_client.batch()
+            docs_list = list(docs)
+
+            # Check if query has more results after
+            if len(docs_list) < batch_limit:
+                batch_has_new_entities = False
+            else:
+                batch_last_reference = docs_list[-1]
+
+            # Delete entities in batch
+            for doc in docs_list:
+                batch.delete(doc.reference)
+                count_entities += 1
+
+            # Commit batch
             batch.commit()
-            batch = datastore_client.batch()
-            batch.begin()
-            batch_count = 0
+        else:
+            batch_has_new_entities = False
 
-        # Add entity to batch
-        batch.delete(entity.key)
-        batch_count += 1
-        batch_count_total += 1
-
-    # Commit batch
-    batch.commit()
-    logging.info("Deleted total of {} '{}' entities".format(batch_count_total, kind))
+    logging.info("Deleted total of {} '{}' entities".format(count_entities, kind))
 
 
 if __name__ == "__main__":
     """
-    Delete Datastore entities based on a temporal
+    Delete firestore entities based on a temporal
     """
 
     # Get datasets with temporal
@@ -116,7 +124,7 @@ if __name__ == "__main__":
 
         # Loop and process each datasets distribution
         for distribution in dataset.get("distribution", []):
-            if "datastore-kind" == distribution["format"]:
+            if "firestore-kind" == distribution["format"]:
                 process_distribution(dist=distribution, temporal_days=dataset_temp_days)
 
     sys.exit(0)

@@ -104,6 +104,25 @@ then
 
 fi
 
+#########################################################################
+# Auto delete firestore entities
+#########################################################################
+
+if [ -n "${firestores}" ]
+then
+
+    echo "Auto delete datastore entities..."
+
+    python3 "${basedir}"/firestore/firestore_auto_delete.py "${data_catalog_file}"
+
+    if [ $? -ne 0 ]
+    then
+        echo "ERROR auto deletion firestore entities"
+        result=1
+    fi
+
+fi
+
 
 #########################################################################
 # Backup datastore kinds

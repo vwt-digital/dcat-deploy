@@ -203,15 +203,8 @@ if [ "${RUN_MODE}" = "deploy" ]; then
             echo "Schema config variable cannot be found."
             exit 1
         fi
-        if [ "${BRANCH_NAME}" == "develop" ]
-        then
-            topic_project_id=$(sed -n "s/\s*topic_project_id_develop.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
-            topic_name=$(sed -n "s/\s*topic_name_develop.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
-        elif [ "${BRANCH_NAME}" == "master" ]
-        then
-            topic_project_id=$(sed -n "s/\s*topic_project_id_production.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
-            topic_name=$(sed -n "s/\s*topic_name_production.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
-        fi
+        topic_project_id=$(sed -n "s/\s*topic_project_id.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
+        topic_name=$(sed -n "s/\s*topic_name.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
 
         # Run the script that publishes the schema
         if ! python3 "${basedir}"/publish_schema_to_topic.py -d "${gcp_catalog}" -tpi "${topic_project_id}" -tn "${topic_name}" -s "${SCHEMAS_ARR[@]}"
