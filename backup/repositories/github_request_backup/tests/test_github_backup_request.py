@@ -20,6 +20,26 @@ class CloudSecretPayload:
             self.data = data
 
 
+class MockResponse:
+    def __init__(self, ok, status_code, reason=None, response=None):
+        self.ok = ok
+        self.status_code = status_code
+        self.reason = reason
+        self.response = response
+
+    def ok(self):
+        return self.ok
+
+    def status_code(self):
+        return self.status_code
+
+    def reason(self):
+        return self.reason
+
+    def json(self):
+        return self.response
+
+
 class TestRequestBackup(unittest.TestCase):
     @mock.patch("main.requests.post")  # Mock 'requests' module 'post' method.
     def test_backup_request_successful(self, mock_post):
@@ -27,12 +47,9 @@ class TestRequestBackup(unittest.TestCase):
 
         mock_response_id = str(uuid.uuid4())  # Create a mock response id
 
-        mock_post.return_value.status_code = 201  # Mock status code of response.
-        mock_post.return_value.content = str(
-            json.dumps({"id": mock_response_id})
-        ).encode(
-            "utf-8"
-        )  # Mock content of response.
+        mock_post.return_value = MockResponse(
+            ok=True, status_code=201, response={"id": mock_response_id}
+        )  # Mock request response value.
 
         response = main.GitHubRequestBackup(None).request_backup(
             organisation=mock_organisation_name, repositories=["dcat-deploy"]
@@ -45,7 +62,9 @@ class TestRequestBackup(unittest.TestCase):
     def test_backup_request_failing_with_exception(self, mock_post):
         """Mocking using a decorator"""
 
-        mock_post.return_value.status_code = 400  # Mock status code of response.
+        mock_post.return_value = MockResponse(
+            ok=False, status_code=400
+        )  # Mock request response value.
         mock_post.side_effect = RequestException(
             "Test raises exception"
         )  # Mock content of response.
@@ -59,11 +78,9 @@ class TestRequestBackup(unittest.TestCase):
     def test_backup_request_failing_with_response_code(self, mock_post):
         """Mocking using a decorator"""
 
-        mock_post.return_value.status_code = 400  # Mock status code of response.
-        mock_post.return_value.ok = False  # Mock ok value of response.
-        mock_post.return_value.reason = (
-            "Test returning 400"  # Mock ok value of response.
-        )
+        mock_post.return_value = MockResponse(
+            ok=False, status_code=400, reason="Test returning 400"
+        )  # Mock request response value.
 
         response = main.GitHubRequestBackup(None).request_backup(
             organisation=mock_organisation_name, repositories=["dcat-deploy"]
