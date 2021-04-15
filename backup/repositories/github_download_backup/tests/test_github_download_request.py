@@ -1,4 +1,3 @@
-import json
 import os
 import unittest
 import uuid
@@ -21,6 +20,26 @@ class CloudSecretPayload:
     class CloudSecretData:
         def __init__(self, data):
             self.data = data
+
+
+class MockResponse:
+    def __init__(self, ok, status_code, reason=None, response=None):
+        self.ok = ok
+        self.status_code = status_code
+        self.reason = reason
+        self.response = response
+
+    def ok(self):
+        return self.ok
+
+    def status_code(self):
+        return self.status_code
+
+    def reason(self):
+        return self.reason
+
+    def json(self):
+        return self.response
 
 
 class TestGitHubDownloadRequest(unittest.TestCase):
@@ -50,10 +69,9 @@ class TestGitHubDownloadRequest(unittest.TestCase):
             },
         ]  # Create mock request return content
 
-        mock_get.return_value.status_code = 200  # Mock status code of response.
-        mock_get.return_value.content = str(
-            json.dumps(mock_get_content)
-        )  # Mock content of response.
+        mock_get.return_value = MockResponse(
+            ok=True, status_code=200, response=mock_get_content
+        )  # Mock request response value.
 
         response = main.GitHubDownloadBackup(None, "").get_archive_url(
             organisation=mock_organisation_name
