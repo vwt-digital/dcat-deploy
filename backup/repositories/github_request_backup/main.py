@@ -35,7 +35,7 @@ class GitHubRequestBackup:
             )
             raise
         else:
-            response = json.loads(gh_r.content.decode("utf-8"))
+            response = gh_r.json()
 
             if gh_r.ok:
                 logging.info(

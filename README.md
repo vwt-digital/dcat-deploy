@@ -45,8 +45,6 @@ Here is an example of a schema config yaml:
 ```
 ---
 config:
-    topic_project_id_development: project-name-development
-    topic_name_development: topic-name-development
-    topic_project_id_production: project-name-production
-    topic_name_production: topic-name-production
+    topic_project_id: project-name-containing-topic
+    topic_name: topic-name
 ```

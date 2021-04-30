@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 from datetime import datetime
@@ -117,7 +116,7 @@ class GitHubDownloadBackup:
                         ),
                         "state": migration["state"],
                     }
-                    for migration in json.loads(gh_r.content)
+                    for migration in gh_r.json()
                 ]
 
                 migrations.sort(key=lambda x: x["created_at"], reverse=True)
