@@ -33,7 +33,7 @@ def publish_to_topic(args, gobits):
         future = publisher.publish(topic_path, bytes(json.dumps(msg).encode("utf-8")))
 
         future.add_done_callback(
-            lambda x: logging.debug(
+            lambda x: logging.info(
                 "Published data catalog of project "
                 + "with project ID {}".format(dc_project_id)
             )
