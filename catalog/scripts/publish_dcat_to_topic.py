@@ -15,11 +15,7 @@ def publish_to_topic(args, gobits):
             catalog = json.load(f)
 
         if "publishDataCatalog" in catalog:
-            # Project ID of the data catalog
-            dc_project_id = args.project_id
-            # Project ID where the topic is
             topic_project_id = catalog["publishDataCatalog"]["project"]
-            # Topic name
             topic_name = catalog["publishDataCatalog"]["topic"]
         else:
             topic_project_id = args.publish_project_name
@@ -34,8 +30,9 @@ def publish_to_topic(args, gobits):
 
         future.add_done_callback(
             lambda x: logging.info(
-                "Published data catalog of project "
-                + "with project ID {}".format(dc_project_id)
+                "Published data catalog of project {} to topic {}".format(
+                    args.project_id, topic_name
+                )
             )
         )
 
