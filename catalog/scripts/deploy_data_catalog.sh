@@ -11,6 +11,9 @@ SCHEMAS_CONFIG=${6:-""}
 RUN_MODE=${7:-"deploy"}
 CONFIG_PROJECT=${8:-""}
 
+echo "CONFIG_PROJECT"
+echo "${CONFIG_PROJECT}"
+
 get_identity_token() {
     AUDIENCE="https://europe-west1-${CONFIG_PROJECT}.cloudfunctions.net/${CONFIG_PROJECT}-kvstore"
     SERVICE_ACCOUNT="kvstore@${CONFIG_PROJECT}.iam.gserviceaccount.com"
