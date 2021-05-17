@@ -60,6 +60,9 @@ then
    
 fi
 
+echo "CONFIG_PROJECT"
+echo "${CONFIG_PROJECT}"
+
 if  [ -z "${CONFIG_PROJECT}" ]
 then
     get_identity_token
