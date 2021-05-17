@@ -41,7 +41,7 @@ GITHUB_SECRET_ID=""
 SERVICE_ACCOUNT=""
 SCHEMAS_FOLDER=""
 SCHEMAS_CONFIG=""
-CONFIG_URL=""
+CONFIG_PROJECT=""
 
 while getopts "s:g:f:c:e:" opt; do
     case ${opt} in
@@ -49,7 +49,7 @@ while getopts "s:g:f:c:e:" opt; do
         s) SERVICE_ACCOUNT=${OPTARG} ;;
         f) SCHEMAS_FOLDER=${OPTARG} ;;
         c) SCHEMAS_CONFIG=${OPTARG} ;;
-        e) CONFIG_URL=${OPTARG} ;;
+        e) CONFIG_PROJECT=${OPTARG} ;;
         [?]) usage && exit 1;
     esac
 done
@@ -60,7 +60,7 @@ then
    
 fi
 
-if  [ -z "${CONFIG_URL}" ]
+if  [ -z "${CONFIG_PROJECT}" ]
 then
     get_identity_token
     echo "$identity_token"
@@ -82,7 +82,7 @@ fi
 # Deploy datasets using deployment manager
 ############################################################
 
-"${dcat_deploy_dir}"/catalog/scripts/deploy_data_catalog.sh "${PROJECT_ID}"-dcat-deploy "${DATA_CATALOG_PATH}" "${PROJECT_ID}" "${BRANCH_NAME}" "${SCHEMAS_FOLDER}" "${SCHEMAS_CONFIG}"
+"${dcat_deploy_dir}"/catalog/scripts/deploy_data_catalog.sh "${PROJECT_ID}"-dcat-deploy "${DATA_CATALOG_PATH}" "${PROJECT_ID}" "${BRANCH_NAME}" "${SCHEMAS_FOLDER}" "${SCHEMAS_CONFIG}" "" "${CONFIG_PROJECT}"
 
 # shellcheck disable=SC2181
 if [ $? -ne 0 ]

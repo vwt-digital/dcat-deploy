@@ -21,20 +21,24 @@ def publish_to_topic(args, gobits):
             topic_project_id = catalog["publishDataCatalog"]["project"]
             # Topic name
             topic_name = catalog["publishDataCatalog"]["topic"]
-            # Publish to topic
-            publisher = pubsub_v1.PublisherClient()
-            topic_path = "projects/{}/topics/{}".format(topic_project_id, topic_name)
-            msg = {"gobits": [gobits.to_json()], "data_catalog": catalog}
-            # print(json.dumps(msg, indent=4, sort_keys=True))
-            future = publisher.publish(
-                topic_path, bytes(json.dumps(msg).encode("utf-8"))
+        else:
+            topic_project_id = args.publish_project_name
+            topic_name = args.publish_topic_name
+
+        # Publish to topic
+        publisher = pubsub_v1.PublisherClient()
+        topic_path = "projects/{}/topics/{}".format(topic_project_id, topic_name)
+        msg = {"gobits": [gobits.to_json()], "data_catalog": catalog}
+
+        future = publisher.publish(topic_path, bytes(json.dumps(msg).encode("utf-8")))
+
+        future.add_done_callback(
+            lambda x: logging.debug(
+                "Published data catalog of project "
+                + "with project ID {}".format(dc_project_id)
             )
-            future.add_done_callback(
-                lambda x: logging.debug(
-                    "Published data catalog of project "
-                    + "with project ID {}".format(dc_project_id)
-                )
-            )
+        )
+
         return True
     except Exception as e:
         logging.exception(
@@ -48,6 +52,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--data-catalog", required=True)
     parser.add_argument("-p", "--project-id", required=True)
+    parser.add_argument("-t", "--publish-topic-name", required=False)
+    parser.add_argument("-n", "--publish-project-name", required=False)
     args = parser.parse_args()
     gobits = Gobits()
     return_bool = publish_to_topic(args, gobits)

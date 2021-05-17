@@ -6,19 +6,25 @@ DATA_CATALOG=${2}
 PROJECT_ID=${3}
 BRANCH_NAME=${4}
 
-SCHEMAS_FOLDER=""
-if [ -n "${5}" ]
-then
-    SCHEMAS_FOLDER=${5}
-fi
-
-SCHEMAS_CONFIG=""
-if [ -n "${6}" ]
-then
-    SCHEMAS_CONFIG=${6}
-fi
-
+SCHEMAS_FOLDER=${5:-""}
+SCHEMAS_CONFIG=${6:-""}
 RUN_MODE=${7:-"deploy"}
+CONFIG_PROJECT=${8:""}
+
+get_identity_token() {
+    AUDIENCE="https://europe-west1-${CONFIG_PROJECT}.cloudfunctions.net/${CONFIG_PROJECT}-kvstore"
+    SERVICE_ACCOUNT="kvstore@${CONFIG_PROJECT}.iam.gserviceaccount.com"
+
+    token=$(curl \
+        --silent \
+        --request POST \
+        --header "content-type: application/json" \
+        --header "Authorization: Bearer $(gcloud auth print-access-token)" \
+        --data "{\"audience\": \"${AUDIENCE}\" }" \
+        "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${SERVICE_ACCOUNT}:generateIdToken")
+
+    identity_token=$(echo "${token}" | python3 -c "import sys, json; j=json.loads(sys.stdin.read()); print(j['token'])")
+}
 
 function error_exit() {
   # ${BASH_SOURCE[1]} is the file name of the caller.
@@ -164,12 +170,37 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     done < "${gcp_cloudtasks_scripts}"
 
     gsutil cp "${gcp_catalog}" gs://"${PROJECT_ID}"-dcat-deployed-stg/data_catalog.json
+    
+    publish_project=""
+    publish_topic=""
+
+    if  [ -z "${CONFIG_PROJECT}" ]
+    then
+        get_identity_token
+        echo "$identity_token"
+
+        publish_project=$(curl \
+        --silent \
+        --request GET \
+        --header "Content-Type: application/json" \
+        --header "Authorization: bearer ${identity_token}" \
+        https://europe-west1-"${CONFIG_PROJECT}".cloudfunctions.net/"${CONFIG_PROJECT}"-kvstore/kv/publishDataCatalog/project)
+        echo "${publish_project}"
+
+        publish_topic=$(curl \
+        --silent \
+        --request GET \
+        --header "Content-Type: application/json" \
+        --header "Authorization: bearer ${identity_token}" \
+        https://europe-west1-"${CONFIG_PROJECT}".cloudfunctions.net/"${CONFIG_PROJECT}"-kvstore/kv/publishDataCatalog/topic)
+        echo "${publish_topic}"
+    fi
 
     # Post the data catalog to the data catalogs topic
     . venv/bin/activate &&
     pip install google-cloud-pubsub==1.7.0
     pip install gobits==0.0.7
-    if ! python3 "${basedir}"/publish_dcat_to_topic.py -d "${gcp_catalog}" -p "${PROJECT_ID}"
+    if ! python3 "${basedir}"/publish_dcat_to_topic.py -d "${gcp_catalog}" -p "${PROJECT_ID}" -t "${publish_topic}" -n "${publish_project}"
     then
         echo "ERROR publishing data_catalog."
         exit 1
