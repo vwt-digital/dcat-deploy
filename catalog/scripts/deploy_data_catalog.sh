@@ -185,7 +185,7 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     publish_project=""
     publish_topic=""
 
-    if  [ -z "${CONFIG_PROJECT}" ]
+    if  [ -n "${CONFIG_PROJECT}" ]
     then
         get_identity_token
         echo "${identity_token}"
