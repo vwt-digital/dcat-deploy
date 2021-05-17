@@ -9,11 +9,15 @@ BRANCH_NAME=${4}
 SCHEMAS_FOLDER=${5:-""}
 SCHEMAS_CONFIG=${6:-""}
 RUN_MODE=${7:-"deploy"}
-CONFIG_PROJECT=${8:""}
+CONFIG_PROJECT=${8:-""}
 
 get_identity_token() {
     AUDIENCE="https://europe-west1-${CONFIG_PROJECT}.cloudfunctions.net/${CONFIG_PROJECT}-kvstore"
     SERVICE_ACCOUNT="kvstore@${CONFIG_PROJECT}.iam.gserviceaccount.com"
+
+    echo "${CONFIG_PROJECT}"
+    echo "${AUDIENCE}"
+    echo "${SERVICE_ACCOUNT}"
 
     token=$(curl \
         --silent \
@@ -23,7 +27,11 @@ get_identity_token() {
         --data "{\"audience\": \"${AUDIENCE}\" }" \
         "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${SERVICE_ACCOUNT}:generateIdToken")
 
+    echo "${token}"
+
     identity_token=$(echo "${token}" | python3 -c "import sys, json; j=json.loads(sys.stdin.read()); print(j['token'])")
+
+    echo "${identity_token}"
 }
 
 function error_exit() {
@@ -177,7 +185,7 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     if  [ -z "${CONFIG_PROJECT}" ]
     then
         get_identity_token
-        echo "$identity_token"
+        echo "${identity_token}"
 
         publish_project=$(curl \
         --silent \
