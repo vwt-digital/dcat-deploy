@@ -106,6 +106,7 @@ deactivate
 # Generate datastore indexes
 ############################################################
 . venv/bin/activate
+pip install pyyaml
 python3 "${basedir}"/generate_datastore_indexes.py "${DATA_CATALOG}" > "${gcp_datastore_indexes}"
 deactivate
 
@@ -254,6 +255,7 @@ if [ "${RUN_MODE}" = "deploy" ]; then
 
         # Run the script that publishes the schema
         . venv/bin/activate
+        pip install gobits==0.0.7
 
         if ! python3 "${basedir}"/publish_schema_to_topic.py -d "${gcp_catalog}" -tpi "${topic_project_id}" -tn "${topic_name}" -s "${SCHEMAS_ARR[@]}"
         then
