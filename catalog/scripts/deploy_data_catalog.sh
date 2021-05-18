@@ -189,7 +189,6 @@ if [ "${RUN_MODE}" = "deploy" ]; then
         --header "Content-Type: application/json" \
         --header "Authorization: bearer ${identity_token}" \
         https://europe-west1-"${CONFIG_PROJECT}".cloudfunctions.net/"${CONFIG_PROJECT}"-kvstore/kv/publishDataCatalog/project)
-        echo "${publish_project}"
 
         publish_topic=$(curl \
         --silent \
@@ -197,7 +196,6 @@ if [ "${RUN_MODE}" = "deploy" ]; then
         --header "Content-Type: application/json" \
         --header "Authorization: bearer ${identity_token}" \
         https://europe-west1-"${CONFIG_PROJECT}".cloudfunctions.net/"${CONFIG_PROJECT}"-kvstore/kv/publishDataCatalog/topic)
-        echo "${publish_topic}"
     fi
 
     # Post the data catalog to the data catalogs topic
@@ -242,7 +240,6 @@ if [ "${RUN_MODE}" = "deploy" ]; then
             --header "Content-Type: application/json" \
             --header "Authorization: bearer ${identity_token}" \
             https://europe-west1-"${CONFIG_PROJECT}".cloudfunctions.net/"${CONFIG_PROJECT}"-kvstore/kv/publishJSONSchema/project)
-            echo "${publish_project}"
 
             topic_name=$(curl \
             --silent \
@@ -250,7 +247,6 @@ if [ "${RUN_MODE}" = "deploy" ]; then
             --header "Content-Type: application/json" \
             --header "Authorization: bearer ${identity_token}" \
             https://europe-west1-"${CONFIG_PROJECT}".cloudfunctions.net/"${CONFIG_PROJECT}"-kvstore/kv/publishJSONSchema/topic)
-            echo "${publish_topic}"
         else    
             topic_project_id=$(sed -n "s/\s*topic_project_id.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
             topic_name=$(sed -n "s/\s*topic_name.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)

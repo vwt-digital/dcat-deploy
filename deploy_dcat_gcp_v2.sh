@@ -16,21 +16,6 @@ Usage: ${0} <DATA_CATALOG_PATH> <PROJECT_ID> <BRANCH_NAME> [-g GITHUB_SECRET_ID]
 EOF
 }
 
-get_identity_token() {
-    AUDIENCE="https://europe-west1-${CONFIG_PROJECT}.cloudfunctions.net/${CONFIG_PROJECT}-kvstore"
-    SERVICE_ACCOUNT="kvstore@${CONFIG_PROJECT}.iam.gserviceaccount.com"
-    
-    token=$(curl \
-        --silent \
-        --request POST \
-        --header "content-type: application/json" \
-        --header "Authorization: Bearer $(gcloud auth print-access-token)" \
-        --data "{\"audience\": \"${AUDIENCE}\" }" \
-        "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${SERVICE_ACCOUNT}:generateIdToken")
-
-    identity_token=$(echo "${token}" | python3 -c "import sys, json; j=json.loads(sys.stdin.read()); print(j['token'])")
-}
-
 DATA_CATALOG_PATH=${1}
 PROJECT_ID=${2}
 BRANCH_NAME=${3}
@@ -59,16 +44,6 @@ then
     usage && exit 1
    
 fi
-
-echo "CONFIG_PROJECT"
-echo "${CONFIG_PROJECT}"
-
-if  [ -z "${CONFIG_PROJECT}" ]
-then
-    get_identity_token
-    echo "$identity_token"
-fi
-
 
 dcat_deploy_dir=$(dirname "$0")
 
