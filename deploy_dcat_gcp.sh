@@ -58,6 +58,9 @@ then
 
 fi
 
+echo "CONFIG_PROJECT"
+echo "${CONFIG_PROJECT}"
+
 dcat_deploy_dir=$(dirname "$0")
 
 ############################################################
