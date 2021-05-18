@@ -1,0 +1,6 @@
+google-cloud-pubsub==1.7.0
+gobits==0.0.7
+google-cloud-storage==1.31.0
+jsonschema==3.2.0
+google-cloud-firestore==1.9.0
+pyyaml==5.4.1
