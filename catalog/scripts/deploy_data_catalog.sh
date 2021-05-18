@@ -99,7 +99,7 @@ else
 fi
 virtualenv -p python3 venv
 . venv/bin/activate
-pip install -r requirements.txt
+pip install -r "${basedir}"/requirements.txt
 deactivate
 
 ############################################################
