@@ -27,6 +27,12 @@ function get_identity_token() {
 }
 
 function get_key_value() {
+
+    # If no identity token is available, get that first
+    if [ -z "${identity_token}" ]; then
+        get_identity_token
+    fi
+
     key="${1}"
     
     value=$(curl \
@@ -194,7 +200,7 @@ if [ "${RUN_MODE}" = "deploy" ]; then
 
     if  [ -n "${CONFIG_PROJECT}" ]
     then
-        get_identity_token
+        #get_identity_token
 
         publish_project=$(get_key_value "publishDataCatalog/project")
         echo "${publish_project}"
