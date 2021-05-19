@@ -200,10 +200,12 @@ if [ "${RUN_MODE}" = "deploy" ]; then
 
     if  [ -n "${CONFIG_PROJECT}" ]
     then
-        #get_identity_token
+        get_identity_token
 
         publish_project=$(get_key_value "publishDataCatalog/project")
         echo "${publish_project}"
+        publish_topic=$(get_key_value "publishDataCatalog/topic")
+        echo "${publish_topic}"
 
         publish_project=$(curl \
         --silent \
