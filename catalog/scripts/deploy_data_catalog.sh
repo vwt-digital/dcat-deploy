@@ -28,6 +28,7 @@ get_identity_token() {
 
 get_key_value() {
     key=${1}
+    echo "${key}"
 
     result=$(curl \
         --silent \
@@ -35,6 +36,8 @@ get_key_value() {
         --header "Content-Type: application/json" \
         --header "Authorization: bearer ${identity_token}" \
         https://europe-west1-"${CONFIG_PROJECT}".cloudfunctions.net/"${CONFIG_PROJECT}"-kvstore/kv/"${key}")
+
+    echo "${result}"
 
     return "${result}"
 }
