@@ -26,6 +26,19 @@ get_identity_token() {
     identity_token=$(echo "${token}" | python3 -c "import sys, json; j=json.loads(sys.stdin.read()); print(j['token'])")
 }
 
+get_key_value() {
+    key=${1}
+
+    result=$(curl \
+        --silent \
+        --request GET \
+        --header "Content-Type: application/json" \
+        --header "Authorization: bearer ${identity_token}" \
+        https://europe-west1-"${CONFIG_PROJECT}".cloudfunctions.net/"${CONFIG_PROJECT}"-kvstore/kv/"${key}")
+
+    return "${result}"
+}
+
 function error_exit() {
   # ${BASH_SOURCE[1]} is the file name of the caller.
   echo "${BASH_SOURCE[1]}: line ${BASH_LINENO[0]}: ${1:-Unknown Error.} (exit ${2:-1})" 1>&2
@@ -183,12 +196,17 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     then
         get_identity_token
 
+        publish_project=get_key_value "publishDataCatalog/project"
+        echo "${publish_project}"
+
         publish_project=$(curl \
         --silent \
         --request GET \
         --header "Content-Type: application/json" \
         --header "Authorization: bearer ${identity_token}" \
         https://europe-west1-"${CONFIG_PROJECT}".cloudfunctions.net/"${CONFIG_PROJECT}"-kvstore/kv/publishDataCatalog/project)
+
+        echo "${publish_project}"
 
         publish_topic=$(curl \
         --silent \
