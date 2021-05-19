@@ -11,7 +11,7 @@ SCHEMAS_CONFIG=${6:-""}
 RUN_MODE=${7:-"deploy"}
 CONFIG_PROJECT=${8:-""}
 
-get_identity_token() {
+function get_identity_token() {
     AUDIENCE="https://europe-west1-${CONFIG_PROJECT}.cloudfunctions.net/${CONFIG_PROJECT}-kvstore"
     SERVICE_ACCOUNT="kvstore@${CONFIG_PROJECT}.iam.gserviceaccount.com"
 
@@ -26,20 +26,17 @@ get_identity_token() {
     identity_token=$(echo "${token}" | python3 -c "import sys, json; j=json.loads(sys.stdin.read()); print(j['token'])")
 }
 
-get_key_value() {
-    key=${1}
-    echo "${key}"
+function get_key_value() {
+    key="${1}"
+    
+    value=$(curl \
+    --silent \
+    --request GET \
+    --header "Content-Type: application/json" \
+    --header "Authorization: bearer ${identity_token}" \
+    https://europe-west1-"${CONFIG_PROJECT}".cloudfunctions.net/"${CONFIG_PROJECT}"-kvstore/kv/"${key}")
 
-    result=$(curl \
-        --silent \
-        --request GET \
-        --header "Content-Type: application/json" \
-        --header "Authorization: bearer ${identity_token}" \
-        https://europe-west1-"${CONFIG_PROJECT}".cloudfunctions.net/"${CONFIG_PROJECT}"-kvstore/kv/"${key}")
-
-    echo "${result}"
-
-    return "${result}"
+    echo "${value}"
 }
 
 function error_exit() {
@@ -199,7 +196,7 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     then
         get_identity_token
 
-        publish_project=get_key_value "publishDataCatalog/project"
+        publish_project=$(get_key_value "publishDataCatalog/project")
         echo "${publish_project}"
 
         publish_project=$(curl \
