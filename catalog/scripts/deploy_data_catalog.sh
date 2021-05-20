@@ -27,12 +27,6 @@ function get_identity_token() {
 }
 
 function get_key_value() {
-
-    # If no identity token is available, get that first
-    if [ -z "${identity_token}" ]; then
-        get_identity_token
-    fi
-
     key="${1}"
     
     value=$(curl \
@@ -203,25 +197,7 @@ if [ "${RUN_MODE}" = "deploy" ]; then
         get_identity_token
 
         publish_project=$(get_key_value "publishDataCatalog/project")
-        echo "${publish_project}"
         publish_topic=$(get_key_value "publishDataCatalog/topic")
-        echo "${publish_topic}"
-
-        publish_project=$(curl \
-        --silent \
-        --request GET \
-        --header "Content-Type: application/json" \
-        --header "Authorization: bearer ${identity_token}" \
-        https://europe-west1-"${CONFIG_PROJECT}".cloudfunctions.net/"${CONFIG_PROJECT}"-kvstore/kv/publishDataCatalog/project)
-
-        echo "${publish_project}"
-
-        publish_topic=$(curl \
-        --silent \
-        --request GET \
-        --header "Content-Type: application/json" \
-        --header "Authorization: bearer ${identity_token}" \
-        https://europe-west1-"${CONFIG_PROJECT}".cloudfunctions.net/"${CONFIG_PROJECT}"-kvstore/kv/publishDataCatalog/topic)
     fi
 
     # Post the data catalog to the data catalogs topic
@@ -260,19 +236,8 @@ if [ "${RUN_MODE}" = "deploy" ]; then
         then
             get_identity_token
 
-            topic_project_id=$(curl \
-            --silent \
-            --request GET \
-            --header "Content-Type: application/json" \
-            --header "Authorization: bearer ${identity_token}" \
-            https://europe-west1-"${CONFIG_PROJECT}".cloudfunctions.net/"${CONFIG_PROJECT}"-kvstore/kv/publishJSONSchema/project)
-
-            topic_name=$(curl \
-            --silent \
-            --request GET \
-            --header "Content-Type: application/json" \
-            --header "Authorization: bearer ${identity_token}" \
-            https://europe-west1-"${CONFIG_PROJECT}".cloudfunctions.net/"${CONFIG_PROJECT}"-kvstore/kv/publishJSONSchema/topic)
+            topic_project_id=$(get_key_value "publishJSONSchema/project")
+            topic_name=$(get_key_value "publishJSONSchema/topic")
         else    
             topic_project_id=$(sed -n "s/\s*topic_project_id.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
             topic_name=$(sed -n "s/\s*topic_name.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
