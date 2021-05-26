@@ -2,7 +2,8 @@
     "timeout": "21600s",
     "steps": [
         {
-            "name": "gcr.io/cloud-builders/git",
+            "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
+            "entrypoint": "git",
             "args": [
                 "clone",
                 "--branch=${_BRANCH_NAME}",
@@ -10,7 +11,8 @@
             ]
         },
         {
-            "name": "gcr.io/cloud-builders/git",
+            "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
+            "entrypoint": "git",
             "args": [
                 "clone",
                 "--branch=${_BRANCH_NAME}",
@@ -19,7 +21,7 @@
         },
         {
             "id": "Generate unique project id",
-            "name": "gcr.io/cloud-builders/gcloud",
+            "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
             "entrypoint": "bash",
             "args": [
                 "-c",
@@ -28,7 +30,7 @@
         },
         {
             "id": "Substitute projects.json",
-            "name": "gcr.io/cloud-builders/gcloud",
+            "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
             "dir": "cloud-deployment/config",
             "entrypoint": "bash",
             "args": [
@@ -38,7 +40,7 @@
         },
         {
             "id": "Create project",
-            "name": "gcr.io/cloud-builders/gcloud",
+            "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
             "dir": "cloud-deployment/scripts",
             "entrypoint": "bash",
             "args": [
@@ -48,7 +50,7 @@
         },
         {
             "id": "Create default cloudbuild bucket",
-            "name": "gcr.io/cloud-builders/gcloud",
+            "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
             "dir": "cloud-deployment",
             "entrypoint": "bash",
             "args": [
@@ -58,7 +60,7 @@
         },
         {
             "id": "Get backup bucket",
-            "name": "gcr.io/cloud-builders/gcloud",
+            "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
             "dir": "dcat-deploy/backup",
             "entrypoint": "bash",
             "args": [
@@ -68,7 +70,7 @@
         },
         {
             "id": "Get data_catalog.json",
-            "name": "gcr.io/cloud-builders/gcloud",
+            "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
             "dir": "dcat-deploy/backup",
             "entrypoint": "bash",
             "args": [
@@ -78,7 +80,7 @@
         },
         {
             "id": "Substitute data_catalog.json",
-            "name": "gcr.io/cloud-builders/gcloud",
+            "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
             "dir": "dcat-deploy/backup",
             "entrypoint": "bash",
             "args": [
@@ -88,7 +90,7 @@
         },
         {
             "id": "Deploy data_catalog.json",
-            "name": "gcr.io/cloud-builders/gcloud",
+            "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
             "dir": "dcat-deploy/backup",
             "entrypoint": "bash",
             "args": [
@@ -98,7 +100,7 @@
         },
         {
             "id": "Sync backup bucket ",
-            "name": "gcr.io/cloud-builders/gcloud",
+            "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
             "dir": "dcat-deploy/backup",
             "entrypoint": "bash",
             "args": [
@@ -107,17 +109,17 @@
             ]
         },
         {
-            "name": "gcr.io/cloud-builders/gcloud",
+            "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
             "dir": "dcat-deploy/backup",
             "entrypoint": "bash",
             "args": [
                 "-c",
-                "pip install virtualenv==16.7.9 && virtualenv -p python3 venv && source venv/bin/activate && pip install -r requirements.txt"
+                "virtualenv -p python3 venv && source venv/bin/activate && pip install -r requirements.txt"
             ]
         },
         {
             "id": "Run restore script",
-            "name": "gcr.io/cloud-builders/gcloud",
+            "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
             "dir": "dcat-deploy/backup",
             "entrypoint": "bash",
             "args": [
@@ -127,7 +129,7 @@
         },
         {
             "id": "Check consistency of restored data",
-            "name": "gcr.io/cloud-builders/gcloud",
+            "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
             "dir": "dcat-deploy/backup",
             "entrypoint": "bash",
             "args": [
@@ -136,7 +138,7 @@
             ]
         },
         {
-            "name": "gcr.io/cloud-builders/gcloud",
+            "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
             "entrypoint": "bash",
             "args": [
                 "-c",

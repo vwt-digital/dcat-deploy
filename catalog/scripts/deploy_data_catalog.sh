@@ -6,19 +6,38 @@ DATA_CATALOG=${2}
 PROJECT_ID=${3}
 BRANCH_NAME=${4}
 
-SCHEMAS_FOLDER=""
-if [ -n "${5}" ]
-then
-    SCHEMAS_FOLDER=${5}
-fi
-
-SCHEMAS_CONFIG=""
-if [ -n "${6}" ]
-then
-    SCHEMAS_CONFIG=${6}
-fi
-
+SCHEMAS_FOLDER=${5:-""}
+SCHEMAS_CONFIG=${6:-""}
 RUN_MODE=${7:-"deploy"}
+CONFIG_PROJECT=${8:-""}
+
+function get_identity_token() {
+    AUDIENCE="https://europe-west1-${CONFIG_PROJECT}.cloudfunctions.net/${CONFIG_PROJECT}-kvstore"
+    SERVICE_ACCOUNT="kvstore@${CONFIG_PROJECT}.iam.gserviceaccount.com"
+
+    token=$(curl \
+        --silent \
+        --request POST \
+        --header "content-type: application/json" \
+        --header "Authorization: Bearer $(gcloud auth print-access-token)" \
+        --data "{\"audience\": \"${AUDIENCE}\" }" \
+        "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${SERVICE_ACCOUNT}:generateIdToken")
+
+    identity_token=$(echo "${token}" | python3 -c "import sys, json; j=json.loads(sys.stdin.read()); print(j['token'])")
+}
+
+function get_key_value() {
+    key="${1}"
+    
+    value=$(curl \
+    --silent \
+    --request GET \
+    --header "Content-Type: application/json" \
+    --header "Authorization: bearer ${identity_token}" \
+    https://europe-west1-"${CONFIG_PROJECT}".cloudfunctions.net/"${CONFIG_PROJECT}"-kvstore/kv/"${key}")
+
+    echo "${value}"
+}
 
 function error_exit() {
   # ${BASH_SOURCE[1]} is the file name of the caller.
@@ -81,10 +100,10 @@ python3 "${basedir}"/prepare_data_catalog.py -c "${DATA_CATALOG}" -p "${PROJECT_
     cat "${basedir}"/deploy_data_catalog.py
 } > "${gcp_template}"
 
-############################################################
-# Generate datastore indexes
-############################################################
 
+############################################################
+# Setup virtual env
+############################################################
 if [ -z "$(which pip3)" ]
 then
     pip install virtualenv==16.7.9
@@ -93,7 +112,13 @@ else
 fi
 virtualenv -p python3 venv
 . venv/bin/activate
-pip install pyyaml
+pip install -r "${basedir}"/requirements.txt
+deactivate
+
+############################################################
+# Generate datastore indexes
+############################################################
+. venv/bin/activate
 python3 "${basedir}"/generate_datastore_indexes.py "${DATA_CATALOG}" > "${gcp_datastore_indexes}"
 deactivate
 
@@ -150,7 +175,6 @@ if [ "${RUN_MODE}" = "deploy" ]; then
 
     # Deploy FireStore indexes
     . venv/bin/activate
-    pip install google-auth google-cloud-firestore==1.9.0
     python3 "${basedir}"/deploy_firestore_indexes.py "${DATA_CATALOG}"
     deactivate
 
@@ -164,12 +188,21 @@ if [ "${RUN_MODE}" = "deploy" ]; then
     done < "${gcp_cloudtasks_scripts}"
 
     gsutil cp "${gcp_catalog}" gs://"${PROJECT_ID}"-dcat-deployed-stg/data_catalog.json
+    
+    publish_project=""
+    publish_topic=""
+
+    if  [ -n "${CONFIG_PROJECT}" ]
+    then
+        get_identity_token
+
+        publish_project=$(get_key_value "publishDataCatalog/project")
+        publish_topic=$(get_key_value "publishDataCatalog/topic")
+    fi
 
     # Post the data catalog to the data catalogs topic
     . venv/bin/activate &&
-    pip install google-cloud-pubsub==1.7.0
-    pip install gobits==0.0.7
-    if ! python3 "${basedir}"/publish_dcat_to_topic.py -d "${gcp_catalog}" -p "${PROJECT_ID}"
+    if ! python3 "${basedir}"/publish_dcat_to_topic.py -d "${gcp_catalog}" -p "${PROJECT_ID}" -t "${publish_topic}" -n "${publish_project}"
     then
         echo "ERROR publishing data_catalog."
         exit 1
@@ -181,11 +214,6 @@ if [ "${RUN_MODE}" = "deploy" ]; then
         # Post the schema to the schemas topic
         # Also post schema to the schemas storage
         # Only if the data catalog has schemas
-        . venv/bin/activate
-        pip install google-cloud-pubsub==1.7.0
-        pip install gobits==0.0.7
-        pip install google-cloud-storage==1.31.0
-        pip install jsonschema==3.2.0
 
         get_abs_filename() {
             echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
@@ -203,10 +231,20 @@ if [ "${RUN_MODE}" = "deploy" ]; then
             echo "Schema config variable cannot be found."
             exit 1
         fi
-        topic_project_id=$(sed -n "s/\s*topic_project_id.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
-        topic_name=$(sed -n "s/\s*topic_name.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
+
+        if  [ -n "${CONFIG_PROJECT}" ]
+        then
+            get_identity_token
+
+            topic_project_id=$(get_key_value "publishJSONSchema/project")
+            topic_name=$(get_key_value "publishJSONSchema/topic")
+        else    
+            topic_project_id=$(sed -n "s/\s*topic_project_id.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
+            topic_name=$(sed -n "s/\s*topic_name.*:\s*\(.*\)$/\1/p" "${SCHEMAS_CONFIG}" | head -n1)
+        fi
 
         # Run the script that publishes the schema
+        . venv/bin/activate
         if ! python3 "${basedir}"/publish_schema_to_topic.py -d "${gcp_catalog}" -tpi "${topic_project_id}" -tn "${topic_name}" -s "${SCHEMAS_ARR[@]}"
         then
             echo "ERROR publishing schema."

@@ -1,10 +1,13 @@
+---
 timeout: 1200s
 steps:
-# Deploy data catalog
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bash'
-  args:
-  - '-c'
-  - |
-    git clone --branch=${_BRANCH_NAME} https://github.com/vwt-digital/dcat-deploy.git
-    dcat-deploy/deploy_dcat_gcp.sh data_catalog.json "${PROJECT_ID}" "${_BRANCH_NAME}"
+  # Deploy data catalog
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:latest'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        git clone --branch=${_BRANCH_NAME} \
+           https://github.com/vwt-digital/dcat-deploy.git
+        dcat-deploy/deploy_dcat_gcp.sh data_catalog.json \
+            "${PROJECT_ID}" "${_BRANCH_NAME}"

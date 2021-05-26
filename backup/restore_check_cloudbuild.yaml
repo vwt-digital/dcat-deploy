@@ -2,28 +2,29 @@
 timeout: 1200s
 steps:
   # Clone dcat-deploy repo
-  - name: 'gcr.io/cloud-builders/git'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:latest'
+    entrypoint: 'git'
     args:
       - 'clone'
       - '--branch=${_BRANCH_NAME}'
       - 'https://github.com/vwt-digital/dcat-deploy.git'
 
   # Create python3 virtualenv
-  - name: 'gcr.io/cloud-builders/gcloud'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:latest'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        pip install virtualenv==16.7.9
         virtualenv -p python3 /workspace/venv-restore
         source /workspace/venv-restore/bin/activate
         pip install -r dcat-deploy/backup/requirements.txt
 
   # Deploy data catalog
-  - name: 'gcr.io/cloud-builders/gcloud'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:latest'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
         source /workspace/venv-restore/bin/activate
-        dcat-deploy/backup/consistency_check.sh data_catalog.json "${PROJECT_ID}"
+        dcat-deploy/backup/consistency_check.sh \
+            data_catalog.json "${PROJECT_ID}"

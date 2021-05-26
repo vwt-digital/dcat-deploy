@@ -3,7 +3,8 @@
   "logsBucket": "gs://${PROJECT_ID}_cloudbuild",
   "steps": [
     {
-      "name": "gcr.io/cloud-builders/git",
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
+      "entrypoint": "git",
       "args": [
         "clone",
         "--branch=${_BRANCH_NAME}",
@@ -11,7 +12,8 @@
       ]
     },
     {
-      "name": "gcr.io/cloud-builders/gsutil",
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
+      "entrypoint": "gsutil",
       "args": [
         "cp",
         "gs://${PROJECT_ID}-dcat-deployed-stg/data_catalog.json",
@@ -19,16 +21,16 @@
       ]
     },
     {
-      "name": "gcr.io/cloud-builders/gcloud",
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
       "dir": "dcat-deploy/backup",
       "entrypoint": "bash",
       "args": [
         "-c",
-        "pip install virtualenv==16.7.9 && virtualenv -p python3 venv && source venv/bin/activate && pip install -r requirements.txt"
+        "virtualenv -p python3 venv && source venv/bin/activate && pip install -r requirements.txt"
       ]
     },
     {
-      "name": "gcr.io/cloud-builders/gcloud",
+      "name": "gcr.io/google.com/cloudsdktool/cloud-sdk:latest",
       "entrypoint": "bash",
       "args": [
         "-c",

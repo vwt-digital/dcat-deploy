@@ -1,32 +1,64 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+# shellcheck disable=SC2181
 
 # This scripts deploys the data management (datasets, backup, clean up, ...) of the specified data catalog to GCP
 
-data_catalog_path=${1}
+usage() {
+cat << EOF
+Usage: ${0} <DATA_CATALOG_PATH> <PROJECT_ID> <BRANCH_NAME> [-g GITHUB_SECRET_ID] [-s SERVICE_ACCOUNT] [-f SCHEMAS_FOLDER -c SCHEMAS_CONFIG] [-e CONFIG_PROJECT]
+    DATA_CATALOG_PATH ... Path to the data catalog
+    PROJECT_ID .......... Google Project ID
+    BRANCH_NAME ......... Git branch
+    GITHUB_SECRET_ID .... Github secret ID
+    SERVICE_ACCOUNT ..... Google service account
+    SCHEMAS_FOLDER ...... Path to the schemas
+    SCHEMAS_CONFIG ...... Schema config
+    CONFIG_PROJECT ...... Location of configuration server
+EOF
+}
+
+DATA_CATALOG_PATH=${1}
 PROJECT_ID=${2}
 BRANCH_NAME=${3}
-GITHUB_SECRET_ID=${4}
-SERVICE_ACCOUNT=${5}
 
+shift 3
+
+GITHUB_SECRET_ID=""
+SERVICE_ACCOUNT=""
 SCHEMAS_FOLDER=""
-if [ -n "${6}" ]
-then
-    SCHEMAS_FOLDER=${6}
-fi
-
 SCHEMAS_CONFIG=""
-if [ -n "${7}" ]
-then
-    SCHEMAS_CONFIG=${7}
-fi
+CONFIG_PROJECT=""
 
-dcat_deploy_dir=$(dirname "$0")
+while getopts "s:g:f:c:e:" opt; do
+    case ${opt} in
+        g) GITHUB_SECRET_ID=${OPTARG} ;;
+        s) SERVICE_ACCOUNT=${OPTARG} ;;
+        f) SCHEMAS_FOLDER=${OPTARG} ;;
+        c) SCHEMAS_CONFIG=${OPTARG} ;;
+        e) CONFIG_PROJECT=${OPTARG} ;;
+        [?]) usage && exit 1;
+    esac
+done
+ 
+if [ "${OPTIND}" == 1 ]
+then
+    echo "No Options, use old syntax"
+
+    GITHUB_SECRET_ID=${1}
+    SERVICE_ACCOUNT=${2}
+    SCHEMAS_FOLDER=${3:-""}
+    SCHEMAS_CONFIG=${4:-""}
+    CONFIG_PROJECT=${5:-""}
+fi
 
 if [ -z "${PROJECT_ID}" ]
 then
-    echo "Usage: $0 <data_catalog_path> <PROJECT_ID> <BRANCH_NAME> [GITHUB_SECRET_ID]"
-    exit 1
+    usage && exit 1
+
 fi
+
+dcat_deploy_dir=$(dirname "$0")
 
 ############################################################
 # Create and configure github repos
@@ -34,14 +66,14 @@ fi
 
 if [ -n "${GITHUB_SECRET_ID}" ]
 then
-    "${dcat_deploy_dir}"/catalog/repos/create_github_repos.sh "${data_catalog_path}" "${GITHUB_SECRET_ID}"
+    "${dcat_deploy_dir}"/catalog/repos/create_github_repos.sh "${DATA_CATALOG_PATH}" "${GITHUB_SECRET_ID}"
 fi
 
 ############################################################
 # Deploy datasets using deployment manager
 ############################################################
 
-"${dcat_deploy_dir}"/catalog/scripts/deploy_data_catalog.sh "${PROJECT_ID}"-dcat-deploy "${data_catalog_path}" "${PROJECT_ID}" "${BRANCH_NAME}" "${SCHEMAS_FOLDER}" "${SCHEMAS_CONFIG}"
+"${dcat_deploy_dir}"/catalog/scripts/deploy_data_catalog.sh "${PROJECT_ID}"-dcat-deploy "${DATA_CATALOG_PATH}" "${PROJECT_ID}" "${BRANCH_NAME}" "${SCHEMAS_FOLDER}" "${SCHEMAS_CONFIG}" "" "${CONFIG_PROJECT}"
 
 if [ $? -ne 0 ]
 then
@@ -53,7 +85,7 @@ fi
 # Schedule backup job
 ############################################################
 
-backup_destination=$(python3 "${dcat_deploy_dir}"/backup/get_dcat_backup_destination.py "${data_catalog_path}")
+backup_destination=$(python3 "${dcat_deploy_dir}"/backup/get_dcat_backup_destination.py "${DATA_CATALOG_PATH}")
 
 if [ -n "${backup_destination}" ]
 then
@@ -104,7 +136,7 @@ fi
 # Schedule topic history jobs
 ############################################################
 
-topics_and_periods=$(python3 "${dcat_deploy_dir}"/catalog/scripts/generate_topic_list.py "${data_catalog_path}")
+topics_and_periods=$(python3 "${dcat_deploy_dir}"/catalog/scripts/generate_topic_list.py "${DATA_CATALOG_PATH}")
 
 if [ -n "${topics_and_periods}" ]
 then
@@ -133,7 +165,7 @@ if [ -n "${GITHUB_SECRET_ID}" ]
 then
   echo "Creating functions to backup source code repositories..."
 
-  "${dcat_deploy_dir}"/backup/repositories/setup_backup_github_repos.sh "${data_catalog_path}" "${PROJECT_ID}" "${backup_destination}" "${GITHUB_SECRET_ID}"
+  "${dcat_deploy_dir}"/backup/repositories/setup_backup_github_repos.sh "${DATA_CATALOG_PATH}" "${PROJECT_ID}" "${backup_destination}" "${GITHUB_SECRET_ID}"
   if [ $? -ne 0 ]
   then
     echo "ERROR creating functions"
