@@ -15,6 +15,7 @@ steps:
     args:
       - '-c'
       - |
+        pip3 install virtualenv
         virtualenv -p python3 /workspace/venv-restore
         source /workspace/venv-restore/bin/activate
         pip install -r dcat-deploy/backup/requirements.txt
