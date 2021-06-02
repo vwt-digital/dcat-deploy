@@ -21,7 +21,7 @@ To deploy a data catalog, run the [deploy_dcat_gcp.sh](deploy_dcat_gcp.sh) scrip
 $ deploy_dcat_gcp.sh data_catalog.json my-gcp-project
 ```
 
-## With optional arguments
+## With optional arguments (preferred)
 
 To deploy a data catalog, run the [deploy_dcat_gcp.sh](deploy_dcat_gcp.sh) script (check the shell script for all possible options):
 ```bash
