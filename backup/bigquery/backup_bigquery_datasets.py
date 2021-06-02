@@ -1,14 +1,18 @@
+import time
 import argparse
 import logging
 import subprocess  # nosec
-from datetime import datetime
 
+from datetime import datetime
 from dateutil.parser import parse
 from google.api_core.exceptions import ServiceUnavailable
 from google.cloud import bigquery, storage
 from retry import retry
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)7s: %(message)s")
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S')
 
 
 def main(args):
@@ -18,6 +22,8 @@ def main(args):
     tables = get_tables(bigquery_client, args.project, args.dataset)
 
     logging.info("Starting backup for dataset {}".format(args.dataset))
+
+    job_ids = []
 
     for table in tables:
 
@@ -40,19 +46,34 @@ def main(args):
 
             if not any("schema.json" in blob for blob in blobs):
 
-                logging.info("Starting backup for schema {}".format(partition))
+                logging.info("Starting backup for schema partition {}".format(partition))
+
                 schema = get_schema(partition_name)
                 schema_file = "{}/{}/schema.json".format(partition_path, partition_date)
                 backup_schema(storage_client, args.bucket, schema_file, schema)
 
             if not any(".avro" in blob for blob in blobs):
 
-                logging.info("Starting backup for extract {}".format(partition))
+                logging.info("Starting backup for partition {}".format(partition))
+
                 # Partition files on bucket if extract size is larger than 1 GB
                 size = get_partition_size(bigquery_client, partition_name)
                 part = "-*" if size >= 1024 * 1024 * 1024 else ""
                 partition_file = "{}/extract{}.avro".format(partition_path, part)
-                backup_partition(partition_name, args.bucket, partition_file)
+                job_id = backup_partition(partition_name, args.bucket, partition_file)
+                job_ids.append(job_id)
+
+                logging.info("Job ID:  {}".format(partition))
+
+        while len(job_ids) != 0:
+
+            for idx, job_id in enumerate(job_ids):
+                job = bigquery_client.get_job(job_id, args.location)
+                if job.state == "DONE" and not job.error_result:
+                    logging.info("Job ID {} finished!".format(job_id))
+                    job_ids.pop(idx)
+
+            time.sleep(15)
 
         table_path = "backup/bigquery/{}/{}".format(args.dataset, table)
         backups = list_blobs(storage_client, args.bucket, table_path)
@@ -113,10 +134,13 @@ def backup_schema(client, bucket_name, file_name, schema):
 
 def backup_partition(partition_name, bucket_name, file_name):
 
-    _ = exec_shell_command(
+    logging.info("Backup partition {}".format(partition_name))
+
+    job_id = exec_shell_command(
         [
             "bq",
             "extract",
+            "--synchronous_mode=false",
             "--destination_format=AVRO",
             "--use_avro_logical_types",
             "--compression=SNAPPY",
@@ -125,7 +149,7 @@ def backup_partition(partition_name, bucket_name, file_name):
         ]
     )
 
-    logging.info("Backup partition {}".format(partition_name))
+    return job_id
 
 
 def filter_partitions(partitions):
@@ -197,12 +221,13 @@ def exec_shell_command(command):
 
 
 def parse_args():
+
     parser = argparse.ArgumentParser(description="Backup partitioned bigquery datasets")
     parser.add_argument("-p", "--project", required=True, help="name of a gcp project")
-    parser.add_argument(
-        "-d", "--dataset", required=True, help="name of a bigquery dataset"
-    )
+    parser.add_argument("-d", "--dataset", required=True, help="name of a bigquery dataset")
+    parser.add_argument("-l", "--location", required=False, default="EU", help="location of a bigquery dataset")
     parser.add_argument("-b", "--bucket", required=True, help="name of a backup bucket")
+
     return parser.parse_args()
 
 
