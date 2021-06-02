@@ -12,10 +12,22 @@ Some prerequisites:
 * Permissions on the project to create the datasets specified in the data catalog
 * Deployment manager should be enabled in the project
 
+There are 2 options for using the dcat-deploy script:
+
+## With positional arguments
+
 To deploy a data catalog, run the [deploy_dcat_gcp.sh](deploy_dcat_gcp.sh) script:
 ```bash
 $ deploy_dcat_gcp.sh data_catalog.json my-gcp-project
 ```
+
+## With optional arguments
+
+To deploy a data catalog, run the [deploy_dcat_gcp.sh](deploy_dcat_gcp.sh) script (check the shell script for all possible options):
+```bash
+$ deploy_dcat_gcp.sh data_catalog.json my-gcp-project -e [ENVIRONMENT_URL]
+```
+
 This will create the datasets as specified in the data_catalog.json file on the GCP project _my-gcp-project_. The scrips requires these parameters:
 * data catalog path: Path to the data catalog file
 * project_id: Project name of the GCP project deploying to
