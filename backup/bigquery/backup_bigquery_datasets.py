@@ -65,16 +65,6 @@ def main(args):
 
                 logging.info("Job ID:  {}".format(partition))
 
-        while len(job_ids) != 0:
-
-            for idx, job_id in enumerate(job_ids):
-                job = bigquery_client.get_job(job_id, args.location)
-                if job.state == "DONE" and not job.error_result:
-                    logging.info("Job ID {} finished!".format(job_id))
-                    job_ids.pop(idx)
-
-            time.sleep(15)
-
         table_path = "backup/bigquery/{}/{}".format(args.dataset, table)
         backups = list_blobs(storage_client, args.bucket, table_path)
         expired = [
@@ -88,6 +78,16 @@ def main(args):
         logging.info("Removing expired backups for {}".format(table))
         for backup in expired:
             delete_blob(storage_client, args.bucket, backup)
+
+    while len(job_ids) != 0:
+
+        for idx, job_id in enumerate(job_ids):
+            job = bigquery_client.get_job(job_id, args.location)
+            if job.state == "DONE" and not job.error_result:
+                logging.info("Job ID {} finished!".format(job_id))
+                job_ids.pop(idx)
+
+        time.sleep(15)
 
 
 @retry(ServiceUnavailable, tries=5, delay=5, backoff=2, logger=None)
