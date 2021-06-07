@@ -2,7 +2,7 @@ cachetools==4.2.2
 certifi==2021.5.30
 chardet==4.0.0
 coverage==5.5
-google-api-core==1.28.0
+google-api-core==1.29.0
 google-auth==1.30.1
 google-cloud-secret-manager==2.4.0
 googleapis-common-protos==1.53.0
@@ -14,7 +14,7 @@ mypy-extensions==0.4.3
 nose2==0.10.0
 packaging==20.9
 proto-plus==1.18.1
-protobuf==3.17.1
+protobuf==3.17.2
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pyparsing==2.4.7
@@ -24,5 +24,5 @@ requests==2.25.1
 rsa==4.7.2
 six==1.16.0
 typing-extensions==3.10.0.0
-typing-inspect==0.6.0
+typing-inspect==0.7.0
 urllib3==1.26.5
