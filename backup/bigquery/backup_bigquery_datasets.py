@@ -1,4 +1,3 @@
-import time
 import argparse
 import logging
 import subprocess  # nosec
@@ -22,8 +21,6 @@ def main(args):
     tables = get_tables(bigquery_client, args.project, args.dataset)
 
     logging.info("Starting backup for dataset {}".format(args.dataset))
-
-    job_ids = []
 
     for table in tables:
 
@@ -60,10 +57,7 @@ def main(args):
                 size = get_partition_size(bigquery_client, partition_name)
                 part = "-*" if size >= 1024 * 1024 * 1024 else ""
                 partition_file = "{}/extract{}.avro".format(partition_path, part)
-                job_id = backup_partition(partition_name, args.bucket, partition_file)
-                job_ids.append(job_id)
-
-                logging.info("Job ID:  {}".format(partition))
+                backup_partition(partition_name, args.bucket, partition_file)
 
         table_path = "backup/bigquery/{}/{}".format(args.dataset, table)
         backups = list_blobs(storage_client, args.bucket, table_path)
@@ -78,16 +72,6 @@ def main(args):
         logging.info("Removing expired backups for {}".format(table))
         for backup in expired:
             delete_blob(storage_client, args.bucket, backup)
-
-    while len(job_ids) != 0:
-
-        for idx, job_id in enumerate(job_ids):
-            job = bigquery_client.get_job(job_id, args.location)
-            if job.state == "DONE" and not job.error_result:
-                logging.info("Job ID {} finished!".format(job_id))
-                job_ids.pop(idx)
-
-        time.sleep(15)
 
 
 @retry(ServiceUnavailable, tries=5, delay=5, backoff=2, logger=None)
@@ -134,9 +118,7 @@ def backup_schema(client, bucket_name, file_name, schema):
 
 def backup_partition(partition_name, bucket_name, file_name):
 
-    logging.info("Backup partition {}".format(partition_name))
-
-    job_id = exec_shell_command(
+    _ = exec_shell_command(
         [
             "bq",
             "extract",
@@ -148,8 +130,6 @@ def backup_partition(partition_name, bucket_name, file_name):
             "gs://{}/{}".format(bucket_name, file_name),
         ]
     )
-
-    return job_id
 
 
 def filter_partitions(partitions):
