@@ -179,6 +179,9 @@ for i, dataset in enumerate(catalog.get("dataset", [])):
                         if check_date is False:
                             resources_to_append.append(history_sub)
                             resources_to_append.append(history_sa)
+                    else:
+                        resources_to_append.append(history_sub)
+                        resources_to_append.append(history_sa)
                     catalog["dataset"][i]["distribution"].extend(resources_to_append)
             # TODO: remove below when every topic has a lifespan
             else:
