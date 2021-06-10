@@ -279,6 +279,17 @@ def generate_config(context):  # noqa: C901
                             }
                         else:
                             topic_not_in_use = True
+                    else:
+                        resource_to_append = {
+                            "name": distribution["title"],
+                            "type": "pubsub.v1.topic",
+                            "properties": {
+                                "topic": distribution["title"],
+                                "labels": {
+                                    "accesslevel": dataset.get("accessLevel", "")
+                                },
+                            },
+                        }
                 # TODO: remove below when every topic has a lifespan
                 else:
                     resource_to_append = {
