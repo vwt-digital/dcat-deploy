@@ -127,46 +127,63 @@ if catalog.get("backupDestination"):
 for i, dataset in enumerate(catalog.get("dataset", [])):
     for distribution in dataset.get("distribution", []):
         if distribution.get("format") == "topic":
-            resources_to_append = [
-                {
-                    "accessURL": "https://console.cloud.google.com/cloudpubsub/subscriptions/{}-history-sub".format(
-                        distribution.get("title")
-                    ),
-                    "mediaType": "application/json",
-                    "format": "subscription",
-                    "title": "{}-history-sub".format(distribution.get("title")),
-                    "description": "{} history subscription".format(
-                        distribution.get("description")
-                    ),
-                    "deploymentProperties": {"ackDeadlineSeconds": 600},
-                },
-                {
-                    "accessURL": "https://console.cloud.google.com/storage/browser/{}-history-stg".format(
-                        distribution.get("title")
-                    ),
-                    "mediaType": "application/json",
-                    "deploymentZone": get_deployment_zone(project),
-                    "format": "blob-storage",
-                    "title": "{}-history-stg".format(distribution.get("title")),
-                    "description": "{} history storage".format(
-                        distribution.get("description")
-                    ),
-                },
-                {
-                    "accessURL": "https://console.cloud.google.com/storage/browser/{}-hst-sa-stg".format(
-                        distribution.get("title")
-                    ),
-                    "mediaType": "application/json",
-                    "deploymentZone": get_deployment_zone(project),
-                    "format": "blob-storage",
-                    "title": "{}-hst-sa-stg".format(distribution.get("title")),
-                    "description": "{} history staging storage".format(
-                        distribution.get("description")
-                    ),
-                    "deploymentProperties": {"defaultEventBasedHold": True},
-                },
-            ]
-            catalog["dataset"][i]["distribution"].extend(resources_to_append)
+            resources_to_append = []
+            history_storage = {
+                "accessURL": "https://console.cloud.google.com/storage/browser/{}-history-stg".format(
+                    distribution.get("title")
+                ),
+                "mediaType": "application/json",
+                "deploymentZone": get_deployment_zone(project),
+                "format": "blob-storage",
+                "title": "{}-history-stg".format(distribution.get("title")),
+                "description": "{} history storage".format(
+                    distribution.get("description")
+                ),
+            }
+            history_sub = {
+                "accessURL": "https://console.cloud.google.com/cloudpubsub/subscriptions/{}-history-sub".format(
+                    distribution.get("title")
+                ),
+                "mediaType": "application/json",
+                "format": "subscription",
+                "title": "{}-history-sub".format(distribution.get("title")),
+                "description": "{} history subscription".format(
+                    distribution.get("description")
+                ),
+                "deploymentProperties": {"ackDeadlineSeconds": 600},
+            }
+            history_sa = {
+                "accessURL": "https://console.cloud.google.com/storage/browser/{}-hst-sa-stg".format(
+                    distribution.get("title")
+                ),
+                "mediaType": "application/json",
+                "deploymentZone": get_deployment_zone(project),
+                "format": "blob-storage",
+                "title": "{}-hst-sa-stg".format(distribution.get("title")),
+                "description": "{} history staging storage".format(
+                    distribution.get("description")
+                ),
+                "deploymentProperties": {"defaultEventBasedHold": True},
+            }
+            lifespan = distribution.get("lifespan")
+            if lifespan:
+                if lifespan.get("startDate"):
+                    # If there is a start date, add a history storage
+                    resources_to_append.append(history_storage)
+                    # If there is no end date, add the history subscription and history staging bucket
+                    end_date = lifespan.get("endDate")
+                    if end_date:
+                        past = datetime.strptime(end_date, "%Y-%m-%d")
+                        present = datetime.now()
+                        check_date = past.date() <= present.date()
+                        if check_date is False:
+                            resources_to_append.append(history_sub)
+                            resources_to_append.append(history_sa)
+                    catalog["dataset"][i]["distribution"].extend(resources_to_append)
+            # TODO: remove below when every topic has a lifespan
+            else:
+                resources_to_append = [history_sub, history_storage, history_sa]
+                catalog["dataset"][i]["distribution"].extend(resources_to_append)
 
 
 print(json.dumps(catalog, indent=4))
