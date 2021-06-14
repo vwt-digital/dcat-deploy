@@ -3,6 +3,7 @@
 
 import re
 import sys
+import time
 from datetime import datetime, timedelta
 
 
@@ -263,7 +264,7 @@ def generate_config(context):  # noqa: C901
                 if lifespan:
                     end_date = lifespan.get("endDate")
                     if end_date:
-                        past = datetime.strptime(end_date, "%Y-%m-%d")
+                        past = datetime(*time.strptime(end_date, "%Y-%m-%d")[:6])
                         present = datetime.now()
                         check_date = past.date() <= present.date()
                         if check_date is False:
