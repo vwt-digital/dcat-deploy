@@ -263,7 +263,11 @@ def generate_config(context):  # noqa: C901
                 if lifespan:
                     end_date = lifespan.get("endDate")
                     if end_date:
-                        past = datetime.strptime(end_date, "%Y-%m-%d")
+                        end_date_string = end_date.split("-")
+                        year = int(end_date_string[0])
+                        month = int(end_date_string[1])
+                        day = int(end_date_string[2])
+                        past = datetime(year, month, day)
                         present = datetime.now()
                         check_date = past.date() <= present.date()
                         if check_date is False:
