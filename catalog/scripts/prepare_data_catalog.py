@@ -1,6 +1,5 @@
 import argparse
 import json
-import time
 from datetime import datetime
 
 parser = argparse.ArgumentParser()
@@ -174,7 +173,7 @@ for i, dataset in enumerate(catalog.get("dataset", [])):
                     # If there is no end date, add the history subscription and history staging bucket
                     end_date = lifespan.get("endDate")
                     if end_date:
-                        past = datetime(*time.strptime(end_date, "%Y-%m-%d")[:6])
+                        past = datetime.strptime(end_date, "%Y-%m-%d")
                         present = datetime.now()
                         check_date = past.date() <= present.date()
                         if check_date is False:
