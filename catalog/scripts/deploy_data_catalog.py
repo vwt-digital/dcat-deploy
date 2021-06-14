@@ -2,7 +2,8 @@
 # containing the data catalog to be deployed by this deployment template.
 
 import re
-from datetime import timedelta
+import sys
+from datetime import datetime, timedelta
 
 
 def find_topic(dataset):
@@ -256,16 +257,61 @@ def generate_config(context):  # noqa: C901
                     ] = gather_bucket_retention_policy(dataset.get("temporal", ""))
 
             if distribution["format"] == "topic":
-                resource_to_append = {
-                    "name": distribution["title"],
-                    "type": "pubsub.v1.topic",
-                    "properties": {
-                        "topic": distribution["title"],
-                        "labels": {"accesslevel": dataset.get("accessLevel", "")},
-                    },
-                }
+                topic_not_in_use = False
+                # Check if the end date of the topic is before today
+                lifespan = distribution.get("lifespan")
+                if lifespan:
+                    end_date = lifespan.get("endDate")
+                    if end_date:
+                        end_date_string = end_date.split("-")
+                        year = int(end_date_string[0])
+                        month = int(end_date_string[1])
+                        day = int(end_date_string[2])
+                        past = datetime(year, month, day)
+                        present = datetime.now()
+                        check_date = past.date() <= present.date()
+                        if check_date is False:
+                            resource_to_append = {
+                                "name": distribution["title"],
+                                "type": "pubsub.v1.topic",
+                                "properties": {
+                                    "topic": distribution["title"],
+                                    "labels": {
+                                        "accesslevel": dataset.get("accessLevel", "")
+                                    },
+                                },
+                            }
+                        else:
+                            topic_not_in_use = True
+                    else:
+                        resource_to_append = {
+                            "name": distribution["title"],
+                            "type": "pubsub.v1.topic",
+                            "properties": {
+                                "topic": distribution["title"],
+                                "labels": {
+                                    "accesslevel": dataset.get("accessLevel", "")
+                                },
+                            },
+                        }
+                # TODO: remove below when every topic has a lifespan
+                else:
+                    resource_to_append = {
+                        "name": distribution["title"],
+                        "type": "pubsub.v1.topic",
+                        "properties": {
+                            "topic": distribution["title"],
+                            "labels": {"accesslevel": dataset.get("accessLevel", "")},
+                        },
+                    }
 
             if distribution["format"] == "subscription":
+                if topic_not_in_use:
+                    print(
+                        "ERROR: A topic with an end date that is today's date or before today"
+                        " has been added, no subscriptions can be added to it."
+                    )
+                    sys.exit(1)
                 resource_to_append = {
                     "name": distribution["title"],
                     "type": "pubsub.v1.subscription",
