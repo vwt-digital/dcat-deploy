@@ -64,6 +64,7 @@ gcloud compute instances create "${instance_name}" \
   --metadata-from-file startup-script="${basedir}"/startup_script.sh \
   --machine-type "g1-small" \
   --boot-disk-size "10GB" \
+  --image-project "ubuntu-os-cloud" \
   --image-family "ubuntu-minimal-2104" \
   --preemptible
 
