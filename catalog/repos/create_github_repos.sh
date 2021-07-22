@@ -41,8 +41,8 @@ for pr in $(python3 "${basedir}"/listrepos.py "${DATA_CATALOG}"); do
   curl -d @"${basedir}"/newRepo.json -X POST -H "Authorization:token ${GITHUB_ACCESS_TOKEN}" "https://api.github.com/orgs/${ORGANISATION}/repos"
 
   # Create validation and contributing
-  curl -i -X PUT -H "Authorization:token ${GITHUB_ACCESS_TOKEN}" "https://api.github.com/repos/${ORGANISATION}/${REPO_NAME}/contents/.github/workflows/validation.yml" -d '{"message":"Initial validation","content":"'"$(less -FX "${basedir}"/validation.b64)"'"}'
-  curl -i -X PUT -H "Authorization:token ${GITHUB_ACCESS_TOKEN}" "https://api.github.com/repos/${ORGANISATION}/${REPO_NAME}/contents/CONTRIBUTING.md" -d '{"message":"Initial contributing","content":"'"$(less -FX "${basedir}"/contributing.b64)"'"}'
+  curl -i -X PUT -H "Authorization:token ${GITHUB_ACCESS_TOKEN}" "https://api.github.com/repos/${ORGANISATION}/${REPO_NAME}/contents/CONTRIBUTING.md" -d '{"message":"Initial contributing [skip ci]","content":"'"$(less -FX "${basedir}"/contributing.b64)"'"}'
+  curl -i -X PUT -H "Authorization:token ${GITHUB_ACCESS_TOKEN}" "https://api.github.com/repos/${ORGANISATION}/${REPO_NAME}/contents/.github/workflows/validation.yaml" -d '{"message":"Initial validation [skip ci]","content":"'"$(less -FX "${basedir}"/validation.b64)"'"}'
 
   # Add "develop" branch
   # shellcheck disable=SC2155
