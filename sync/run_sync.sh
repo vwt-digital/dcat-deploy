@@ -63,7 +63,9 @@ gcloud compute instances create "${instance_name}" \
   --metadata "serial-port-enable=true,branch-name=${BRANCH_NAME},iam-account=${IAM_ACCOUNT},secret-name=${SECRET_NAME}" \
   --metadata-from-file startup-script="${basedir}"/startup_script.sh \
   --machine-type "g1-small" \
-  --boot-disk-size "25GB" \
+  --boot-disk-size "10GB" \
+  --image-project "ubuntu-os-cloud" \
+  --image-family "ubuntu-minimal-2104" \
   --preemptible
 
 while [[ -n $(gcloud compute instances list --project "${PROJECT_ID}" --format "value(status)" --filter "name:${instance_name}") ]]
