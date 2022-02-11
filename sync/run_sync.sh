@@ -65,7 +65,7 @@ gcloud compute instances create "${instance_name}" \
   --machine-type "g1-small" \
   --boot-disk-size "10GB" \
   --image-project "ubuntu-os-cloud" \
-  --image-family "ubuntu-minimal-2104" \
+  --image-family "ubuntu-minimal-2110" \
   --preemptible
 
 while [[ -n $(gcloud compute instances list --project "${PROJECT_ID}" --format "value(status)" --filter "name:${instance_name}") ]]
