@@ -110,7 +110,7 @@ then
     if [[ -n "${job_exists}" ]]
     then
         echo " + Deleting existing job ${PROJECT_ID}-run-backup..."
-        gcloud scheduler jobs delete "${PROJECT_ID}"-run-backup --quiet
+        gcloud scheduler jobs delete "${PROJECT_ID}"-run-backup --quiet --location=europe-west1"
     fi
 
     # Random minute for scheduler
