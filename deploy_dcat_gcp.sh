@@ -104,7 +104,7 @@ then
 
     # Check if job already exists
     echo " + Check if job ${PROJECT_ID}-run-backup exists..."
-    job_exists=$(gcloud scheduler jobs list --project="${PROJECT_ID}" | grep "${PROJECT_ID}"-run-backup)
+    job_exists=$(gcloud scheduler jobs list --project="${PROJECT_ID}" --location=europe-west1" | grep "${PROJECT_ID}"-run-backup)
 
     # Delete job if it already exists
     if [[ -n "${job_exists}" ]]
