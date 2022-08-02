@@ -119,6 +119,7 @@ then
     # (Re)create job
     echo " + Creating job ${PROJECT_ID}-run-backup..."
     gcloud scheduler jobs create http "${PROJECT_ID}"-run-backup \
+        --location="europe-west1" \
         --schedule="${minute} 4 * * *" \
         --uri="https://cloudbuild.googleapis.com/v1/projects/${PROJECT_ID}/builds" \
         --message-body-from-file=cloudbuild_backup_gen.json \
